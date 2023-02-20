@@ -19,7 +19,12 @@
 # 1/2" 576x576+12+12
 # 5/8" 720x720+15+15
 
+# Circles! 825x825 -> trim to 800x800 @75dpi is 50x50
+# 3887+8670 - 4712+9495
+
 pngtopnm HIRES/tokens/sheet_a.png > /tmp/big.ppm
+
+pnmcut 3887 8670 825 825 /tmp/big.ppm | pnmcut 12 12 800 800 | pnmtopng > HIRES/tokens/shipment.png
 
 I=1
 for L in 592 4192 4792 5392 5992 6592
@@ -27,7 +32,7 @@ do
 	for T in 1360 5260 5860
 	do
 		echo half $I $L $T
-		pnmcut $L $T 600 600 /tmp/big.ppm | pnmcut 12 12 576 576 | pnmtopng > HIRES/tokens/half_a_$I.ppm
+		pnmcut $L $T 600 600 /tmp/big.ppm | pnmcut 12 12 576 576 | pnmtopng > HIRES/tokens/half_a_$I.png
 		I=$(expr $I + 1)
 	done
 done
@@ -38,7 +43,7 @@ do
 	for T in 760 1746 2732 3718 4704 5692 6678 7664
 	do
 		echo five $I $L $T
-		pnmcut $L $T 750 750 /tmp/big.ppm | pnmcut 15 15 720 720 | pnmtopng > HIRES/tokens/five_a_$I.ppm
+		pnmcut $L $T 750 750 /tmp/big.ppm | pnmcut 15 15 720 720 | pnmtopng > HIRES/tokens/five_a_$I.png
 		I=$(expr $I + 1)
 	done
 done
@@ -51,7 +56,7 @@ do
 	for T in 1360 5260 5860
 	do
 		echo half $I $L $T
-		pnmcut $L $T 600 600 /tmp/big.ppm | pnmcut 12 12 576 576 | pnmtopng > HIRES/tokens/half_b_$I.ppm
+		pnmcut $L $T 600 600 /tmp/big.ppm | pnmcut 12 12 576 576 | pnmtopng > HIRES/tokens/half_b_$I.png
 		I=$(expr $I + 1)
 	done
 done
@@ -62,7 +67,7 @@ do
 	for T in 760 1746 2732 3718 4704 5692 6678 7664
 	do
 		echo five $I $L $T
-		pnmcut $L $T 750 750 /tmp/big.ppm | pnmcut 15 15 720 720 | pnmtopng > HIRES/tokens/five_b_$I.ppm
+		pnmcut $L $T 750 750 /tmp/big.ppm | pnmcut 15 15 720 720 | pnmtopng > HIRES/tokens/five_b_$I.png
 		I=$(expr $I + 1)
 	done
 done

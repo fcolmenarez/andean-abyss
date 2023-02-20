@@ -1,0 +1,428 @@
+main { background-color: #777; }
+
+#role_Government, header.govt.your_turn { background-color: skyblue; }
+#role_AUC, header.auc.your_turn { background-color: khaki; }
+#role_Cartels, header.cartels.your_turn { background-color: darkseagreen; }
+#role_FARC, header.farc.your_turn { background-color: lightcoral; }
+
+#log { background-color: whitesmoke; }
+#log > div { padding-left: 20px; text-indent: -12px; }
+#log .h1 { background-color: silver; font-weight: bold; padding-top:4px; padding-bottom:4px; }
+#log .h2 { background-color: gainsboro; padding-top:2px; padding-bottom:2px; }
+#log .h2.govt { background-color: #c6d1eb }
+#log .h2.farc { background-color: #ebc9be }
+#log .h2.auc { background-color: #eaddc4 }
+#log .h2.cartels { background-color: #c2d7c7 }
+#log .h3 { text-decoration: underline; }
+#log .tip { cursor: pointer; }
+#log .tip:hover { text-decoration: underline; }
+
+.action { cursor: pointer }
+
+.role.active span { text-decoration: underline; }
+
+#card_tip {
+	position: fixed;
+	z-index: 100;
+	right: 240px;
+	top: 60px;
+}
+
+#mapwrap {
+	box-shadow: 0px 1px 10px #0008;
+	width: 1650px;
+	height: 2550px;
+	margin-bottom: 36px;
+}
+
+#map {
+	width: 1650px;
+	height: 2550px;
+	background-repeat: no-repeat;
+	background-size: cover;
+}
+
+#map { background-image: url("map75.jpg") }
+@media (min-resolution: 97dpi) {
+#map { background-image: url("map150.jpg") }
+}
+
+#svgmap { position: absolute; }
+#tokens { position: absolute; }
+#pieces { position: absolute; }
+#cities { position: absolute; }
+#boxes { position: absolute; }
+
+path { fill: transparent; }
+path.action { fill: white; fill-opacity: 0.3; stroke: white; stroke-width: 4; }
+path.action.foreign { fill: gold; stroke: lemonchiffon; }
+path.action.forest { fill: limegreen; stroke: limegreen; }
+path.action.grassland { fill: greenyellow; stroke: greenyellow; }
+path.action.mountain { fill: chocolate; stroke: chocolate; }
+
+.box{position:absolute;box-sizing:border-box;}
+.box.action{z-index:100; border:4px solid lemonchiffon;}
+.box.city{border-radius:50%}
+.box.city.action{background-color:#6495ed55;border:4px solid cornflowerblue;}
+.box.loc{border-radius:50%}
+.box.loc.action{background-color:#fff5;border:4px solid white;}
+
+.piece { position: absolute; }
+.piece { background-position: center; background-repeat: no-repeat; background-size: contain; }
+.piece {
+	transition-property: top, left;
+	transition-duration: 700ms;
+	transition-timing-function: ease;
+}
+.piece {
+	filter: drop-shadow(0 1px 2px #000a);
+}
+.piece.action {
+	filter:
+		drop-shadow(0 -2px 0 white)
+		drop-shadow(0 2px 0 white)
+		drop-shadow(-2px 0 0 white)
+		drop-shadow(2px 0 0 white)
+		;
+}
+
+.token {
+	position: absolute;
+	transition-property: top, left;
+	transition-duration: 700ms;
+	transition-timing-function: ease;
+	background-repeat: no-repeat;
+	border-radius: 8px;
+	border: 2px solid #333;
+	background-size: 45px 45px;
+	width: 45px;
+	height: 45px;
+}
+
+.token.terror,
+.token.sabotage,
+.token.active_opposition,
+.token.passive_opposition,
+.token.passive_support,
+.token.active_support,
+.token.reminder
+{
+	border-radius: 0px;
+	background-size: 36px 36px;
+	width: 36px;
+	height: 36px;
+}
+
+.token.shipment
+{
+	border-radius: 50%;
+	background-size: 50px 50px;
+	background-position: center;
+	width: 50px;
+	height: 50px;
+}
+.token.shipment { background-color: #01904b; border-color: #01904b; box-shadow: 0 0 0 1px #002c00, 0px 1px 4px #0008; }
+
+#token_total_support { background-color: #006cb7; border-color: #348cda #004d95 #004d95 #348cda; box-shadow: 0 0 0 1px #000d55, 0px 1px 4px #0008; }
+#token_prop_card { background-color: #80643e; border-color: #a0835c #614721 #614721 #a0835c; box-shadow: 0 0 0 1px #291200, 0px 1px 4px #0008; }
+#token_oppose_plus_bases { background-color: #d74729; border-color: #ff6f50 #ad1800 #ad1800 #ff6f50; box-shadow: 0 0 0 1px #5a0000, 0px 1px 4px #0008; }
+#token_el_presidente { background-color: #004e81; border-color: #23669b #003768 #003768 #23669b; box-shadow: 0 0 0 1px #000939, 0px 1px 4px #0008; }
+#token_aid { background-color: #6a8796; border-color: #8eacbc #486472 #486472 #8eacbc; box-shadow: 0 0 0 1px #08232f, 0px 1px 4px #0008; }
+.token.passive_support { background-color: #4b87c0; border-color: #70ade8 #266399 #266399 #70ade8; box-shadow: 0 0 0 1px #001e50, 0px 1px 4px #0008; }
+.token.passive_opposition { background-color: #b75f61; border-color: #df8384 #903c40 #903c40 #df8384; box-shadow: 0 0 0 1px #460005, 0px 1px 4px #0008; }
+.token.active_support { background-color: #0054a6; border-color: #286fc4 #003989 #003989 #286fc4; box-shadow: 0 0 0 1px #000051, 0px 1px 4px #0008; }
+.token.active_opposition { background-color: #991a1e; border-color: #b73a37 #7b0001 #7b0001 #b73a37; box-shadow: 0 0 0 1px #400000, 0px 1px 4px #0008; }
+.token.govt_control { background-color: #0054a6; border-color: #286fc4 #003989 #003989 #286fc4; box-shadow: 0 0 0 1px #000051, 0px 1px 4px #0008; }
+.token.farc_control { background-color: #991a1e; border-color: #b73a37 #7b0001 #7b0001 #b73a37; box-shadow: 0 0 0 1px #400000, 0px 1px 4px #0008; }
+.token.farc_zone { background-color: #ffc509; border-color: #fff75f #c68e00 #c68e00 #fff75f; box-shadow: 0 0 0 1px #5d2800, 0px 1px 4px #0008; }
+.token.terror { background-color: #535052; border-color: #6b686a #3c393b #3c393b #6b686a; box-shadow: 0 0 0 1px #120f11, 0px 1px 4px #0008; }
+.token.sabotage { background-color: #535052; border-color: #6b686a #3c393b #3c393b #6b686a; box-shadow: 0 0 0 1px #120f11, 0px 1px 4px #0008; }
+.token.unshaded { background-color: #9dadb3; border-color: #ccdce2 #718086 #718086 #ccdce2; box-shadow: 0 0 0 1px #222f34, 0px 1px 4px #0008; }
+.token.shaded { background-color: #465c80; border-color: #60779d #2d4264 #2d4264 #60779d; box-shadow: 0 0 0 1px #021230, 0px 1px 4px #0008; }
+.token.reminder.sucumbios { background-color: #6d5735; border-color: #89724f #523d1b #523d1b #89724f; box-shadow: 0 0 0 1px #210f00, 0px 1px 4px #0008; }
+.token.reminder.senado_farc { background-color: #cf1f30; border-color: #f74d51 #a7000b #a7000b #f74d51; box-shadow: 0 0 0 1px #590000, 0px 1px 4px #0008; }
+.token.reminder.senado_cartels { background-color: #6d9f3b; border-color: #94c865 #487703 #487703 #94c865; box-shadow: 0 0 0 1px #012e00, 0px 1px 4px #0008; }
+.token.reminder.senado_auc { background-color: #ffcf00; border-color: #fffa57 #c69700 #c69700 #fffa57; box-shadow: 0 0 0 1px #5b2e00, 0px 1px 4px #0008; }
+.token.reminder.darien { background-color: #8dc73f; border-color: #bdfa75 #609600 #609600 #bdfa75; box-shadow: 0 0 0 1px #0a3c00, 0px 1px 4px #0008; }
+
+#token_aid { background-image: url(tokens.1x/aid.png) }
+#token_el_presidente { background-image: url(tokens.1x/el_presidente.png) }
+#token_oppose_plus_bases { background-image: url(tokens.1x/oppose_plus_bases.png) }
+#token_prop_card { background-image: url(tokens.1x/prop_card.png) }
+#token_total_support { background-image: url(tokens.1x/total_support.png) }
+.token.shipment { background-image: url(tokens.1x/shipment.png) }
+.token.terror { background-image: url(tokens.1x/terror.png) }
+.token.sabotage { background-image: url(tokens.1x/sabotage.png) }
+.token.active_opposition { background-image: url(tokens.1x/active_opposition.png) }
+.token.passive_opposition { background-image: url(tokens.1x/passive_opposition.png) }
+.token.passive_support { background-image: url(tokens.1x/passive_support.png) }
+.token.active_support { background-image: url(tokens.1x/active_support.png) }
+.token.farc_control { background-image: url(tokens.1x/farc_control.png) }
+.token.govt_control { background-image: url(tokens.1x/govt_control.png) }
+.token.farc_zone { background-image: url(tokens.1x/farc_zone.png) }
+.token.unshaded.first_div { background-image: url(tokens.1x/unshaded_1st_div.png) }
+.token.unshaded.seventh_sf { background-image: url(tokens.1x/unshaded_7th_sf.png) }
+.token.unshaded.black_hawks { background-image: url(tokens.1x/unshaded_black_hawks.png) }
+.token.unshaded.meteoro { background-image: url(tokens.1x/unshaded_meteoro.png) }
+.token.unshaded.mtn_bns { background-image: url(tokens.1x/unshaded_mtn_bns.png) }
+.token.unshaded.ndsc { background-image: url(tokens.1x/unshaded_ndsc.png) }
+.token.unshaded.ospina { background-image: url(tokens.1x/unshaded_ospina.png) }
+.token.unshaded.tapias { background-image: url(tokens.1x/unshaded_tapias.png) }
+.token.shaded.first_div { background-image: url(tokens.1x/shaded_1st_div.png) }
+.token.shaded.seventh_sf { background-image: url(tokens.1x/shaded_7th_sf.png) }
+.token.shaded.black_hawks { background-image: url(tokens.1x/shaded_black_hawks.png) }
+.token.shaded.meteoro { background-image: url(tokens.1x/shaded_meteoro.png) }
+.token.shaded.mtn_bns { background-image: url(tokens.1x/shaded_mtn_bns.png) }
+.token.shaded.ndsc { background-image: url(tokens.1x/shaded_ndsc.png) }
+.token.shaded.ospina { background-image: url(tokens.1x/shaded_ospina.png) }
+.token.shaded.tapias { background-image: url(tokens.1x/shaded_tapias.png) }
+.token.reminder.darien { background-image: url(tokens.1x/reminder_darien.png) }
+.token.reminder.senado_auc { background-image: url(tokens.1x/reminder_senado_auc.png) }
+.token.reminder.senado_cartels { background-image: url(tokens.1x/reminder_senado_cartels.png) }
+.token.reminder.senado_farc { background-image: url(tokens.1x/reminder_senado_farc.png) }
+.token.reminder.sucumbios { background-image: url(tokens.1x/reminder_sucumbios.png) }
+
+@media (min-resolution: 97dpi) {
+#token_aid { background-image: url(tokens.2x/aid.png) }
+#token_el_presidente { background-image: url(tokens.2x/el_presidente.png) }
+#token_oppose_plus_bases { background-image: url(tokens.2x/oppose_plus_bases.png) }
+#token_prop_card { background-image: url(tokens.2x/prop_card.png) }
+#token_total_support { background-image: url(tokens.2x/total_support.png) }
+.token.shipment { background-image: url(tokens.2x/shipment.png) }
+.token.terror { background-image: url(tokens.2x/terror.png) }
+.token.sabotage { background-image: url(tokens.2x/sabotage.png) }
+.token.active_opposition { background-image: url(tokens.2x/active_opposition.png) }
+.token.passive_opposition { background-image: url(tokens.2x/passive_opposition.png) }
+.token.passive_support { background-image: url(tokens.2x/passive_support.png) }
+.token.active_support { background-image: url(tokens.2x/active_support.png) }
+.token.farc_control { background-image: url(tokens.2x/farc_control.png) }
+.token.govt_control { background-image: url(tokens.2x/govt_control.png) }
+.token.farc_zone { background-image: url(tokens.2x/farc_zone.png) }
+.token.unshaded.first_div { background-image: url(tokens.2x/unshaded_1st_div.png) }
+.token.unshaded.seventh_sf { background-image: url(tokens.2x/unshaded_7th_sf.png) }
+.token.unshaded.black_hawks { background-image: url(tokens.2x/unshaded_black_hawks.png) }
+.token.unshaded.meteoro { background-image: url(tokens.2x/unshaded_meteoro.png) }
+.token.unshaded.mtn_bns { background-image: url(tokens.2x/unshaded_mtn_bns.png) }
+.token.unshaded.ndsc { background-image: url(tokens.2x/unshaded_ndsc.png) }
+.token.unshaded.ospina { background-image: url(tokens.2x/unshaded_ospina.png) }
+.token.unshaded.tapias { background-image: url(tokens.2x/unshaded_tapias.png) }
+.token.shaded.first_div { background-image: url(tokens.2x/shaded_1st_div.png) }
+.token.shaded.seventh_sf { background-image: url(tokens.2x/shaded_7th_sf.png) }
+.token.shaded.black_hawks { background-image: url(tokens.2x/shaded_black_hawks.png) }
+.token.shaded.meteoro { background-image: url(tokens.2x/shaded_meteoro.png) }
+.token.shaded.mtn_bns { background-image: url(tokens.2x/shaded_mtn_bns.png) }
+.token.shaded.ndsc { background-image: url(tokens.2x/shaded_ndsc.png) }
+.token.shaded.ospina { background-image: url(tokens.2x/shaded_ospina.png) }
+.token.shaded.tapias { background-image: url(tokens.2x/shaded_tapias.png) }
+.token.reminder.darien { background-image: url(tokens.2x/reminder_darien.png) }
+.token.reminder.senado_auc { background-image: url(tokens.2x/reminder_senado_auc.png) }
+.token.reminder.senado_cartels { background-image: url(tokens.2x/reminder_senado_cartels.png) }
+.token.reminder.senado_farc { background-image: url(tokens.2x/reminder_senado_farc.png) }
+.token.reminder.sucumbios { background-image: url(tokens.2x/reminder_sucumbios.png) }
+}
+
+.cylinder { width: 44px; height: 48px; }
+.base { width: 44px; height: 38px; }
+.guerrilla { width: 29px; height: 36px; }
+.police, .troops { width: 29px; height: 36px; }
+
+.govt.cylinder { background-image: url(images/govt_cylinder.svg) }
+.govt.police { background-image: url(images/govt_police.svg) }
+.govt.troops { background-image: url(images/govt_troops.svg) }
+.govt.base { background-image: url(images/govt_base.svg) }
+.auc.cylinder { background-image: url(images/auc_cylinder.svg) }
+.auc.guerrilla { background-image: url(images/auc_guerrilla.svg) }
+.auc.guerrilla.active { background-image: url(images/auc_guerrilla_active.svg) }
+.auc.base { background-image: url(images/auc_base.svg) }
+.cartels.cylinder { background-image: url(images/cartels_cylinder.svg) }
+.cartels.guerrilla { background-image: url(images/cartels_guerrilla.svg) }
+.cartels.guerrilla.active { background-image: url(images/cartels_guerrilla_active.svg) }
+.cartels.base { background-image: url(images/cartels_base.svg) }
+.farc.cylinder { background-image: url(images/farc_cylinder.svg) }
+.farc.guerrilla { background-image: url(images/farc_guerrilla.svg) }
+.farc.guerrilla.active { background-image: url(images/farc_guerrilla_active.svg) }
+.farc.base { background-image: url(images/farc_base.svg) }
+
+#card_panel {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 18px;
+	padding: 0 18px;
+	max-width: 1614px;
+	margin: 36px auto;
+}
+
+#deck_outer {
+	position: relative;
+}
+#deck_size {
+	position: absolute;
+	right: 24px;
+	bottom: 16px;
+	font-size: 24px;
+	font-weight: bold;
+	color: white;
+}
+
+.card {
+	width: 248px;
+	height: 348px;
+	border-radius: 16px;
+	box-shadow: 1px 1px 4px #0008;
+	background-color: darkgreen;
+	background-size: cover;
+	background-repeat: no-repeat;
+	border: 1px solid #454;
+}
+
+.card.card_back{background-image:url(cards.1x/card_back.jpg)}
+.card.card_1{background-image:url(cards.1x/card_01.jpg)}
+.card.card_2{background-image:url(cards.1x/card_02.jpg)}
+.card.card_3{background-image:url(cards.1x/card_03.jpg)}
+.card.card_4{background-image:url(cards.1x/card_04.jpg)}
+.card.card_5{background-image:url(cards.1x/card_05.jpg)}
+.card.card_6{background-image:url(cards.1x/card_06.jpg)}
+.card.card_7{background-image:url(cards.1x/card_07.jpg)}
+.card.card_8{background-image:url(cards.1x/card_08.jpg)}
+.card.card_9{background-image:url(cards.1x/card_09.jpg)}
+.card.card_10{background-image:url(cards.1x/card_10.jpg)}
+.card.card_11{background-image:url(cards.1x/card_11.jpg)}
+.card.card_12{background-image:url(cards.1x/card_12.jpg)}
+.card.card_13{background-image:url(cards.1x/card_13.jpg)}
+.card.card_14{background-image:url(cards.1x/card_14.jpg)}
+.card.card_15{background-image:url(cards.1x/card_15.jpg)}
+.card.card_16{background-image:url(cards.1x/card_16.jpg)}
+.card.card_17{background-image:url(cards.1x/card_17.jpg)}
+.card.card_18{background-image:url(cards.1x/card_18.jpg)}
+.card.card_19{background-image:url(cards.1x/card_19.jpg)}
+.card.card_20{background-image:url(cards.1x/card_20.jpg)}
+.card.card_21{background-image:url(cards.1x/card_21.jpg)}
+.card.card_22{background-image:url(cards.1x/card_22.jpg)}
+.card.card_23{background-image:url(cards.1x/card_23.jpg)}
+.card.card_24{background-image:url(cards.1x/card_24.jpg)}
+.card.card_25{background-image:url(cards.1x/card_25.jpg)}
+.card.card_26{background-image:url(cards.1x/card_26.jpg)}
+.card.card_27{background-image:url(cards.1x/card_27.jpg)}
+.card.card_28{background-image:url(cards.1x/card_28.jpg)}
+.card.card_29{background-image:url(cards.1x/card_29.jpg)}
+.card.card_30{background-image:url(cards.1x/card_30.jpg)}
+.card.card_31{background-image:url(cards.1x/card_31.jpg)}
+.card.card_32{background-image:url(cards.1x/card_32.jpg)}
+.card.card_33{background-image:url(cards.1x/card_33.jpg)}
+.card.card_34{background-image:url(cards.1x/card_34.jpg)}
+.card.card_35{background-image:url(cards.1x/card_35.jpg)}
+.card.card_36{background-image:url(cards.1x/card_36.jpg)}
+.card.card_37{background-image:url(cards.1x/card_37.jpg)}
+.card.card_38{background-image:url(cards.1x/card_38.jpg)}
+.card.card_39{background-image:url(cards.1x/card_39.jpg)}
+.card.card_40{background-image:url(cards.1x/card_40.jpg)}
+.card.card_41{background-image:url(cards.1x/card_41.jpg)}
+.card.card_42{background-image:url(cards.1x/card_42.jpg)}
+.card.card_43{background-image:url(cards.1x/card_43.jpg)}
+.card.card_44{background-image:url(cards.1x/card_44.jpg)}
+.card.card_45{background-image:url(cards.1x/card_45.jpg)}
+.card.card_46{background-image:url(cards.1x/card_46.jpg)}
+.card.card_47{background-image:url(cards.1x/card_47.jpg)}
+.card.card_48{background-image:url(cards.1x/card_48.jpg)}
+.card.card_49{background-image:url(cards.1x/card_49.jpg)}
+.card.card_50{background-image:url(cards.1x/card_50.jpg)}
+.card.card_51{background-image:url(cards.1x/card_11.jpg)}
+.card.card_52{background-image:url(cards.1x/card_52.jpg)}
+.card.card_53{background-image:url(cards.1x/card_53.jpg)}
+.card.card_54{background-image:url(cards.1x/card_54.jpg)}
+.card.card_55{background-image:url(cards.1x/card_55.jpg)}
+.card.card_56{background-image:url(cards.1x/card_56.jpg)}
+.card.card_57{background-image:url(cards.1x/card_57.jpg)}
+.card.card_58{background-image:url(cards.1x/card_58.jpg)}
+.card.card_59{background-image:url(cards.1x/card_59.jpg)}
+.card.card_60{background-image:url(cards.1x/card_60.jpg)}
+.card.card_61{background-image:url(cards.1x/card_61.jpg)}
+.card.card_62{background-image:url(cards.1x/card_62.jpg)}
+.card.card_63{background-image:url(cards.1x/card_63.jpg)}
+.card.card_64{background-image:url(cards.1x/card_64.jpg)}
+.card.card_65{background-image:url(cards.1x/card_65.jpg)}
+.card.card_66{background-image:url(cards.1x/card_66.jpg)}
+.card.card_67{background-image:url(cards.1x/card_67.jpg)}
+.card.card_68{background-image:url(cards.1x/card_68.jpg)}
+.card.card_69{background-image:url(cards.1x/card_69.jpg)}
+.card.card_70{background-image:url(cards.1x/card_70.jpg)}
+.card.card_71{background-image:url(cards.1x/card_71.jpg)}
+.card.card_72{background-image:url(cards.1x/card_72.jpg)}
+.card.card_73, .card.card_74, .card.card_75, .card.card_76 {background-image:url(cards.1x/card_7x.jpg)}
+
+@media (min-resolution: 97dpi) {
+.card.card_back{background-image:url(cards.2x/card_back.jpg)}
+.card.card_1{background-image:url(cards.2x/card_01.jpg)}
+.card.card_2{background-image:url(cards.2x/card_02.jpg)}
+.card.card_3{background-image:url(cards.2x/card_03.jpg)}
+.card.card_4{background-image:url(cards.2x/card_04.jpg)}
+.card.card_5{background-image:url(cards.2x/card_05.jpg)}
+.card.card_6{background-image:url(cards.2x/card_06.jpg)}
+.card.card_7{background-image:url(cards.2x/card_07.jpg)}
+.card.card_8{background-image:url(cards.2x/card_08.jpg)}
+.card.card_9{background-image:url(cards.2x/card_09.jpg)}
+.card.card_10{background-image:url(cards.2x/card_10.jpg)}
+.card.card_11{background-image:url(cards.2x/card_11.jpg)}
+.card.card_12{background-image:url(cards.2x/card_12.jpg)}
+.card.card_13{background-image:url(cards.2x/card_13.jpg)}
+.card.card_14{background-image:url(cards.2x/card_14.jpg)}
+.card.card_15{background-image:url(cards.2x/card_15.jpg)}
+.card.card_16{background-image:url(cards.2x/card_16.jpg)}
+.card.card_17{background-image:url(cards.2x/card_17.jpg)}
+.card.card_18{background-image:url(cards.2x/card_18.jpg)}
+.card.card_19{background-image:url(cards.2x/card_19.jpg)}
+.card.card_20{background-image:url(cards.2x/card_20.jpg)}
+.card.card_21{background-image:url(cards.2x/card_21.jpg)}
+.card.card_22{background-image:url(cards.2x/card_22.jpg)}
+.card.card_23{background-image:url(cards.2x/card_23.jpg)}
+.card.card_24{background-image:url(cards.2x/card_24.jpg)}
+.card.card_25{background-image:url(cards.2x/card_25.jpg)}
+.card.card_26{background-image:url(cards.2x/card_26.jpg)}
+.card.card_27{background-image:url(cards.2x/card_27.jpg)}
+.card.card_28{background-image:url(cards.2x/card_28.jpg)}
+.card.card_29{background-image:url(cards.2x/card_29.jpg)}
+.card.card_30{background-image:url(cards.2x/card_30.jpg)}
+.card.card_31{background-image:url(cards.2x/card_31.jpg)}
+.card.card_32{background-image:url(cards.2x/card_32.jpg)}
+.card.card_33{background-image:url(cards.2x/card_33.jpg)}
+.card.card_34{background-image:url(cards.2x/card_34.jpg)}
+.card.card_35{background-image:url(cards.2x/card_35.jpg)}
+.card.card_36{background-image:url(cards.2x/card_36.jpg)}
+.card.card_37{background-image:url(cards.2x/card_37.jpg)}
+.card.card_38{background-image:url(cards.2x/card_38.jpg)}
+.card.card_39{background-image:url(cards.2x/card_39.jpg)}
+.card.card_40{background-image:url(cards.2x/card_40.jpg)}
+.card.card_41{background-image:url(cards.2x/card_41.jpg)}
+.card.card_42{background-image:url(cards.2x/card_42.jpg)}
+.card.card_43{background-image:url(cards.2x/card_43.jpg)}
+.card.card_44{background-image:url(cards.2x/card_44.jpg)}
+.card.card_45{background-image:url(cards.2x/card_45.jpg)}
+.card.card_46{background-image:url(cards.2x/card_46.jpg)}
+.card.card_47{background-image:url(cards.2x/card_47.jpg)}
+.card.card_48{background-image:url(cards.2x/card_48.jpg)}
+.card.card_49{background-image:url(cards.2x/card_49.jpg)}
+.card.card_50{background-image:url(cards.2x/card_50.jpg)}
+.card.card_51{background-image:url(cards.2x/card_11.jpg)}
+.card.card_52{background-image:url(cards.2x/card_52.jpg)}
+.card.card_53{background-image:url(cards.2x/card_53.jpg)}
+.card.card_54{background-image:url(cards.2x/card_54.jpg)}
+.card.card_55{background-image:url(cards.2x/card_55.jpg)}
+.card.card_56{background-image:url(cards.2x/card_56.jpg)}
+.card.card_57{background-image:url(cards.2x/card_57.jpg)}
+.card.card_58{background-image:url(cards.2x/card_58.jpg)}
+.card.card_59{background-image:url(cards.2x/card_59.jpg)}
+.card.card_60{background-image:url(cards.2x/card_60.jpg)}
+.card.card_61{background-image:url(cards.2x/card_61.jpg)}
+.card.card_62{background-image:url(cards.2x/card_62.jpg)}
+.card.card_63{background-image:url(cards.2x/card_63.jpg)}
+.card.card_64{background-image:url(cards.2x/card_64.jpg)}
+.card.card_65{background-image:url(cards.2x/card_65.jpg)}
+.card.card_66{background-image:url(cards.2x/card_66.jpg)}
+.card.card_67{background-image:url(cards.2x/card_67.jpg)}
+.card.card_68{background-image:url(cards.2x/card_68.jpg)}
+.card.card_69{background-image:url(cards.2x/card_69.jpg)}
+.card.card_70{background-image:url(cards.2x/card_70.jpg)}
+.card.card_71{background-image:url(cards.2x/card_71.jpg)}
+.card.card_72{background-image:url(cards.2x/card_72.jpg)}
+.card.card_73, .card.card_74, .card.card_75, .card.card_76 {background-image:url(cards.2x/card_7x.jpg)}
+}

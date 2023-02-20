@@ -1,119 +1,121 @@
+let fs = require("fs")
+
 let data = {}
 
+function to_ascii(s) {
+	return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+}
+
 const IMAP = { G: "Government", F: "FARC", A: "AUC", C: "Cartels" }
-let initiative = null
+let order = null
 let cards = [ null ]
-function def_initiative(s) {
-	initiative = [ IMAP[s[0]], IMAP[s[1]], IMAP[s[2]], IMAP[s[3]] ]
+function def_order(s) {
+	order = [ IMAP[s[0]], IMAP[s[1]], IMAP[s[2]], IMAP[s[3]] ]
 }
 function def_card(number, name) {
-	cards[number] = { number, name, initiative }
+	cards[number] = { number, name, order }
 }
-def_initiative("GFAC")
+def_order("GFAC")
 def_card(1, "1st Division")
 def_card(2, "Ospina & Mora")
 def_card(3, "Tapias")
-def_initiative("GFCA")
+def_order("GFCA")
 def_card(4, "Caño Limón - Coveñas")
 def_card(5, "Occidental & Ecopetrol")
 def_card(6, "Oil Spill")
-def_initiative("GAFC")
+def_order("GAFC")
 def_card(7, "7th Special Forces")
 def_card(8, "Fuerza Aérea Colombiana")
 def_card(9, "High Mountain Battalions")
-def_initiative("GACF")
+def_order("GACF")
 def_card(10, "Blackhawks")
 def_card(11, "National Defense & Security Council")
 def_card(12, "Plan Colombia")
-def_initiative("GCFA")
+def_order("GCFA")
 def_card(13, "Plan Meteoro")
 def_card(14, "Tres Esquinas")
 def_card(15, "War Tax")
-def_initiative("GCAF")
+def_order("GCAF")
 def_card(16, "Coffee Prices")
 def_card(17, "Madrid Donors")
 def_card(18, "NSPD-18")
-def_initiative("FGAC")
+def_order("FGAC")
 def_card(19, "General Offensive")
 def_card(20, "Mono Jojoy")
 def_card(21, "Raúl Reyes")
-def_initiative("FGCA")
+def_order("FGCA")
 def_card(22, "Alfonso Cano")
 def_card(23, "DoD Contractors")
 def_card(24, "Operación Jaque")
-def_initiative("FAGC")
+def_order("FAGC")
 def_card(25, "Ejército de Liberación Nacional")
 def_card(26, "Gramaje")
 def_card(27, "Misil Antiaéreo")
-def_initiative("FACG")
+def_order("FACG")
 def_card(28, "Hugo Chávez")
 def_card(29, "Kill Zone")
 def_card(30, "Peace Commission")
-def_initiative("FCGA")
+def_order("FCGA")
 def_card(31, "Betancourt")
 def_card(32, "Secuestrados")
 def_card(33, "Sucumbíos")
-def_initiative("FCAG")
+def_order("FCAG")
 def_card(34, "Airdropped AKs")
 def_card(35, "Crop Substitution")
 def_card(36, "Zona de Convivencia")
-def_initiative("AGFC")
+def_order("AGFC")
 def_card(37, "Former Military")
 def_card(38, "National Coordination Center")
-def_card(39, "Soldados campesinos")
-def_initiative("AGCF")
+def_card(39, "Soldados Campesinos")
+def_order("AGCF")
 def_card(40, "Demobilization")
 def_card(41, "Mancuso")
 def_card(42, "Senado & Cámara")
-def_initiative("AFGC")
+def_order("AFGC")
 def_card(43, "Calima Front")
 def_card(44, "Colombia Nueva")
 def_card(45, "Los Derechos Humanos")
-def_initiative("AFCG")
+def_order("AFCG")
 def_card(46, "Limpieza")
 def_card(47, "Pinto & del Rosario")
 def_card(48, "Unión Sindical Obrera")
-def_initiative("ACGF")
+def_order("ACGF")
 def_card(49, "Bloques")
 def_card(50, "Carabineros")
 def_card(51, "Pipeline Repairs")
-def_initiative("ACFG")
+def_order("ACFG")
 def_card(52, "Castaño")
 def_card(53, "Criminal Air Force")
 def_card(54, "Deserters & Defectors")
-def_initiative("CGFA")
+def_order("CGFA")
 def_card(55, "DEA Agents")
 def_card(56, "Drogas La Rebaja")
 def_card(57, "Op Millennium")
-def_initiative("CGAF")
+def_order("CGAF")
 def_card(58, "General Serrano")
 def_card(59, "Salcedo")
 def_card(60, "The Chess Player")
-def_initiative("CFGA")
+def_order("CFGA")
 def_card(61, "Air Bridge")
 def_card(62, "Amazonía")
 def_card(63, "Narco-War")
-def_initiative("CFAG")
+def_order("CFAG")
 def_card(64, "Cocaine Labs")
 def_card(65, "Poppies")
 def_card(66, "Tingo María")
-def_initiative("CAGF")
+def_order("CAGF")
 def_card(67, "Mexican Traffickers")
 def_card(68, "Narco-Subs")
 def_card(69, "Riverines & Fast Boats")
-def_initiative("CAFG")
+def_order("CAFG")
 def_card(70, "Ayahuasca Tourism")
 def_card(71, "Darién")
 def_card(72, "Sicarios")
-initiative = null
+order = null
 def_card(73, "Propaganda!")
 def_card(74, "Propaganda!")
 def_card(75, "Propaganda!")
 def_card(76, "Propaganda!")
-
-console.log("const cards = {")
-for (let c of cards) console.log(JSON.stringify(c) + ",")
-console.log("}")
 
 let spaces = [ ]
 let space_names = [ ]
@@ -124,12 +126,12 @@ function add(list, item) {
 }
 
 function def_space(type, pop, name) {
-	spaces.push({ type, name, pop, adjacent: [] })
+	spaces.push({ type, id: to_ascii(name), name, pop, adjacent: [] })
 	space_names.push(name)
 }
 
 function def_town(name) {
-	spaces.push({ type: "town", name, adjacent: [] })
+	spaces.push({ type: "town", id: to_ascii(name), name, adjacent: [] })
 	space_names.push(name)
 }
 
@@ -138,7 +140,7 @@ function def_loc(type, econ, cities, depts) {
 	let loc_names = cities.concat(depts)
 	let loc_spaces = loc_names.map(n => space_names.indexOf(n))
 	let ix = spaces.length
-	spaces.push({ type, name, econ, adjacent: loc_spaces.filter(x=>x>0) })
+	spaces.push({ type, name, id: to_ascii(name), econ, adjacent: loc_spaces.filter(x=>x>0) })
 	for (let loc of loc_spaces)
 		if (loc >= 0)
 			add(spaces[loc].adjacent, ix)
@@ -159,12 +161,12 @@ data.first_city = spaces.length
 
 def_space("city", 8, "Bogotá")
 def_space("city", 3, "Cali")
+def_space("city", 3, "Medellín")
 def_space("city", 2, "Bucaramanga")
 def_space("city", 2, "Ibagué")
 def_space("city", 2, "Santa Marta")
 def_space("city", 1, "Cartagena")
 def_space("city", 1, "Cúcuta")
-def_space("city", 1, "Medellín")
 def_space("city", 1, "Neiva")
 def_space("city", 1, "Pasto")
 def_space("city", 1, "Sincelejo")
@@ -382,9 +384,7 @@ data.coastal_spaces = [ "Cesar", "Atlántico", "Chocó", "Nariño" ].map(n=>spac
 for (let i = 1; i < spaces.length; ++i)
 	spaces[i].adjacent.sort((a,b)=>a-b)
 
-console.log("const spaces = [")
-for (let x of spaces) console.log(JSON.stringify(x) + ",")
-console.log("]")
+data.cards = cards
+data.spaces = spaces
 
-for (let k in data)
-	console.log("const", k, "=", JSON.stringify(data[k]))
+fs.writeFileSync("data.js", "const data = " + JSON.stringify(data, 0, "\t") + "\nif (typeof module !== 'undefined') module.exports = data\n")
