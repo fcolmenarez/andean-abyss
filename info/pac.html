@@ -1,0 +1,528 @@
+<!doctype html>
+<title>Andean Abyss Reference</title>
+<link rel="stylesheet" href="/fonts/fonts.css">
+<style>
+html { font-family: "Source Sans", sans-serif }
+h1, h2, h3, p { padding: 0; margin: 0 }
+p { margin: 4px 0 }
+h1, h2, .victory h3 { text-align: center }
+h1 { margin-top: 36px; }
+h3 { border-bottom: 2px solid brown; margin-bottom: 8px; }
+h3 span { float: right; font-size: smaller; }
+section { display: grid; grid-template-columns: 1fr 1fr; max-width: 1000px; margin: 0 auto; }
+.propaganda { max-width: 1000px; margin: 0 auto; }
+.propaganda > * { padding: 0 36px; }
+.box { margin: 12px; padding: 12px; border: 2px solid #444; border-radius: 12px; }
+.box p { padding-left: 18px; text-indent: -18px; }
+mark { background-color: transparent }
+h1 img { vertical-align: -20%; padding: 0 18px; }
+dt { font-weight: bold }
+
+.govt h3 { border-color: #0066b2 }
+.govt mark, .govt span, .govt h2, .govt .victory h3 { color: #0066b2; }
+.govt .operations { background-color: #e0e5f3 }
+.govt .activities { background-color: #c6d1eb }
+
+.farc h3 { border-color: #bd1e2d }
+.farc mark, .farc span, .farc h2, .farc .victory h3 { color: #bd1e2d; }
+.farc .operations { background-color: #eaeaeb }
+.farc .activities { background-color: #ebc9be }
+
+.auc h3 { border-color: #b4891f }
+.auc mark, .auc span, .auc h2, .auc .victory h3 { color: #b4891f; }
+.auc .operations { background-color: #eaeaeb }
+.auc .activities { background-color: #eaddc4 }
+
+.cartels h3 { border-color: #008141 }
+.cartels mark, .cartels span, .cartels h2, .cartels .victory h3 { color: #008141; }
+.cartels .operations { background-color: #eaeaeb }
+.cartels .activities { background-color: #c2d7c7 }
+
+</style>
+
+<h1><img src="icon_govt.png"> Government <img src="icon_govt.png"></h1>
+<section class="govt">
+
+<div>
+<h2>COIN Operations</h2>
+
+<div class="operations box">
+<h3>Train<span>+ Air Lift or Eradicate?</h3>
+<p><b>Purpose:</b> Augment Government forces and Support.
+<p><b>Location:</b> Any Departments or Cities.
+<p><b>Cost:</b> 3 Resources per space selected.
+<p><b>Procedure:</b>
+	At each selected City or Govt Base Dept, place up to 6 cubes.
+	Then, in up to 1 selected space, replace 3 cubes with 1 Govt Base
+	or&mdash;<i>if Troops, Police, and Control</i>&mdash;buy Civic Action.
+</div>
+
+<div class="operations box">
+<h3>Patrol<span>+ any Special Activity?</h3>
+<p><b>Purpose:</b> Protect LoCs and redeploy among Cities.
+<p><b>Location:</b> Any LoCs or Cities.
+<p><b>Cost:</b> 3 Resources total.
+<p><b>Procedure:</b>
+	Move any cubes into or along adjacent
+	LoCs or Cities, stopping at Guerrillas.
+	In each LoC, Activate 1 Guerrilla for each cube there.
+	Then, if desired, conduct a free Assault in 1 LoC.
+</div>
+
+<div class="operations box">
+<h3>Sweep<span>+ any Special Activity?</h3>
+<p><b>Purpose:</b> Enter area, find enemy <i>(not on final card)</i>.
+<p><b>Location:</b> Any Cities or Departments.
+<p><b>Cost:</b> 3 Resources per space selected.
+<p><b>Procedure:</b>
+	Move any Troops onto adjacent
+	Guerrilla-free LoCs, then into adjacent selected
+	spaces. Activate 1 Guerrilla for each cube there.
+	<i>Forest</i>&mdash;Activate 1 for every 2 cubes.
+</div>
+
+<div class="operations box">
+<h3>Assault<span>+ any Special Activity?</h3>
+<p><b>Purpose:</b> Eliminate enemy forces.
+<p><b>Location:</b> Any spaces.
+<p><b>Cost:</b> 3 Resources per space selected.
+<p><b>Procedure:</b>
+	In each space, remove 1 Active Guerrilla or Base for each Troops cube <i>(Bases last)</i>.
+	<i>City or LoC</i>&mdash;Remove 1 piece for every cube.
+	<i>Mountain</i>&mdash;Remove 1 piece for every 2 Troops.
+	For each Shipment removed, +6 Aid.
+</div>
+
+</div>
+
+<div>
+<h2>Special Activities</h2>
+
+<div class="activities box">
+<h3>Air Lift <span>1 space to 1 space</span></h3>
+<p><b>Purpose:</b> Mass Troops quickly for an Operation.
+<p><b>Accompanying Op:</b> Any.
+<p><b>Location:</b> Any.
+<p><b>Procedure:</b>
+	Move up to 3 Troops from any 1 space to another.
+</div>
+
+<div class="activities box">
+<h3>Air Strike <span>max 1 space</span></h3>
+<p><b>Purpose:</b> Destroy exposed Insurgent unit.
+<p><b>Accompanying Op:</b> Patrol, Sweep, or Assault.
+<p><b>Location:</b>
+	Any 1 Department or LoC.
+<p><b>Procedure:</b>
+	Remove any 1 Active Guerrilla or Base <i>(Bases last)</i>.
+</div>
+
+<div class="activities box">
+<h3>Eradicate<span>max 1 space</span></h3>
+<p><b>Purpose:</b> Destroy rural Cartels Bases; gain Aid.
+<p><b>Accompanying Op:</b> Any.
+<p><b>Location:</b>
+	Any 1 Department with Cartels pieces.
+<p><b>Procedure:</b>
+	Aid +4.
+	Remove all Cartels Bases there.
+	Shift that or an adjacent Department 1 level toward Active Opposition, if possible;
+	if not, place a FARC Guerrilla in that Department.
+</div>
+
+<div class="victory box">
+<h3>Victory</h3>
+<p><mark><b>Government:</b> Total Support exceeds <b>60</b>.</mark>
+<p><b>FARC:</b> Total Opposition plus FARC Bases exceeds <b>25</b>.
+<p><b>AUC:</b> AUC has more Bases than FARC.
+<p><b>Cartels:</b> Cartels have more than <b>10</b> Bases and more than <b>40</b> Resources.
+<p><i>After final Propaganda: Closest to goal wins (7.3).</i>
+</div>
+
+</div>
+
+</section>
+
+<h1><img src="icon_farc.png"> FARC <img src="icon_farc.png"></h1>
+<section class="farc">
+
+<div>
+<h2>Insurgent Operations</h2>
+
+<div class="operations box">
+<h3>Rally<span>+ Extort?</h3>
+<p><b>Purpose:</b> Augment or recover friendly forces.
+<p><b>Location:</b> Departments or Cities <mark>without Support<mark>.
+<p><b>Cost:</b> 1 Resource per space selected.
+<p><b>Procedure:</b>
+	Place 1 Guerrilla or replace 2 with a Base.
+	<i>If Base</i>&mdash;instead either place Guerrillas up
+	to Population plus Bases or move any Guerillas
+	to there and flip all Guerrillas there Underground.
+</div>
+
+<div class="operations box">
+<h3>March<span>+ Extort?</h3>
+<p><b>Purpose:</b> Move Guerillas <i>(not on final card).</i>
+<p><b>Location:</b> Any spaces.
+<p><b>Cost:</b> 1 Resource per destination City/Dept <i>(LoCs 0)</i>.
+<p><b>Procedure:</b>
+	Move Guerrillas into adjacent spaces.
+	<i>If destination has Support or is LoC, and if
+	moving Guerrillas plus cubes there exceed 3,</i>
+	Activate the Guerrillas.
+</div>
+
+<div class="operations box">
+<h3>Attack<span>+ Extort or Ambush?</h3>
+<p><b>Purpose:</b> Eliminate enemy forces.
+<p><b>Location:</b> Any spaces with Guerrilla and enemy.
+<p><b>Cost:</b> 1 Resource per space selected.
+<p><b>Procedure:</b>
+	Activate all Guerrillas.
+	Roll a die&mdash;equal to or less than the number of Guerrillas removes 2 enemy pieces <i>(Bases last)</i>.
+	<i>If "1"</i>, place 1 Guerrilla.
+	Take any Shipment removed.
+</div>
+
+<div class="operations box">
+<h3>Terror<span>+ Extort or Kidnap?</h3>
+<p><b>Purpose:</b> Neutralize support or economic activity.
+<p><b>Location:</b> Any spaces with Underground Guerrillas.
+<p><b>Cost:</b> 1 Resource per City or Dept selected <i>(LoCs 0)</i>.
+<p><b>Procedure:</b>
+	In each selected space, Activate 1 Underground Guerrilla.
+	<i>If Department or City</i>&mdash;place Terror and shift Support/Opposition 1 level toward <mark>Active Opposition</mark>.
+	<i>If LoC</i>&mdash;place Sabotage.
+</div>
+
+</div>
+
+<div>
+<h2>Special Activities</h2>
+
+<div class="activities box">
+<h3>Extort</h3>
+<p><b>Purpose:</b> Gain Resources.
+<p><b>Accompanying Op:</b> Any.
+<p><b>Location:</b>
+	Any spaces where FARC forces include
+	an Underground Guerrilla and outnumber enemy.
+<p><b>Procedure:</b>
+	For each selected space, add 1 Resource and Activate 1 Underground FARC Guerrilla.
+</div>
+
+<div class="activities box">
+<h3>Ambush<span>max 1 space</span></h3>
+<p><b>Purpose:</b> Ensure Attack success.
+<p><b>Accompanying Op:</b> Attack.
+<p><b>Location:</b>
+	An Attack space with an Underground FARC Guerrilla.
+<p><b>Procedure:</b>
+	The Attack activates 1 Underground Guerrilla only and automatically succeeds <i>(do not roll)</i>.
+	Place a FARC Guerrilla.
+</div>
+
+<div class="activities box">
+<h3>Kidnap<span>max 3 spaces</span></h3>
+<p><b>Purpose:</b> Take Resources from Govt or Cartels.
+<p><b>Accompanying Op:</b> Terror.
+<p><b>Location:</b>
+	Up to 3 Cartels Base, City or LoC spaces
+	where Terror Op and FARC Guerrillas exceed Police.
+<p><b>Procedure:</b>
+	Each Space, Govt <i>if City or LoC</i> or Cartels <i>if Cartels Base</i>
+	transfer to FARC a Shipment or a die roll's Resources.
+	<i>If "6",</i> AUC places 1 piece.
+</div>
+
+<div class="victory box">
+<h3>Victory</h3>
+<p><b>Government:</b> Total Support exceeds <b>60</b>.
+<p><mark><b>FARC:</b> Total Opposition plus FARC Bases exceeds <b>25</b>.</mark>
+<p><b>AUC:</b> AUC has more Bases than FARC.
+<p><b>Cartels:</b> Cartels have more than <b>10</b> Bases and more than <b>40</b> Resources.
+<p><i>After final Propaganda: Closest to goal wins (7.3).</i>
+</div>
+
+</div>
+
+</section>
+
+
+<h1><img src="icon_auc.png"> AUC <img src="icon_auc.png"></h1>
+<section class="auc">
+
+<div>
+<h2>Insurgent Operations</h2>
+
+<div class="operations box">
+<h3>Rally<span>+ Extort?</h3>
+<p><b>Purpose:</b> Augment or recover friendly forces.
+<p><b>Location:</b> Departments or Cities <mark>without Opposition<mark>.
+<p><b>Cost:</b> 1 Resource per space selected.
+<p><b>Procedure:</b>
+	Place 1 Guerrilla or replace 2 with a Base.
+	<i>If Base</i>&mdash;instead either place Guerrillas up
+	to Population plus Bases or move any Guerillas
+	to there and flip all Guerrillas there Underground.
+</div>
+
+<div class="operations box">
+<h3>March<span>+ Extort?</h3>
+<p><b>Purpose:</b> Move Guerillas <i>(not on final card).</i>
+<p><b>Location:</b> Any spaces.
+<p><b>Cost:</b> 1 Resource per destination City/Dept <i>(LoCs 0)</i>.
+<p><b>Procedure:</b>
+	Move Guerrillas into adjacent spaces.
+	<i>If destination has Support <mark>or Opposition</mark> or is LoC, and if
+	moving Guerrillas <mark>plus FARC Guerrillas</mark> plus cubes there exceed 3,</i>
+	Activate the Guerrillas.
+</div>
+
+<div class="operations box">
+<h3>Attack<span>+ Extort or Ambush?</h3>
+<p><b>Purpose:</b> Eliminate enemy forces.
+<p><b>Location:</b> Any spaces with Guerrilla and enemy.
+<p><b>Cost:</b> 1 Resource per space selected.
+<p><b>Procedure:</b>
+	Activate all Guerrillas.
+	Roll a die&mdash;equal to or less than the number of Guerrillas removes 2 enemy pieces <i>(Bases last)</i>.
+	<i>If "1"</i>, place 1 Guerrilla.
+	Take any Shipment removed.
+</div>
+
+<div class="operations box">
+<h3>Terror<span>+ Extort or Assassinate?</h3>
+<p><b>Purpose:</b> Neutralize support or economic activity.
+<p><b>Location:</b> Any spaces with Underground Guerrillas.
+<p><b>Cost:</b> 1 Resource per City or Dept selected <i>(LoCs 0)</i>.
+<p><b>Procedure:</b>
+	Activate 1 Underground Guerrilla in each selected space, 
+	<mark>Aid -3 if 1 space, -5 if 2 or more.</mark>
+	<i>If Department or City</i>&mdash;place Terror and shift Support/Opposition 1 level toward Neutral.
+	<i>If LoC</i>&mdash;place Sabotage.
+</div>
+
+</div>
+
+<div>
+<h2>Special Activities</h2>
+
+<div class="activities box">
+<h3>Extort</h3>
+<p><b>Purpose:</b> Gain Resources.
+<p><b>Accompanying Op:</b> Any.
+<p><b>Location:</b>
+	Any spaces where AUC forces include
+	an Underground Guerrilla and outnumber enemy.
+<p><b>Procedure:</b>
+	For each selected space, add 1 Resource and Activate 1 Underground AUC Guerrilla.
+</div>
+
+<div class="activities box">
+<h3>Ambush<span>max 1 space</span></h3>
+<p><b>Purpose:</b> Ensure Attack success.
+<p><b>Accompanying Op:</b> Attack.
+<p><b>Location:</b>
+	An Attack space with an Underground AUC Guerrilla.
+<p><b>Procedure:</b>
+	The Attack activates 1 Underground Guerrilla only and automatically succeeds <i>(do not roll)</i>.
+	Place a AUC Guerrilla.
+</div>
+
+<div class="activities box">
+<h3>Assassinate<span>max 3 spaces</span></h3>
+<p><b>Purpose:</b> Eliminate enemy unit.
+<p><b>Accompanying Op:</b> Terror.
+<p><b>Location:</b>
+	Up to 3 spaces selected for Terror where AUC Guerrillas exceed Police.
+<p><b>Procedure:</b>
+	Each Space, remove any 1 enemy piece.
+	Take any Shipments removed.
+</div>
+
+<div class="victory box">
+<h3>Victory</h3>
+<p><b>Government:</b> Total Support exceeds <b>60</b>.
+<p><b>FARC:</b> Total Opposition plus FARC Bases exceeds <b>25</b>.
+<p><mark><b>AUC:</b> AUC has more Bases than FARC.</mark>
+<p><b>Cartels:</b> Cartels have more than <b>10</b> Bases and more than <b>40</b> Resources.
+<p><i>After final Propaganda: Closest to goal wins (7.3).</i>
+</div>
+
+</div>
+
+</section>
+
+
+<h1><img src="icon_cartels.png"> Cartels <img src="icon_cartels.png"></h1>
+<section class="cartels">
+
+<div>
+<h2>Insurgent Operations</h2>
+
+<div class="operations box">
+<h3>Rally<span>+ any Special Activity?</h3>
+<p><b>Purpose:</b> Augment or recover friendly forces.
+<p><b>Location:</b> Departments or Cities.
+<p><b>Cost:</b> 1 Resource per space selected.
+<p><b>Procedure:</b>
+	Place 1 Guerrilla or replace 2 with a Base.
+	<i>If Base</i>&mdash;instead either place Guerrillas up
+	to Population plus Bases or move any Guerillas
+	to there and flip all Guerrillas there Underground.
+</div>
+
+<div class="operations box">
+<h3>March<span>+ any Special Activity?</h3>
+<p><b>Purpose:</b> Move Guerillas <i>(not on final card).</i>
+<p><b>Location:</b> Any spaces.
+<p><b>Cost:</b> 1 Resource per destination City/Dept <i>(LoCs 0)</i>.
+<p><b>Procedure:</b>
+	Move Guerrillas into adjacent spaces.
+	<i>If destination has Support or is LoC, and if
+	moving Guerrillas plus cubes there exceed 3,</i>
+	Activate the Guerrillas.
+</div>
+
+<div class="operations box">
+<h3>Attack<span>+ Bribe?</h3>
+<p><b>Purpose:</b> Eliminate enemy forces.
+<p><b>Location:</b> Any spaces with Guerrilla and enemy.
+<p><b>Cost:</b> 1 Resource per space selected.
+<p><b>Procedure:</b>
+	Activate all Guerrillas.
+	Roll a die&mdash;equal to or less than the number of Guerrillas removes 2 enemy pieces <i>(Bases last)</i>.
+	<i>If "1"</i>, place 1 Guerrilla.
+	Take any Shipment removed.
+</div>
+
+<div class="operations box">
+<h3>Terror<span>+ Bribe?</h3>
+<p><b>Purpose:</b> Neutralize support or economic activity.
+<p><b>Location:</b> Any spaces with Underground Guerrillas.
+<p><b>Cost:</b> 1 Resource per City or Dept selected <i>(LoCs 0)</i>.
+<p><b>Procedure:</b>
+	Activate 1 Underground Guerrilla in each selected space, 
+	<i>If Department or City</i>&mdash;place Terror and shift Support/Opposition 1 level toward Neutral.
+	<i>If LoC</i>&mdash;place Sabotage.
+</div>
+
+</div>
+
+<div>
+<h2>Special Activities</h2>
+
+<div class="activities box">
+<h3>Cultivate <span>max 1 space</span></h3>
+<p><b>Purpose:</b> Add a Base or move into a new area.
+<p><b>Accompanying Op:</b> Rally or March.
+<p><b>Location:</b>
+	A Department or City with Population >0 where Cartels Guerrillas outnumber Police.
+<p><b>Procedure:</b>
+	Move 1 Cartels Base from anywhere on the map to the selected space, or,
+	<i>if Rally Department</i>, place 1 Base there.
+</div>
+
+<div class="activities box">
+<h3>Process</h3>
+<p><b>Purpose:</b> Prepare drug Shipments or liquidate Bases for Resources.
+<p><b>Accompanying Op:</b> Rally or March.
+<p><b>Location:</b>
+	Cities or Departments with Cartels Bases.
+<p><b>Procedure:</b>
+	Place 1-2 Shipments with any Guerrillas,
+	or remove any Cartels Bases and add +3 Cartels Resources for each.
+</div>
+
+<div class="activities box">
+<h3>Bribe<span>max 3 spaces</span></h3>
+<p><b>Purpose:</b> Neutralize, expose, or hide units.
+<p><b>Accompanying Op:</b> Any.
+<p><b>Location:</b> Any of up to 3 spaces.
+<p><b>Procedure:</b>
+	Each space, Cartels Resources -3 to remove up to 2 cubes,
+	remove or flip up to 2 Guerrillas,
+	or remove a Base.
+	Transfer any Shipment removed, if desired.
+</div>
+
+<div class="victory box">
+<h3>Victory</h3>
+<p><b>Government:</b> Total Support exceeds <b>60</b>.
+<p><b>FARC:</b> Total Opposition plus FARC Bases exceeds <b>25</b>.
+<p><b>AUC:</b> AUC has more Bases than FARC.
+<p><mark><b>Cartels:</b> Cartels have more than <b>10</b> Bases and more than <b>40</b> Resources.</mark>
+<p><i>After final Propaganda: Closest to goal wins (7.3).</i>
+</div>
+
+</div>
+
+</section>
+
+<h1>Propaganda Card</h1>
+
+<div class="propaganda">
+
+<p>
+<b><i>Never 2 Propaganda Rounds in a row (6.0).</i></b>
+
+<dl>
+
+<dt>
+&#xbb; Victory?
+<dd>
+If any Faction has met its victory condition, the game ends; see Victory (7.2).
+
+<dt>
+&#xbb; Sabotage:
+<dd>
+Place 1 <b><i>Sabotage</i></b> on each LoC adjacent to FARC-Controlled Cities (1.8)
+or where Guerrillas exceed cubes.
+
+<dt>
+&#xbb; Resources:
+<dd>
+Add to each Faction's Resources as follows.
+<ul>
+<li><b>Government</b>&mdash;<b>30</b> minus Econ of Sabotaged LoCs, plus Aid <i>(no Aid if Samper)</i>.
+<li><b>FARC</b> and <b>AUC</b>&mdash;The number of their Bases, <b>Cartels</b>&mdash;<b>3</b> times their Bases.
+<li><b>Shipments</b>&mdash;<b>6</b> Resources per Shipment (remove) or replace with Base.
+</ul>
+
+<dt>
+&#xbb; Support:
+<dd>
+<ul>
+<li><b>Civic Action</b>&mdash;In spaces with Govt Control (1.8) and any Troops and Police;
+	every <b>3</b> Resources spent by Government removes 1 Terror or&mdash;<i>once no more Terror</i>&mdash;shifts
+	1 level toward Active Support.
+<li><b>Agitation</b>&mdash;In spaces with FARC Control:
+	every <b>1</b> Resource spent by FARC removes 1 Terror or&mdash;<i>once no more Terror</i>&mdash;shifts
+	1 level toward Active Opposition.
+<li><b>Election</b>&mdash;If Total Support is <b>60</b> or less, advance <i>El Presidente</i> 1 box <i>(unless Uribe)</i>.
+<li><b>Elite Backing</b>&mdash;AUC may free Rally in 1 space with no Opposition, nor Govt Control, nor FARC Control.
+</ul>
+
+<dt>
+&#xbb; Redeploy:
+<dd>
+Government <i>must</i> move Troops on LoCs or in Depts without Govt Bases to
+Govt-Controlled spaces that are Cities or have Government Bases.
+It <i>may</i> move other Troops to such spaces and Police to any LoCs or
+Govt-Controlled spaces.
+Do not adjust Control until all Redeployment is complete.
+
+<dt>
+&#xbb; Reset:
+<dd>
+All Factions Eligible.
+Discard Insurgent Momentum.
+Remove Terror and Sabotage.
+All Guerrillas Underground.
+Play next card or, if final Round (2.4.1), determine victory (7.3).
+
+</dl>
+
+</div>
