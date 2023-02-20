@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="44" height="38">
+<linearGradient id="g">
+<stop offset="0%" stop-color="#c60012"/>
+<stop offset="50%" stop-color="#b10000"/>
+<stop offset="100%" stop-color="#9d0000"/>
+</linearGradient>
+<path fill="url(#g)" stroke="#5f0000" d="M1.5 15 v 8 a 20.5 13.5 0 0 0 20.5 13.5 20.5 13.5 0 0 0 20.5 -13.5 v -8"/>
+<ellipse fill="#db2128" stroke="#5f0000" cx="22" cy="15" rx="20.5" ry="13.5"/>
+</svg>
