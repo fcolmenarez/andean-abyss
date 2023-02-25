@@ -203,15 +203,23 @@ exports.setup = function (seed, scenario, options) {
 
 	setup_standard()
 
-	if (scenario === "Quick") {
+	if (scenario.includes("Quick")) {
 		log_h1("Scenario: Quick")
 		setup_quick()
-		setup_quick_deck()
-	} else if (scenario === "Short") {
-		setup_short_deck()
+		setup_deck(2, 6, 6)
+	} else if (scenario.includes("Short")) {
+		if (options.seeded)
+			setup_deck(3, 10, 5)
+		else
+			setup_deck(3, 0, 15)
 	} else {
-		setup_standard_deck()
+		if (options.seeded)
+			setup_deck(4, 10, 5)
+		else
+			setup_deck(4, 0, 15)
 	}
+
+	log("DECK " + game.deck.join(", "))
 
 	update_control()
 
@@ -327,54 +335,27 @@ function shuffle_all_cards() {
 	return deck
 }
 
-function setup_standard_deck() {
+function setup_deck(count, a, b) {
 	let cards = shuffle_all_cards()
-	let piles = [
-		cards.slice(0, 15),
-		cards.slice(15, 15+15),
-		cards.slice(30, 30+15),
-		cards.slice(45, 45+15),
-	]
-	piles[0].push(73)
-	piles[1].push(74)
-	piles[2].push(75)
-	piles[3].push(76)
-	shuffle(piles[0])
-	shuffle(piles[1])
-	shuffle(piles[2])
-	shuffle(piles[3])
-	game.deck = piles[0].concat(piles[1], piles[2], piles[3])
-}
-
-function setup_short_deck() {
-	let cards = shuffle_all_cards()
-	let piles = [
-		cards.slice(0, 15),
-		cards.slice(15, 15+15),
-		cards.slice(30, 30+15),
-	]
-	piles[0].push(73)
-	piles[1].push(74)
-	piles[2].push(75)
-	shuffle(piles[0])
-	shuffle(piles[1])
-	shuffle(piles[2])
-	game.deck = piles[0].concat(piles[1], piles[2], piles[3])
-}
-
-function setup_quick_deck() {
-	let cards = shuffle_all_cards()
-	let piles = [
-		cards.slice(0, 6),
-		cards.slice(6, 6+6),
-		cards.slice(12, 12+6),
-		cards.slice(24, 24+6),
-	]
-	piles[1].push(73)
-	piles[3].push(74)
-	shuffle(piles[1])
-	shuffle(piles[3])
-	game.deck = piles[0].concat(piles[1], piles[2], piles[3])
+	let deck = []
+	let pile
+	let i = 0
+	for (let p = 0; p < count; ++p) {
+		if (a > 0) {
+			pile = cards.slice(i, i + a)
+			i += a
+			shuffle(pile)
+			deck = deck.concat(pile)
+		}
+		if (b > 0) {
+			pile = cards.slice(i, i + b)
+			i += b
+			pile.push(73 + p)
+			shuffle(pile)
+			deck = deck.concat(pile)
+		}
+	}
+	game.deck = deck
 }
 
 function set_support(place, amount) {
