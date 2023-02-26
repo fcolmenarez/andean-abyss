@@ -189,7 +189,7 @@ exports.setup = function (seed, scenario, options) {
 		resources: [ 0, 0, 0, 0 ],
 		shipments: [ AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE ],
 		pieces: Array(153).fill(AVAILABLE),
-		underground: [ 0, 0, -1, -1 ],
+		underground: [ 0, -1, -1, -1 ],
 		farc_control: 0,
 		govt_control: 0,
 		support: Array(23).fill(NEUTRAL),
@@ -914,6 +914,7 @@ exports.view = function (state, role) {
 		actions: null,
 		log: game.log,
 
+		scenario: game.scenario,
 		current: game.current,
 		deck: [ this_card, next_card, deck_size ],
 		president: game.president,

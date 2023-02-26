@@ -7,6 +7,10 @@ const FARC = 1
 const AUC = 2
 const CARTELS = 3
 
+const GOVT_AUC = 4
+const FARC_CARTELS = 5
+const AUC_CARTELS = 6
+
 // Pieces
 const BASE = 0
 const GUERRILLA = 1
@@ -49,6 +53,9 @@ let ui = {
 		document.getElementById("role_FARC"),
 		document.getElementById("role_AUC"),
 		document.getElementById("role_Cartels"),
+		document.getElementById("role_Government_+_AUC"),
+		document.getElementById("role_FARC_+_Cartels"),
+		document.getElementById("role_AUC_+_Cartels"),
 	],
 	spaces: [],
 	control: [],
@@ -616,10 +623,21 @@ function on_update() {
 	ui.header.classList.toggle("cartels", view.current === CARTELS)
 	ui.header.classList.toggle("farc", view.current === FARC)
 
+	ui.player[GOVT].classList.toggle("hide", view.scenario < 3)
+	ui.player[AUC].classList.toggle("hide", view.scenario < 4)
+	ui.player[CARTELS].classList.toggle("hide", view.scenario < 4)
+	ui.player[FARC].classList.toggle("hide", view.scenario < 3)
+	ui.player[GOVT_AUC].classList.toggle("hide", view.scenario !== 2)
+	ui.player[FARC_CARTELS].classList.toggle("hide", view.scenario !== 2)
+	ui.player[AUC_CARTELS].classList.toggle("hide",  view.scenario !== 3)
+
 	ui.player[GOVT].classList.toggle("active", view.current === GOVT)
 	ui.player[AUC].classList.toggle("active", view.current === AUC)
 	ui.player[CARTELS].classList.toggle("active", view.current === CARTELS)
 	ui.player[FARC].classList.toggle("active", view.current === FARC)
+	ui.player[GOVT_AUC].classList.toggle("active", view.current === GOVT || view.current === AUC)
+	ui.player[FARC_CARTELS].classList.toggle("active", view.current === FARC || view.current === CARTELS)
+	ui.player[AUC_CARTELS].classList.toggle("active",  view.current === AUC || view.current === CARTELS)
 
 	ui.tokens.president.style.left = [ 0, "254px", "337px", "420px" ][view.president]
 
