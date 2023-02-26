@@ -2,18 +2,30 @@ let fs = require("fs")
 
 let data = {}
 
+const GOVT = 0
+const FARC = 1
+const AUC = 2
+const CARTELS = 3
+
+const BASE = 0
+const GUERRILLA = 1
+const TROOPS = 2
+const POLICE = 3
+
 function to_ascii(s) {
 	return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
 }
 
-const IMAP = { G: "Government", F: "FARC", A: "AUC", C: "Cartels" }
+const IMAP = { G: GOVT, F: FARC, A: AUC, C: CARTELS }
 let order = null
-let cards = [ null ]
+let card_name = [ null ]
+let card_order = [ null ]
 function def_order(s) {
 	order = [ IMAP[s[0]], IMAP[s[1]], IMAP[s[2]], IMAP[s[3]] ]
 }
 function def_card(number, name) {
-	cards[number] = { number, name, order }
+	card_name[number] = name
+	card_order[number] = order
 }
 def_order("GFAC")
 def_card(1, "1st Division")
@@ -111,14 +123,15 @@ def_order("CAFG")
 def_card(70, "Ayahuasca Tourism")
 def_card(71, "Darién")
 def_card(72, "Sicarios")
-order = null
+
+def_order("GFAC")
 def_card(73, "Propaganda!")
 def_card(74, "Propaganda!")
 def_card(75, "Propaganda!")
 def_card(76, "Propaganda!")
 
 let spaces = [ ]
-let space_names = [ ]
+let space_name = [ ]
 
 function add(list, item) {
 	if (!list.includes(item))
@@ -126,31 +139,31 @@ function add(list, item) {
 }
 
 function def_space(type, pop, name) {
-	spaces.push({ type, id: to_ascii(name), name, pop, adjacent: [] })
-	space_names.push(name)
+	spaces.push({ type, id: to_ascii(name), pop, adjacent: [] })
+	space_name.push(name)
 }
 
 function def_town(name) {
-	spaces.push({ type: "town", id: to_ascii(name), name, adjacent: [] })
-	space_names.push(name)
+	spaces.push({ type: "town", id: to_ascii(name), adjacent: [] })
+	space_name.push(name)
 }
 
 function def_loc(type, econ, cities, depts) {
 	let name = cities.join(" / ")
 	let loc_names = cities.concat(depts)
-	let loc_spaces = loc_names.map(n => space_names.indexOf(n))
+	let loc_spaces = loc_names.map(n => space_name.indexOf(n))
 	let ix = spaces.length
 	spaces.push({ type, name, id: to_ascii(name), econ, adjacent: loc_spaces.filter(x=>x>0) })
 	for (let loc of loc_spaces)
 		if (loc >= 0)
 			add(spaces[loc].adjacent, ix)
-	space_names.push(name)
+	space_name.push(name)
 	return ix
 }
 
 function adjacent(an, bn) {
-	ax = space_names.indexOf(an)
-	bx = space_names.indexOf(bn)
+	ax = space_name.indexOf(an)
+	bx = space_name.indexOf(bn)
 	add(spaces[ax].adjacent, bx)
 	add(spaces[bx].adjacent, ax)
 }
@@ -379,12 +392,34 @@ adjacent("Vaupés", "Guaviare")
 adjacent("Amazonas", "Vaupés")
 adjacent("Amazonas", "Putumayo")
 
-data.coastal_spaces = [ "Cesar", "Atlántico", "Chocó", "Nariño" ].map(n=>space_names.indexOf(n)).sort((a,b)=>a-b)
+data.coastal_spaces = [ "Cesar", "Atlántico", "Chocó", "Nariño" ].map(n=>space_name.indexOf(n)).sort((a,b)=>a-b)
 
 for (let i = 1; i < spaces.length; ++i)
 	spaces[i].adjacent.sort((a,b)=>a-b)
 
-data.cards = cards
+
+data.card_name = card_name
+data.card_order = card_order
+data.space_name = space_name
 data.spaces = spaces
 
-fs.writeFileSync("data.js", "const data = " + JSON.stringify(data, 0, "\t") + "\nif (typeof module !== 'undefined') module.exports = data\n")
+let pc_index = 0
+let pc_first = data.first_piece = [ [ 0, 0, 0, 0 ], [ 0, 0 ], [ 0, 0 ], [ 0, 0 ] ]
+let pc_last = data.last_piece = [ [ -1, -1, -1, -1 ], [ -1, -1 ], [ -1, -1 ], [ -1, -1 ] ]
+function def_piece(faction, type, count) {
+	pc_first[faction][type] = pc_index
+	pc_last[faction][type] = pc_index + count - 1
+	pc_index += count
+}
+def_piece(GOVT, BASE, 3)
+def_piece(GOVT, GUERRILLA, 0)
+def_piece(GOVT, TROOPS, 30)
+def_piece(GOVT, POLICE, 30)
+def_piece(FARC, BASE, 9)
+def_piece(FARC, GUERRILLA, 30)
+def_piece(AUC, BASE, 6)
+def_piece(AUC, GUERRILLA, 18)
+def_piece(CARTELS, BASE, 15)
+def_piece(CARTELS, GUERRILLA, 12)
+
+fs.writeFileSync("data.js", "const data = " + JSON.stringify(data, 0, 0) + "\nif (typeof module !== 'undefined') module.exports = data\n")

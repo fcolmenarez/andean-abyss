@@ -1,6 +1,32 @@
 // TODO: FARC zone
 // TODO: terror markers
 
+// Factions
+const GOVT = 0
+const FARC = 1
+const AUC = 2
+const CARTELS = 3
+
+// Pieces
+const BASE = 0
+const GUERRILLA = 1
+const TROOPS = 2
+const POLICE = 3
+
+const first_piece = data.first_piece
+const last_piece = data.last_piece
+
+const first_pop = data.first_pop
+const first_city = data.first_city
+const last_city = data.last_city
+const first_dept = data.first_dept
+const last_pop = data.last_pop
+const last_dept = data.last_dept
+const first_foreign = data.first_foreign
+const last_foreign = data.last_foreign
+const first_loc = data.first_loc
+const last_loc = data.last_loc
+
 // Spaces
 const AVAILABLE = -1
 
@@ -18,16 +44,17 @@ const INELIGIBLE = 8
 let ui = {
 	favicon: document.getElementById("favicon"),
 	header: document.querySelector("header"),
-	player: {
-		govt: document.getElementById("role_Government"),
-		auc: document.getElementById("role_AUC"),
-		cartels: document.getElementById("role_Cartels"),
-		farc: document.getElementById("role_FARC"),
-	},
+	player: [
+		document.getElementById("role_Government"),
+		document.getElementById("role_FARC"),
+		document.getElementById("role_AUC"),
+		document.getElementById("role_Cartels"),
+	],
 	spaces: [],
 	control: [],
 	support: [],
 	sabotage: [],
+	terror: [],
 	next_card: document.getElementById("next_card"),
 	this_card: document.getElementById("this_card"),
 	deck_size: document.getElementById("deck_size"),
@@ -41,39 +68,26 @@ let ui = {
 		document.getElementById("SOP_C2"),
 		document.getElementById("SOP_PASS"),
 	],
-	misc: {
+	tokens: {
 		aid: document.getElementById("token_aid"),
 		total_support: document.getElementById("token_total_support"),
 		oppose_plus_bases: document.getElementById("token_oppose_plus_bases"),
 		president: document.getElementById("token_el_presidente"),
 		propaganda: document.getElementById("token_prop_card"),
-		shipments: [],
 	},
-	govt: {
-		resources: document.getElementById("govt_resources"),
-		cylinder: document.getElementById("govt_cylinder"),
-		police: [],
-		troops: [],
-		bases: [],
-	},
-	auc: {
-		resources: document.getElementById("auc_resources"),
-		cylinder: document.getElementById("auc_cylinder"),
-		guerrillas: [],
-		bases: [],
-	},
-	cartels: {
-		resources: document.getElementById("cartels_resources"),
-		cylinder: document.getElementById("cartels_cylinder"),
-		guerrillas: [],
-		bases: [],
-	},
-	farc: {
-		resources: document.getElementById("farc_resources"),
-		cylinder: document.getElementById("farc_cylinder"),
-		guerrillas: [],
-		bases: [],
-	},
+	pieces: [],
+	resources: [
+		document.getElementById("govt_resources"),
+		document.getElementById("farc_resources"),
+		document.getElementById("auc_resources"),
+		document.getElementById("cartels_resources"),
+	],
+	cylinder: [
+		document.getElementById("govt_cylinder"),
+		document.getElementById("farc_cylinder"),
+		document.getElementById("auc_cylinder"),
+		document.getElementById("cartels_cylinder"),
+	],
 }
 
 function create(t, p, ...c) {
@@ -103,17 +117,6 @@ function on_click_action(evt) {
 	if (evt.button === 0)
 		send_action(evt.target.my_action, evt.target.my_id)
 }
-
-const first_pop = 1
-const first_city = 0
-const last_city = 10
-const first_dept = 11
-const last_pop = 22
-const last_dept = 26
-const first_foreign = 27
-const last_foreign = 31
-const first_loc = 32
-const last_loc = 49
 
 const center_xy = {
 	"Santa Marta": [682,436],
@@ -305,25 +308,38 @@ function init_ui() {
 		return e
 	}
 
-	function create_piece_list(list, c, action, n, x, y) {
-		for (let i = 0; i < n; ++i)
-			list[i] = create_piece(c, action, i, x, y)
+	function create_piece_list(faction, type, c, x, y) {
+		for (let p = first_piece[faction][type]; p <= last_piece[faction][type]; ++p)
+			ui.pieces[p] = create_piece(c, "piece", p, x, y)
 	}
 
-	create_piece_list(ui.misc.shipments, "token shipment", "shipment", 4, 0, 0)
+	ui.farc_zones = [
+		document.getElementById("tokens").appendChild(create("div", { className: "hide" })),
+		document.getElementById("tokens").appendChild(create("div", { className: "hide" })),
+		document.getElementById("tokens").appendChild(create("div", { className: "hide" })),
+	]
 
-	create_piece_list(ui.govt.police, "piece govt police", "govt_police", 30, 0, 4)
-	create_piece_list(ui.govt.troops, "piece govt troops", "govt_troops", 30, 0, 4)
-	create_piece_list(ui.govt.bases, "piece govt base", "govt_base", 3, -4, 10)
+	ui.shipments = [
+		create_piece("token shipment", "shipment", 0, 0, 0),
+		create_piece("token shipment", "shipment", 1, 0, 0),
+		create_piece("token shipment", "shipment", 2, 0, 0),
+		create_piece("token shipment", "shipment", 3, 0, 0),
+	]
 
-	create_piece_list(ui.auc.guerrillas, "piece auc guerrilla", "auc_guerrilla", 18, 2, 0)
-	create_piece_list(ui.auc.bases, "piece auc base", "auc_base", 6, -4, 10)
+	ui.pieces = []
 
-	create_piece_list(ui.cartels.guerrillas, "piece cartels guerrilla", "cartels_guerrilla", 12, 2, 0)
-	create_piece_list(ui.cartels.bases, "piece cartels base", "cartels_base", 15, -4, 10)
+	create_piece_list(GOVT, BASE, "piece govt base", -4, 10)
+	create_piece_list(GOVT, POLICE, "piece govt police", 0, 4)
+	create_piece_list(GOVT, TROOPS, "piece govt troops", 0, 4)
 
-	create_piece_list(ui.farc.guerrillas, "piece farc guerrilla", "farc_guerrilla", 30, 2, 0)
-	create_piece_list(ui.farc.bases, "piece farc base", "farc_base", 9, -4, 10)
+	create_piece_list(FARC, BASE, "piece farc base", -4, 10)
+	create_piece_list(FARC, GUERRILLA, "piece farc guerrilla", 2, 0)
+
+	create_piece_list(AUC, BASE, "piece auc base", -4, 10)
+	create_piece_list(AUC, GUERRILLA, "piece auc guerrilla", 2, 0)
+
+	create_piece_list(CARTELS, GUERRILLA, "piece cartels guerrilla", 2, 0)
+	create_piece_list(CARTELS, BASE, "piece cartels base", -4, 10)
 
 	register_action(ui.sop[1], "sop", 1)
 	register_action(ui.sop[2], "sop", 2)
@@ -334,21 +350,15 @@ function init_ui() {
 	register_action(ui.sop[7], "sop", 7)
 }
 
-function filter_piece_list(list, slist, elist, space) {
-	for (let i = 0; i < slist.length; ++i)
-		if (slist[i] === space)
-			list.push(elist[i])
+function filter_piece_list(list, space, faction, type) {
+	for (let i = first_piece[faction][type]; i <= last_piece[faction][type]; ++i)
+		if (view.pieces[i] === space)
+			list.push(ui.pieces[i])
 }
 
-function layout_cubes_available(slist, elist, space, xorig, yorig) {
+function layout_available(faction, type, xorig, yorig) {
 	let list = []
-	filter_piece_list(list, slist, elist, space)
-	layout_pieces(list, xorig, yorig)
-}
-
-function layout_guerrillas_available(slist, elist, space, xorig, yorig) {
-	let list = []
-	filter_piece_list(list, slist, elist, space)
+	filter_piece_list(list, AVAILABLE, faction, type)
 	layout_pieces(list, xorig, yorig)
 }
 
@@ -424,14 +434,6 @@ const sop_xy = [
 	[SOP_C2, 1374-22, 632-24],
 ]
 
-const SHORT_LIST = [ "govt", "auc", "cartels", "farc" ]
-const SHORT = {
-	"Government": "govt",
-	"AUC": "auc",
-	"Cartels": "cartels",
-	"FARC": "farc",
-}
-
 function layout_sop() {
 	let x, y, z
 
@@ -439,13 +441,10 @@ function layout_sop() {
 	x = 1164 - 22
 	y = 480
 	z = 1
-	let order = data.cards[view.deck[0]].order
-	if (!order)
-		order = [ "Government", "AUC", "Cartels", "FARC" ]
+	let order = data.card_order[view.deck[0]]
 	for (let faction of order) {
-		faction = SHORT[faction]
-		if (view[faction].cylinder === ELIGIBLE) {
-			place_piece(ui[faction].cylinder, x, y, z)
+		if (view.cylinder[faction] === ELIGIBLE) {
+			place_piece(ui.cylinder[faction], x, y, z)
 			y += 40
 			z += 1
 		}
@@ -455,9 +454,9 @@ function layout_sop() {
 	x = 1510 - 22
 	y = 480
 	z = 1
-	for (let faction of SHORT_LIST) {
-		if (view[faction].cylinder === INELIGIBLE) {
-			place_piece(ui[faction].cylinder, x, y, z)
+	for (let faction = 0; faction < 4; ++faction) {
+		if (view.cylinder[faction] === INELIGIBLE) {
+			place_piece(ui.cylinder[faction], x, y, z)
 			y += 40
 			z += 1
 		}
@@ -468,9 +467,9 @@ function layout_sop() {
 	y = 688 - 28
 	z = 1
 	i = 0
-	for (let faction of SHORT_LIST) {
-		if (view[faction].cylinder === SOP_PASS) {
-			place_piece(ui[faction].cylinder, x, y, z)
+	for (let faction = 0; faction < 4; ++faction) {
+		if (view.cylinder[faction] === SOP_PASS) {
+			place_piece(ui.cylinder[faction], x, y, z)
 			x += 48
 			z += 1
 			if (++i === 2) { x -= 72; y += 28 }
@@ -478,10 +477,9 @@ function layout_sop() {
 	}
 
 	for (let [i, x, y] of sop_xy) {
-		if (view.govt.cylinder === i) place_piece(ui.govt.cylinder, x, y)
-		if (view.auc.cylinder === i) place_piece(ui.auc.cylinder, x, y)
-		if (view.cartels.cylinder === i) place_piece(ui.cartels.cylinder, x, y)
-		if (view.farc.cylinder === i) place_piece(ui.farc.cylinder, x, y)
+		for (let faction = 0; faction < 4; ++faction)
+			if (view.cylinder[faction] === i)
+				place_piece(ui.cylinder[faction], x, y)
 	}
 
 	for (let i = 1; i <= 7; ++i) {
@@ -495,10 +493,10 @@ function layout_sop() {
 function calc_oppose_bases() {
 	let total = 0
 	for (let s = 0; s <= last_pop; ++s) {
-		if (view.misc.support[s] < 0)
-			total -= data.spaces[s].pop * view.misc.support[s]
+		if (view.support[s] < 0)
+			total -= data.spaces[s].pop * view.support[s]
 	}
-	for (let b of view.farc.bases)
+	for (let b = first_piece[FARC][BASE]; b <= last_piece[FARC][BASE]; ++b)
 		if (b !== AVAILABLE)
 			total += 1
 	return total
@@ -507,8 +505,8 @@ function calc_oppose_bases() {
 function calc_support() {
 	let total = 0
 	for (let s = 0; s <= last_pop; ++s) {
-		if (view.misc.support[s] > 0)
-			total += data.spaces[s].pop * view.misc.support[s]
+		if (view.support[s] > 0)
+			total += data.spaces[s].pop * view.support[s]
 	}
 	return total
 }
@@ -540,14 +538,12 @@ function layout_score() {
 		let total_support = calc_support()
 		let oppose_plus_bases = calc_oppose_bases()
 
-		if (total_support === i) list.push(ui.misc.total_support)
-		if (oppose_plus_bases === i) list.push(ui.misc.oppose_plus_bases)
-		if (view.misc.aid === i) list.push(ui.misc.aid)
+		if (total_support === i) list.push(ui.tokens.total_support)
+		if (oppose_plus_bases === i) list.push(ui.tokens.oppose_plus_bases)
+		if (view.aid === i) list.push(ui.tokens.aid)
 
-		if (view.govt.resources === i) list.push(ui.govt.resources)
-		if (view.auc.resources === i) list.push(ui.auc.resources)
-		if (view.cartels.resources === i) list.push(ui.cartels.resources)
-		if (view.farc.resources === i) list.push(ui.farc.resources)
+		for (let faction = 0; faction < 4; ++faction)
+			if (view.resources[faction] === i) list.push(ui.resources[faction])
 
 		if (i <= 30) y = 16
 		else if (i >= 77) y = 2486
@@ -572,21 +568,42 @@ function layout_score() {
 	}
 }
 
-function update_guerrillas_active(elts, guerrillas, active) {
-	for (let i = 0; i < guerrillas.length; ++i) {
-		if (active & (1 << i))
-			elts[i].classList.add("active")
+function update_guerrillas_underground(faction, type, underground) {
+	let p0 = first_piece[faction][type]
+	let p1 = last_piece[faction][type]
+	for (let i = 0, p = p0; p <= p1; ++i, ++p) {
+		if (underground & (1 << i))
+			ui.pieces[p].classList.remove("active")
 		else
-			elts[i].classList.remove("active")
+			ui.pieces[p].classList.add("active")
 	}
 }
 
-function on_update() {
-	ui.header.classList.toggle("govt", view.active === "Government")
-	ui.header.classList.toggle("auc", view.active === "AUC")
-	ui.header.classList.toggle("cartels", view.active === "Cartels")
-	ui.header.classList.toggle("farc", view.active === "FARC")
+function action_piece_list(list, action) {
+	if (view.actions && view.actions[action]) {
+		for (let i = 0; i < list.length; ++i) {
+			if (set_has(view.actions[action], i)) {
+				list[i].classList.add("action")
+			} else {
+				list[i].classList.remove("action")
+			}
+		}
+	}
+}
 
+function layout_farc_zone(s, elt) {
+	let [x, y] = get_center_xy(s)
+	if (s <= last_pop) {
+		y -= 65
+	} else {
+		x += 55
+	}
+	elt.className = "token farc_zone"
+	elt.style.top = (y - 25) + "px"
+	elt.style.left = (x - 25) + "px"
+}
+
+function on_update() {
 	switch (player) {
 	case "Government": favicon.href = "images/icon_govt.png"; break
 	case "AUC": favicon.href = "images/icon_auc.png"; break
@@ -594,19 +611,24 @@ function on_update() {
 	case "FARC": favicon.href = "images/icon_farc.png"; break
 	}
 
-	ui.misc.president.style.left = [ 0, "254px", "337px", "420px" ][view.misc.president]
+	ui.header.classList.toggle("govt", view.current === GOVT)
+	ui.header.classList.toggle("auc", view.current === AUC)
+	ui.header.classList.toggle("cartels", view.current === CARTELS)
+	ui.header.classList.toggle("farc", view.current === FARC)
 
-	ui.player.govt.classList.toggle("active", view.active === "Government")
-	ui.player.auc.classList.toggle("active", view.active === "AUC")
-	ui.player.cartels.classList.toggle("active", view.active === "Cartels")
-	ui.player.farc.classList.toggle("active", view.active === "FARC")
+	ui.player[GOVT].classList.toggle("active", view.current === GOVT)
+	ui.player[AUC].classList.toggle("active", view.current === AUC)
+	ui.player[CARTELS].classList.toggle("active", view.current === CARTELS)
+	ui.player[FARC].classList.toggle("active", view.current === FARC)
+
+	ui.tokens.president.style.left = [ 0, "254px", "337px", "420px" ][view.president]
 
 	if (view.propaganda > 0) {
-		ui.misc.propaganda.style.top = "744px"
-		ui.misc.propaganda.style.left = (1124 + 75 * (view.propaganda - 1)) + "px"
+		ui.tokens.propaganda.style.top = "744px"
+		ui.tokens.propaganda.style.left = (1124 + 75 * (view.propaganda - 1)) + "px"
 	} else {
-		ui.misc.propaganda.style.top = "666px"
-		ui.misc.propaganda.style.left = "1029px"
+		ui.tokens.propaganda.style.top = "666px"
+		ui.tokens.propaganda.style.left = "1029px"
 	}
 
 	ui.this_card.className = "card card_" + view.deck[0]
@@ -616,16 +638,19 @@ function on_update() {
 	layout_sop()
 	layout_score()
 
-	layout_cubes_available(view.govt.troops, ui.govt.troops, AVAILABLE, 114, 248)
-	layout_cubes_available(view.govt.police, ui.govt.police, AVAILABLE, 114, 448)
-	layout_guerrillas_available(view.auc.guerrillas, ui.auc.guerrillas, AVAILABLE, 196, 2370)
-	layout_guerrillas_available(view.cartels.guerrillas, ui.cartels.guerrillas, AVAILABLE, 1465, 1970)
-	layout_guerrillas_available(view.farc.guerrillas, ui.farc.guerrillas, AVAILABLE, 1396, 234)
+	layout_available(GOVT, TROOPS, 114, 248)
+	layout_available(GOVT, POLICE, 114, 448)
+	layout_available(FARC, GUERRILLA, 1396, 234)
+	layout_available(AUC, GUERRILLA, 196, 2370)
+	layout_available(CARTELS, GUERRILLA, 1465, 1970)
+
+	for (let i = view.farc_zones.length; i < ui.farc_zones.length; ++i)
+		ui.farc_zones[i].className = "hide"
 
 	let list = []
 	for (let s = 0; s < data.spaces.length; ++s) {
 		if (s <= last_pop) {
-			switch (view.misc.support[s]) {
+			switch (view.support[s]) {
 				case -2: ui.support[s].className = "token active_opposition"; break
 				case -1: ui.support[s].className = "token passive_opposition"; break
 				case 0: ui.support[s].className = "hide"; break
@@ -635,74 +660,84 @@ function on_update() {
 		}
 
 		if (s >= first_loc && s <= last_loc) {
-			if (set_has(view.misc.sabotage, s))
+			if (set_has(view.sabotage, s))
 				ui.sabotage[s].className = "token sabotage"
 			else
 				ui.sabotage[s].className = "hide"
 		}
 	
 		if (s <= last_dept) {
-			if (set_has(view.misc.farc_zones, s))
-				ui.control[s].className = "token farc_zone"
-			else switch (view.misc.control[s]) {
-				case 0: ui.control[s].className = "hide"; break
-				case 1: ui.control[s].className = "token govt_control"; break
-				case 2: ui.control[s].className = "token farc_control"; break
-			}
+			for (let i = 0; i < view.farc_zones.length; ++i)
+				if (view.farc_zones[i] === s)
+					layout_farc_zone(s, ui.farc_zones[i])
+			if (view.govt_control & (1<<s))
+				ui.control[s].className = "token govt_control"
+			else if (view.farc_control & (1<<s))
+				ui.control[s].className = "token farc_control"
+			else
+				ui.control[s].className = "hide"
 		}
 
-		update_guerrillas_active(ui.auc.guerrillas, view.auc.guerrillas, view.auc.active)
-		update_guerrillas_active(ui.cartels.guerrillas, view.cartels.guerrillas, view.cartels.active)
-		update_guerrillas_active(ui.farc.guerrillas, view.farc.guerrillas, view.farc.active)
+		update_guerrillas_underground(FARC, GUERRILLA, view.underground[FARC])
+		update_guerrillas_underground(AUC, GUERRILLA, view.underground[AUC])
+		update_guerrillas_underground(CARTELS, GUERRILLA, view.underground[CARTELS])
 
 		list.length = 0
-		filter_piece_list(list, view.auc.guerrillas, ui.auc.guerrillas, s)
-		filter_piece_list(list, view.cartels.guerrillas, ui.cartels.guerrillas, s)
-		filter_piece_list(list, view.farc.guerrillas, ui.farc.guerrillas, s)
-		filter_piece_list(list, view.govt.troops, ui.govt.troops, s)
-		filter_piece_list(list, view.govt.police, ui.govt.police, s)
+		filter_piece_list(list, s, FARC, GUERRILLA)
+		filter_piece_list(list, s, AUC, GUERRILLA)
+		filter_piece_list(list, s, CARTELS, GUERRILLA)
+		filter_piece_list(list, s, GOVT, TROOPS)
+		filter_piece_list(list, s, GOVT, POLICE)
 
-		// TODO: associate shipments with other piece, not space
-		filter_piece_list(list, view.misc.shipments, ui.misc.shipments, s)
+		// TODO: shipments with other faction/piece, not space
 
 		let xy = get_layout_xy(s)
 		if (xy)
 			layout_pieces(list, xy[0], xy[1])
 
 		list.length = 0
-		filter_piece_list(list, view.govt.bases, ui.govt.bases, s)
-		filter_piece_list(list, view.auc.bases, ui.auc.bases, s)
-		filter_piece_list(list, view.farc.bases, ui.farc.bases, s)
-		filter_piece_list(list, view.cartels.bases, ui.cartels.bases, s)
+		filter_piece_list(list, s, GOVT, BASE)
+		filter_piece_list(list, s, FARC, BASE)
+		filter_piece_list(list, s, AUC, BASE)
+		filter_piece_list(list, s, CARTELS, BASE)
 
 		xy = get_center_xy(s)
 		if (xy)
 			layout_space_bases(list, xy[0], xy[1], s <= last_city ? get_layout_radius(s) : 0)
 		else
-			console.log("NO SPACE", s, data.spaces[s].name)
+			console.log("NO SPACE", s, data.space_name[s])
 
 		ui.spaces[s].classList.toggle("action", is_action("space", s))
 	}
 
 	list.length = 0
-	filter_piece_list(list, view.misc.shipments, ui.misc.shipments, AVAILABLE)
+	for (let i = 0; i < 4; ++i)
+		if (view.shipments[i] === AVAILABLE)
+			list.push(ui.shipments[i])
 	layout_available_bases(list, 1532, 1722, 2, 2, 89, 69)
 
 	list.length = 0
-	filter_piece_list(list, view.govt.bases, ui.govt.bases, AVAILABLE)
+	filter_piece_list(list, AVAILABLE, GOVT, BASE)
 	layout_available_bases(list, 287 + 177, 371, 3, 1, 61, 0)
 
 	list.length = 0
-	filter_piece_list(list, view.auc.bases, ui.auc.bases, AVAILABLE)
-	layout_available_bases(list, 446 + 360, 2386, 6, 1, 61, 0)
-
-	list.length = 0
-	filter_piece_list(list, view.farc.bases, ui.farc.bases, AVAILABLE)
+	filter_piece_list(list, AVAILABLE, FARC, BASE)
 	layout_available_bases(list, 446 + 543, 2295, 9, 1, 61, 0)
 
 	list.length = 0
-	filter_piece_list(list, view.cartels.bases, ui.cartels.bases, AVAILABLE)
+	filter_piece_list(list, AVAILABLE, AUC, BASE)
+	layout_available_bases(list, 446 + 360, 2386, 6, 1, 61, 0)
+
+	list.length = 0
+	filter_piece_list(list, AVAILABLE, CARTELS, BASE)
 	layout_available_bases(list, 1373 + 183, 2117, 3, 5, 63, 63)
+
+	if (view.actions && view.actions.piece)
+		for (let i = 0; i < ui.pieces.length; ++i)
+			ui.pieces[i].classList.toggle("action", set_has(view.actions.piece, i))
+	else
+		for (let i = 0; i < ui.pieces.length; ++i)
+			ui.pieces[i].classList.remove("action")
 
 	action_button("train", "Train")
 	action_button("patrol", "Patrol")
@@ -744,13 +779,13 @@ function on_blur_card_tip(c) {
 
 function sub_card(match, p1) {
 	let x = p1 | 0
-	let n = data.cards[x].name
+	let n = data.card_name[x]
 	return `<span class="tip" onmouseenter="on_focus_card_tip(${x})" onmouseleave="on_blur_card_tip(${x})" onclick="on_click_card_tip(${x})">${n}</span>`
 }
 
 function sub_space(match, p1) {
 	let x = p1 | 0
-	let n = data.spaces[x].name
+	let n = data.space_name[x]
 	return `<span class="tip" onmouseenter="on_focus_space_tip(${x})" onmouseleave="on_blur_space_tip(${x})" onclick="on_click_space_tip(${x})">${n}</span>`
 }
 

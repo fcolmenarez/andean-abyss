@@ -6,15 +6,44 @@ let view = null
 
 const data = require("./data.js")
 
-const GOVT = "Government"
-const AUC = "AUC"
-const CARTELS = "Cartels"
-const FARC = "FARC"
+// Role names
+const NAME_GOVT = "Government"
+const NAME_FARC = "FARC"
+const NAME_AUC = "AUC"
+const NAME_CARTELS = "Cartels"
+const NAME_GOVT_AUC = "Government + AUC"
+const NAME_FARC_CARTELS = "FARC + Cartels"
+const NAME_AUC_CARTELS = "AUC + Cartels"
 
-// For 3 and 2 player games
-const AUC_CARTELS = "AUC + Cartels"
-const GOVT_AUC = "Government + AUC"
-const FARC_CARTELS = "FARC + Cartels"
+const faction_name = [ NAME_GOVT, NAME_FARC, NAME_AUC, NAME_CARTELS ]
+
+// Factions
+const GOVT = 0
+const FARC = 1
+const AUC = 2
+const CARTELS = 3
+
+// Pieces
+const BASE = 0
+const GUERRILLA = 1
+const TROOPS = 2
+const POLICE = 3
+
+const space_name = data.space_name
+
+const first_piece = data.first_piece
+const last_piece = data.last_piece
+
+const first_pop = data.first_pop
+const first_city = data.first_city
+const last_city = data.last_city
+const first_dept = data.first_dept
+const last_pop = data.last_pop
+const last_dept = data.last_dept
+const first_foreign = data.first_foreign
+const last_foreign = data.last_foreign
+const first_loc = data.first_loc
+const last_loc = data.last_loc
 
 // Sequence of Play options
 const ELIGIBLE = 0
@@ -34,27 +63,14 @@ const NEUTRAL = 0
 const PASSIVE_OPPOSITION = -1
 const ACTIVE_OPPOSITION = -2
 
-// Control ?
-const UNCONTROLLED = 0
-const CTL_GOVERNMENT = 1
-const CTL_AUC = 2
-const CTL_CARTELS = 3
-const CTL_FARC = 4
+// Control
+const CTL_NEUTRAL = 0
+const CTL_GOVT = 1
+const CTL_FARC = 2
 
 const SAMPER = 1
 const PASTRANA = 2
 const URIBE = 3
-
-const first_pop = 1
-const first_city = 0
-const last_city = 10
-const first_dept = 11
-const last_pop = 22
-const last_dept = 26
-const first_foreign = 27
-const last_foreign = 31
-const first_loc = 32
-const last_loc = 49
 
 const AVAILABLE = -1
 
@@ -102,10 +118,10 @@ const COASTAL_SPACES = [ ATLANTICO, CHOCO, NARINO, CESAR ]
 
 exports.roles = function (scenario) {
 	if (scenario.startsWith("2P"))
-		return [ GOVT_AUC, FARC_CARTELS ]
+		return [ NAME_GOVT_AUC, NAME_FARC_CARTELS ]
 	if (scenario.startsWith("3P"))
-		return [ GOVT, FARC, AUC_CARTELS ]
-	return [ GOVT, AUC, CARTELS, FARC ]
+		return [ NAME_GOVT, NAME_FARC, NAME_AUC_CARTELS ]
+	return [ NAME_GOVT, NAME_FARC, NAME_AUC, NAME_CARTELS ]
 }
 
 exports.scenarios = [
@@ -122,22 +138,32 @@ exports.scenarios = [
 
 function load_game(state) {
 	game = state
-	if (game.scenario !== 4)
-		game.active = game.save_active
 }
 
 function save_game() {
+	if (game.scenario === 4) {
+		if (game.current === GOVT)
+			game.active = NAME_GOVT
+		if (game.current === FARC)
+			game.active = NAME_FARC
+		if (game.current === AUC)
+			game.active = NAME_AUC
+		if (game.current === CARTELS)
+			game.active = NAME_CARTELS
+	}
 	if (game.scenario === 3) {
-		game.save_active = game.active
-		if (game.active === AUC || game.active === CARTELS)
-			game.active = AUC_CARTELS
+		if (game.current === GOVT)
+			game.active = NAME_GOVT
+		if (game.current === FARC)
+			game.active = NAME_FARC
+		if (game.current === AUC || game.current === CARTELS)
+			game.active = NAME_AUC_CARTELS
 	}
 	if (game.scenario === 2) {
-		game.save_active = game.active
-		if (game.active === GOVT || game.active === AUC)
-			game.active = GOVT_AUC
-		if (game.active === FARC || game.active === CARTELS)
-			game.active = FARC_CARTELS
+		if (game.current === GOVT || game.current === AUC)
+			game.active = NAME_GOVT_AUC
+		if (game.current === FARC || game.current === CARTELS)
+			game.active = NAME_FARC_CARTELS
 	}
 	return game
 }
@@ -147,53 +173,29 @@ exports.setup = function (seed, scenario, options) {
 		seed,
 		log: [],
 		undo: [],
+		active: null,
 
 		scenario: 4,
-		active: null,
+		current: 0,
 		state: null,
 
 		op_spaces: null,
 		sa_spaces: null,
 
 		deck: [],
-		misc: {
-			aid: 0,
-			president: 0,
-			shipments: [ AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE ],
-			control: Array(27).fill(0),
-			support: Array(23).fill(NEUTRAL),
-			farc_zones: [],
-			terror: [],
-			sabotage: [],
-		},
-		govt: {
-			cylinder: ELIGIBLE,
-			resources: 0,
-			troops: Array(30).fill(AVAILABLE),
-			police: Array(30).fill(AVAILABLE),
-			bases: Array(3).fill(AVAILABLE),
-		},
-		auc: {
-			cylinder: ELIGIBLE,
-			resources: 0,
-			guerrillas: Array(18).fill(AVAILABLE),
-			bases: Array(6).fill(AVAILABLE),
-			active: 0,
-		},
-		cartels: {
-			cylinder: ELIGIBLE,
-			resources: 0,
-			guerrillas: Array(12).fill(AVAILABLE),
-			bases: Array(15).fill(AVAILABLE),
-			active: 0,
-		},
-		farc: {
-			cylinder: ELIGIBLE,
-			resources: 0,
-			guerrillas: Array(30).fill(AVAILABLE),
-			bases: Array(9).fill(AVAILABLE),
-			active: 0,
-		},
+		president: 0,
+		aid: 0,
+		cylinder: [ ELIGIBLE, ELIGIBLE, ELIGIBLE, ELIGIBLE ],
+		resources: [ 0, 0, 0, 0 ],
+		shipments: [ AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE ],
+		pieces: Array(153).fill(AVAILABLE),
+		underground: [ 0, 0, -1, -1 ],
+		farc_control: 0,
+		govt_control: 0,
+		support: Array(23).fill(NEUTRAL),
+		farc_zones: [],
+		terror: [],
+		sabotage: [],
 	}
 
 	if (scenario.startsWith("3P"))
@@ -229,12 +231,12 @@ exports.setup = function (seed, scenario, options) {
 }
 
 function setup_standard() {
-	game.misc.aid = 9
-	game.misc.president = SAMPER
-	game.govt.resources = 40
-	game.auc.resources = 10
-	game.cartels.resources = 10
-	game.farc.resources = 10
+	game.aid = 9
+	game.president = SAMPER
+	game.resources[GOVT] = 40
+	game.resources[AUC] = 10
+	game.resources[CARTELS] = 10
+	game.resources[FARC] = 10
 
 	set_support(ATLANTICO, ACTIVE_SUPPORT)
 	set_support(SANTANDER, ACTIVE_SUPPORT)
@@ -250,81 +252,81 @@ function setup_standard() {
 	set_support(PUTUMAYO, ACTIVE_OPPOSITION)
 	set_support(NARINO, ACTIVE_OPPOSITION)
 
-	place_piece(game.govt.troops, 3, BOGOTA)
-	place_piece(game.govt.troops, 3, MEDELLIN)
-	place_piece(game.govt.troops, 3, CALI)
-	place_piece(game.govt.troops, 3, SANTANDER)
-	place_piece(game.govt.police, 2, BOGOTA)
+	place_piece(GOVT, TROOPS, 3, BOGOTA)
+	place_piece(GOVT, TROOPS, 3, MEDELLIN)
+	place_piece(GOVT, TROOPS, 3, CALI)
+	place_piece(GOVT, TROOPS, 3, SANTANDER)
+	place_piece(GOVT, POLICE, 2, BOGOTA)
 	for (let s = first_city; s <= last_city; ++s)
 		if (s !== BOGOTA)
-			place_piece(game.govt.police, 1, s)
-	place_piece(game.govt.bases, 1, SANTANDER)
+			place_piece(GOVT, POLICE, 1, s)
+	place_piece(GOVT, BASE, 1, SANTANDER)
 
-	place_piece(game.farc.guerrillas, 1, NARINO)
-	place_piece(game.farc.guerrillas, 1, CHOCO)
-	place_piece(game.farc.guerrillas, 1, SANTANDER)
-	place_piece(game.farc.guerrillas, 1, HUILA)
-	place_piece(game.farc.guerrillas, 1, ARAUCA)
-	place_piece(game.farc.guerrillas, 1, META_EAST)
-	place_piece(game.farc.guerrillas, 2, META_WEST)
-	place_piece(game.farc.guerrillas, 2, GUAVIARE)
-	place_piece(game.farc.guerrillas, 2, PUTUMAYO)
-	place_piece(game.farc.bases, 1, CHOCO)
-	place_piece(game.farc.bases, 1, HUILA)
-	place_piece(game.farc.bases, 1, ARAUCA)
-	place_piece(game.farc.bases, 1, META_EAST)
-	place_piece(game.farc.bases, 1, META_WEST)
-	place_piece(game.farc.bases, 1, GUAVIARE)
+	place_piece(FARC, GUERRILLA, 1, NARINO)
+	place_piece(FARC, GUERRILLA, 1, CHOCO)
+	place_piece(FARC, GUERRILLA, 1, SANTANDER)
+	place_piece(FARC, GUERRILLA, 1, HUILA)
+	place_piece(FARC, GUERRILLA, 1, ARAUCA)
+	place_piece(FARC, GUERRILLA, 1, META_EAST)
+	place_piece(FARC, GUERRILLA, 2, META_WEST)
+	place_piece(FARC, GUERRILLA, 2, GUAVIARE)
+	place_piece(FARC, GUERRILLA, 2, PUTUMAYO)
+	place_piece(FARC, BASE, 1, CHOCO)
+	place_piece(FARC, BASE, 1, HUILA)
+	place_piece(FARC, BASE, 1, ARAUCA)
+	place_piece(FARC, BASE, 1, META_EAST)
+	place_piece(FARC, BASE, 1, META_WEST)
+	place_piece(FARC, BASE, 1, GUAVIARE)
 
-	place_piece(game.auc.guerrillas, 1, ATLANTICO)
-	place_piece(game.auc.guerrillas, 1, ANTIOQUIA)
-	place_piece(game.auc.guerrillas, 1, SANTANDER)
-	place_piece(game.auc.guerrillas, 1, ARAUCA)
-	place_piece(game.auc.guerrillas, 1, GUAVIARE)
-	place_piece(game.auc.guerrillas, 1, PUTUMAYO)
-	place_piece(game.auc.bases, 1, ANTIOQUIA)
+	place_piece(AUC, GUERRILLA, 1, ATLANTICO)
+	place_piece(AUC, GUERRILLA, 1, ANTIOQUIA)
+	place_piece(AUC, GUERRILLA, 1, SANTANDER)
+	place_piece(AUC, GUERRILLA, 1, ARAUCA)
+	place_piece(AUC, GUERRILLA, 1, GUAVIARE)
+	place_piece(AUC, GUERRILLA, 1, PUTUMAYO)
+	place_piece(AUC, BASE, 1, ANTIOQUIA)
 
-	place_piece(game.cartels.guerrillas, 1, CALI)
-	place_piece(game.cartels.guerrillas, 1, PUTUMAYO)
-	place_piece(game.cartels.bases, 1, CALI)
-	place_piece(game.cartels.bases, 1, META_EAST)
-	place_piece(game.cartels.bases, 1, META_WEST)
-	place_piece(game.cartels.bases, 1, GUAVIARE)
-	place_piece(game.cartels.bases, 2, PUTUMAYO)
+	place_piece(CARTELS, GUERRILLA, 1, CALI)
+	place_piece(CARTELS, GUERRILLA, 1, PUTUMAYO)
+	place_piece(CARTELS, BASE, 1, CALI)
+	place_piece(CARTELS, BASE, 1, META_EAST)
+	place_piece(CARTELS, BASE, 1, META_WEST)
+	place_piece(CARTELS, BASE, 1, GUAVIARE)
+	place_piece(CARTELS, BASE, 2, PUTUMAYO)
 }
 
 function setup_quick() {
-	place_piece(game.cartels.guerrillas, 4, MEDELLIN)
-	place_piece(game.cartels.bases, 1, MEDELLIN)
+	place_piece(CARTELS, GUERRILLA, 4, MEDELLIN)
+	place_piece(CARTELS, BASE, 1, MEDELLIN)
 
 	set_support(CALI, ACTIVE_SUPPORT)
-	place_piece(game.govt.police, 4, CALI)
-	remove_piece(game.cartels.guerrillas, 1, CALI)
-	remove_piece(game.cartels.bases, 1, CALI)
+	place_piece(GOVT, POLICE, 4, CALI)
+	remove_piece(CARTELS, GUERRILLA, 1, CALI)
+	remove_piece(CARTELS, BASE, 1, CALI)
 
-	place_piece(game.govt.troops, 6, BOGOTA)
+	place_piece(GOVT, TROOPS, 6, BOGOTA)
 
-	place_piece(game.auc.bases, 1, SANTANDER)
+	place_piece(AUC, BASE, 1, SANTANDER)
 
 	set_support(ARAUCA, NEUTRAL)
-	place_piece(game.auc.guerrillas, 1, ARAUCA)
+	place_piece(AUC, GUERRILLA, 1, ARAUCA)
 
-	set_add(game.misc.farc_zones, META_WEST)
-	place_piece(game.farc.guerrillas, 4, META_WEST)
+	set_add(game.farc_zones, META_WEST)
+	place_piece(FARC, GUERRILLA, 4, META_WEST)
 
 	set_support(HUILA, ACTIVE_OPPOSITION)
-	place_piece(game.farc.guerrillas, 3, HUILA)
-	place_piece(game.auc.guerrillas, 2, HUILA)
-	place_piece(game.cartels.bases, 1, HUILA)
+	place_piece(FARC, GUERRILLA, 3, HUILA)
+	place_piece(AUC, GUERRILLA, 2, HUILA)
+	place_piece(CARTELS, BASE, 1, HUILA)
 
-	place_piece(game.farc.guerrillas, 2, VAUPES)
+	place_piece(FARC, GUERRILLA, 2, VAUPES)
 
-	game.auc.resources = 5
-	game.farc.resources = 10
-	game.cartels.resources = 20
-	game.govt.resources = 30
+	game.resources[AUC] = 5
+	game.resources[FARC] = 10
+	game.resources[CARTELS] = 20
+	game.resources[GOVT] = 30
 
-	game.misc.president = PASTRANA
+	game.president = PASTRANA
 }
 
 function shuffle_all_cards() {
@@ -359,60 +361,93 @@ function setup_deck(count, a, b) {
 }
 
 function set_support(place, amount) {
-	game.misc.support[place] = amount
+	game.support[place] = amount
 }
 
 function get_support(place, amount) {
-	return game.misc.support[place]
+	return game.support[place]
 }
 
-function place_piece(list, count, where) {
-	for (let i = 0; i < list.length && count > 0; ++i) {
-		if (list[i] < 0) {
-			list[i] = where
+function place_piece(faction, type, count, where) {
+	for (let p = first_piece[faction][type]; count > 0; ++p) {
+		if (game.pieces[p] < 0) {
+			game.pieces[p] = where
 			--count
 		}
 	}
-	if (count !== 0)
-		throw Error("bad piece count")
 }
 
-function remove_piece(list, count, where) {
-	for (let i = 0; i < list.length && count > 0; ++i) {
-		if (list[i] === where) {
-			list[i] = AVAILABLE
+function remove_piece(faction, type, count, where) {
+	for (let p = first_piece[faction][type]; count > 0; ++p) {
+		if (game.pieces[p] === where) {
+			game.pieces[p] = AVAILABLE
 			--count
 		}
 	}
-	if (count !== 0)
-		throw Error("bad piece count")
 }
 
-function count_pieces_imp(s, list) {
+function count_pieces_imp(s, faction, type) {
+	let first = first_piece[faction][type]
+	let last = last_piece[faction][type]
 	let n = 0
-	for (let i = 0; i < list.length; ++i)
-		if (list[i] === s)
+	for (let p = first; p <= last; ++p)
+		if (game.pieces[p] === s)
 			++n
 	return n
 }
 
 function update_control() {
+	game.govt_control = 0
+	game.farc_control = 0
 	for (let s = 0; s <= last_dept; ++s) {
-		let g = count_pieces_imp(s, game.govt.troops) +
-			count_pieces_imp(s, game.govt.police) +
-			count_pieces_imp(s, game.govt.bases)
-		let a = count_pieces_imp(s, game.auc.guerrillas) +
-			count_pieces_imp(s, game.auc.bases)
-		let c = count_pieces_imp(s, game.cartels.guerrillas) +
-			count_pieces_imp(s, game.cartels.bases)
-		let f = count_pieces_imp(s, game.farc.guerrillas) +
-			count_pieces_imp(s, game.farc.bases)
+		let g = count_pieces_imp(s, GOVT, BASE) +
+			count_pieces_imp(s, GOVT, TROOPS) +
+			count_pieces_imp(s, GOVT, POLICE)
+		let f = count_pieces_imp(s, FARC, BASE) +
+			count_pieces_imp(s, FARC, GUERRILLA)
+		let a = count_pieces_imp(s, AUC, BASE) +
+			count_pieces_imp(s, AUC, GUERRILLA)
+		let c = count_pieces_imp(s, CARTELS, BASE) +
+			count_pieces_imp(s, CARTELS, GUERRILLA)
 		if (g > a + c + f)
-			game.misc.control[s] = 1
+			game.govt_control |= (1 << s)
 		else if (f > g + a + c)
-			game.misc.control[s] = 2
-		else
-			game.misc.control[s] = 0
+			game.farc_control |= (1 << s)
+	}
+}
+
+function is_city(s) {
+	return s <= last_city
+}
+
+function has_govt_base(s) {
+	return set_has(game.govt.bases, s)
+}
+
+function is_underground(p) {
+	for (let faction = 1; faction < 4; ++faction) {
+		let p0 = first_piece[faction][GUERRILLA]
+		let p1 = last_piece[faction][GUERRILLA]
+		if (p >= p0 && p <= p1)
+			return game.underground[faction] & (1 << (p - p0))
+	}
+}
+
+function set_underground(p) {
+	for (let faction = 1; faction < 4; ++faction) {
+		let p0 = first_piece[faction][GUERRILLA]
+		let p1 = last_piece[faction][GUERRILLA]
+		if (p >= p0 && p <= p1)
+			game.underground[faction] |= (1 << (p - p0))
+	}
+}
+
+function set_active(p) {
+	for (let faction = 1; faction < 4; ++faction) {
+		let p0 = first_piece[faction][GUERRILLA]
+		let p1 = last_piece[faction][GUERRILLA]
+		if (p >= p0 && p <= p1)
+			game.underground[faction] &= ~(1 << (p - p0))
 	}
 }
 
@@ -430,44 +465,29 @@ function goto_card() {
 }
 
 function adjust_eligibility(faction) {
-	if (faction.cylinder === INELIGIBLE || faction.cylinder === SOP_PASS)
-		faction.cylinder = ELIGIBLE
-	else if (faction.cylinder !== ELIGIBLE)
-		faction.cylinder = INELIGIBLE
+	if (game.cylinder[faction] === INELIGIBLE || game.cylinder[faction] === SOP_PASS)
+		game.cylinder[faction] = ELIGIBLE
+	else if (game.cylinder[faction] !== ELIGIBLE)
+		game.cylinder[faction] = INELIGIBLE
 }
 
 function end_card() {
-	adjust_eligibility(game.govt)
-	adjust_eligibility(game.auc)
-	adjust_eligibility(game.cartels)
-	adjust_eligibility(game.farc)
+	adjust_eligibility(GOVT)
+	adjust_eligibility(FARC)
+	adjust_eligibility(AUC)
+	adjust_eligibility(CARTELS)
 
 	clear_undo()
 	array_remove(game.deck, 0)
 	goto_card()
 }
 
-function current_faction() {
-	switch (game.active) {
-	case GOVT: return game.govt
-	case AUC: return game.auc
-	case CARTELS: return game.cartels
-	case FARC: return game.farc
-	}
-}
-
 function is_eligible(faction) {
-	switch (faction) {
-	case GOVT: return game.govt.cylinder === ELIGIBLE
-	case AUC: return game.auc.cylinder === ELIGIBLE
-	case CARTELS: return game.cartels.cylinder === ELIGIBLE
-	case FARC: return game.farc.cylinder === ELIGIBLE
-	}
-	return false
+	return game.cylinder[faction] === ELIGIBLE
 }
 
 function next_eligible_faction() {
-	let order = data.cards[this_card()].order
+	let order = data.card_order[this_card()]
 	for (let faction of order)
 		if (is_eligible(faction))
 			return faction
@@ -476,10 +496,10 @@ function next_eligible_faction() {
 
 function did_option(e) {
 	return (
-		game.govt.cylinder === e ||
-		game.auc.cylinder === e ||
-		game.cartels.cylinder === e ||
-		game.farc.cylinder === e
+		game.cylinder[GOVT] === e ||
+		game.cylinder[FARC] === e ||
+		game.cylinder[AUC] === e ||
+		game.cylinder[CARTELS] === e
 	)
 }
 
@@ -503,16 +523,16 @@ function resume_event_card() {
 }
 
 function goto_eligible1() {
-	game.active = next_eligible_faction()
-	if (game.active === null)
+	game.current = next_eligible_faction()
+	if (game.current === null)
 		end_card()
 	else
 		game.state = "eligible1"
 }
 
 function goto_eligible2() {
-	game.active = next_eligible_faction()
-	if (game.active === null)
+	game.current = next_eligible_faction()
+	if (game.current === null)
 		end_card()
 	else
 		game.state = "eligible2"
@@ -527,11 +547,10 @@ states.eligible1 = {
 		gen_action("sop", SOP_1ST_EVENT)
 		gen_action("sop", SOP_PASS)
 	},
-	sop(e) {
+	sop(option) {
 		push_undo()
-		let faction = current_faction()
-		faction.cylinder = e
-		switch (e) {
+		game.cylinder[game.current] = option
+		switch (option) {
 			case SOP_PASS:
 				goto_pass()
 				break
@@ -560,11 +579,10 @@ states.eligible2 = {
 			gen_action("sop", SOP_2ND_OP_AND_SA)
 		gen_action("sop", SOP_PASS)
 	},
-	sop(e) {
+	sop(option) {
 		push_undo()
-		let faction = current_faction()
-		faction.cylinder = e
-		switch (e) {
+		game.cylinder[game.current] = option
+		switch (option) {
 			case SOP_PASS:
 				goto_pass()
 				break
@@ -582,12 +600,11 @@ states.eligible2 = {
 }
 
 function goto_pass() {
-	log_h2(game.active + " - Pass")
-	let faction = current_faction()
-	if (game.active === GOVT)
-		faction.resources += 3
+	log_h2(faction_name[game.current] + " - Pass")
+	if (game.current === GOVT)
+		game.resources[game.current] += 3
 	else
-		faction.resources += 1
+		game.resources[game.current] += 1
 	resume_event_card()
 }
 
@@ -611,27 +628,27 @@ states.limop_or_event = {
 }
 
 function goto_event() {
-	log_h2(game.active + " - Event")
+	log_h2(faction_name[game.current] + " - Event")
 	log("TODO: Event")
 	resume_event_card()
 }
 
 function goto_op_only() {
-	log_h2(game.active + " - Op only")
+	log_h2(faction_name[game.current] + " - Op Only")
 	game.state = "op"
 	game.op_spaces = []
 	game.sa_spaces = null
 }
 
 function goto_op_and_sa() {
-	log_h2(game.active + " - Op + Special")
+	log_h2(faction_name[game.current] + " - Op + Special")
 	game.state = "op"
 	game.op_spaces = []
 	game.sa_spaces = []
 }
 
 function goto_limop() {
-	log_h2(game.active + " - LimOp")
+	log_h2(faction_name[game.current] + " - LimOp")
 	game.state = "op"
 	game.op_spaces = []
 	game.sa_spaces = null
@@ -647,7 +664,7 @@ function can_use_special_activity() {
 states.op = {
 	prompt() {
 		view.prompt = "Choose an Operation."
-		if (game.active === GOVT) {
+		if (game.current === GOVT) {
 			view.actions.train = 1
 			view.actions.patrol = 1
 			view.actions.sweep = 1
@@ -658,6 +675,7 @@ states.op = {
 			view.actions.attack = 1
 			view.actions.terror = 1
 		}
+		view.actions.remove = 1
 	},
 
 	train() {
@@ -701,6 +719,35 @@ states.op = {
 		log_h3("Terror")
 		game.state = "terror"
 	},
+
+	remove() {
+		push_undo()
+		game.save_state = game.state
+		game.state = "remove"
+	},
+}
+
+function for_each_own_piece(f) {
+	f(p)
+}
+
+states.remove = {
+	prompt() {
+		view.prompt = "Remove pieces to Available Forces."
+		for_each_own_piece(p => {
+			if (game.pieces[p] !== AVAILABLE)
+				gen_action("piece", p)
+		})
+		view.actions.done = 1
+	},
+	piece(p) {
+		push_undo()
+		game.pieces[p] = AVAILABLE
+	},
+	done() {
+		game.state = game.save_state
+		game.save_state = 0
+	}
 }
 
 states.train = {
@@ -736,6 +783,36 @@ states.train = {
 		let faction = current_faction()
 		faction.resources -= 3
 		set_add(game.op_spaces, s)
+		game.where = s
+		if (is_city(s) || has_govt_base(s)) {
+			game.state = "train_place_cubes"
+			game.selected = -1
+			game.count = 6
+		} else {
+			game.state = "train_base_or_civic"
+		}
+	},
+}
+
+function gen_select_available(action, list) {
+	for (let i = list.length; i-- > 0; ) {
+		if (list[i] === AVAILABLE) {
+			gen_action(action, i)
+			return
+		}
+	}
+	for (let i = 0; i < list.length; ++i)
+		gen_action(action, i)
+}
+
+states.train_place_cubes = {
+	prompt() {
+		view.prompt = `Train in ${space_name[game.where]}: Place up to ${game.count} cubes.`
+
+		if (game.selected < 0) {
+			gen_select_available("govt_police", game.govt.police)
+			gen_select_available("govt_troops", game.govt.troops)
+		}
 	},
 }
 
@@ -744,6 +821,7 @@ states.train = {
 function goto_game_over(result, victory) {
 	game = { ...game } // make a copy so we can add properties!
 	game.state = "game_over"
+	game.current = -1
 	game.active = "None"
 	game.result = result
 	game.victory = victory
@@ -804,20 +882,27 @@ function gen_action(action, argument) {
 	set_add(view.actions[action], argument)
 }
 
-function is_current_active(current) {
-	switch (current) {
-		case GOVT_AUC:
-			return game.active === GOVT || game.active === AUC
-		case FARC_CARTELS:
-			return game.active === FARC || game.active === CARTELS
-		case AUC_CARTELS:
-			return game.active === AUC || game.active === CARTELS
-		default:
-			return game.active === current
+function is_current_role(role) {
+	switch (role) {
+		case NAME_GOVT_AUC:
+			return game.current === GOVT || game.current === AUC
+		case NAME_FARC_CARTELS:
+			return game.current === FARC || game.current === CARTELS
+		case NAME_AUC_CARTELS:
+			return game.current === AUC || game.current === CARTELS
+		case NAME_GOVT:
+			return game.current === GOVT
+		case NAME_FARC:
+			return game.current === FARC
+		case NAME_AUC:
+			return game.current === AUC
+		case NAME_CARTELS:
+			return game.current === CARTELS
 	}
+	return false
 }
 
-exports.view = function (state, current) {
+exports.view = function (state, role) {
 	load_game(state)
 
 	let this_card = game.deck[0]
@@ -825,31 +910,37 @@ exports.view = function (state, current) {
 	let deck_size = Math.max(0, game.deck.length - 2)
 
 	view = {
-		active: game.active,
 		prompt: null,
 		actions: null,
 		log: game.log,
 
+		current: game.current,
 		deck: [ this_card, next_card, deck_size ],
-		op_spaces: game.op_spaces,
-		sa_spaces: game.sa_spaces,
-		misc: game.misc,
-		govt: game.govt,
-		auc: game.auc,
-		cartels: game.cartels,
-		farc: game.farc,
+		president: game.president,
+		aid: game.aid,
+		cylinder: game.cylinder,
+		resources: game.resources,
+		shipments: game.shipments,
+		pieces: game.pieces,
+		underground: game.underground,
+		govt_control: game.govt_control,
+		farc_control: game.farc_control,
+		support: game.support,
+		farc_zones: game.farc_zones,
+		terror: game.terror,
+		sabotage: game.sabotage,
 	}
 
 	if (game.state === "game_over") {
 		view.prompt = game.victory
-	} else if (current === "Observer" || !is_current_active(current)) {
+	} else if (!is_current_role(role)) {
 		let inactive = states[game.state].inactive || game.state
-		view.prompt = `Waiting for ${game.active} \u2014 ${inactive}.`
+		view.prompt = `Waiting for ${faction_name[game.current]} \u2014 ${inactive}.`
 	} else {
 		view.actions = {}
 		view.who = game.who
 		if (states[game.state])
-			states[game.state].prompt(current)
+			states[game.state].prompt()
 		else
 			view.prompt = "Unknown state: " + game.state
 		if (view.actions.undo === undefined) {
@@ -864,12 +955,12 @@ exports.view = function (state, current) {
 	return view
 }
 
-exports.action = function (state, current, action, arg) {
+exports.action = function (state, role, action, arg) {
 	load_game(state)
-	Object.seal(game) // XXX: don't allow adding properties
+	// Object.seal(game) // XXX: don't allow adding properties
 	let S = states[game.state]
 	if (S && action in S) {
-		S[action](arg, current)
+		S[action](arg)
 	} else {
 		if (action === "undo" && game.undo && game.undo.length > 0)
 			pop_undo()
