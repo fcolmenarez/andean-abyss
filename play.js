@@ -726,6 +726,7 @@ function on_update() {
 			console.log("NO SPACE", s, data.space_name[s])
 
 		ui.spaces[s].classList.toggle("action", is_action("space", s))
+		ui.spaces[s].classList.toggle("selected", view.where === s)
 	}
 
 	list.length = 0
@@ -779,11 +780,21 @@ function on_update() {
 	action_button("kidnap", "Process")
 	action_button("kidnap", "Bribe")
 
+	// Train/Rally sub-actions
+	action_button("move", "Move")
+	action_button("flip", "Flip")
+	action_button("base", "Base")
+	action_button("civic", "Civic Action")
+
 	action_button("unshaded", "Unshaded")
 	action_button("shaded", "Shaded")
 
 	action_button("event", "Event")
 	action_button("limop", "LimOp")
+
+	action_button("next", "Next")
+	action_button("done", "Done")
+	action_button("remove", "Remove")
 	action_button("undo", "Undo")
 }
 

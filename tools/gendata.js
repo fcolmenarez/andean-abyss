@@ -151,9 +151,12 @@ function def_town(name) {
 function def_loc(type, econ, cities, depts) {
 	let name = cities.join(" / ")
 	let loc_names = cities.concat(depts)
+	for (let n of loc_names)
+		if (space_name.indexOf(n) < 0)
+			console.log("not a space: " + n)
 	let loc_spaces = loc_names.map(n => space_name.indexOf(n))
 	let ix = spaces.length
-	spaces.push({ type, name, id: to_ascii(name), econ, adjacent: loc_spaces.filter(x=>x>0) })
+	spaces.push({ type, id: to_ascii(name), econ, adjacent: loc_spaces.filter(x=>x>0) })
 	for (let loc of loc_spaces)
 		if (loc >= 0)
 			add(spaces[loc].adjacent, ix)
@@ -169,7 +172,11 @@ function adjacent(an, bn) {
 }
 
 // Cities
+
+data.first_space = 0
+
 data.first_pop = 1
+
 data.first_city = spaces.length
 
 def_space("city", 8, "Bogotá")
@@ -186,9 +193,10 @@ def_space("city", 1, "Sincelejo")
 
 data.last_city = spaces.length-1
 
+// Departments
+
 data.first_dept = spaces.length
 
-// Departments
 def_space("forest", 1, "Atlántico")
 def_space("forest", 1, "Chocó")
 def_space("forest", 1, "Nariño")
@@ -211,12 +219,13 @@ def_space("forest", 0, "Amazonas")
 
 data.last_dept = spaces.length-1
 
+// Foreign Countries
+
 data.first_foreign = spaces.length
 
-// Foreign Countries
-def_space("foreign", 0, "Brasil")
-def_space("foreign", 0, "Ecuador")
 def_space("foreign", 0, "Panamá")
+def_space("foreign", 0, "Ecuador")
+def_space("foreign", 0, "Brasil")
 def_space("foreign", 0, "Perú")
 def_space("foreign", 0, "Venezuela")
 
@@ -239,9 +248,9 @@ def_loc("pipeline", 2, [ "Sincelejo", "Medellín"], [ "Chocó", "Antioquia" ])
 def_loc("pipeline", 1, [ "Medellín", "Ibagué"], [ "Chocó", "Antioquia" ])
 def_loc("pipeline", 1, [ "Ibagué", "Cali"], [ "Chocó", "Huila" ])
 
-def_loc("pipeline", 2, [ "Bucaramanga", "Ibagué", "Bogotá" ], [ "Antioquia", "Santa", "Huila" ])
+def_loc("pipeline", 2, [ "Bucaramanga", "Ibagué", "Bogotá" ], [ "Antioquia", "Santander", "Huila" ])
 def_loc("pipeline", 2, [ "Bogotá", "Neiva" ], [ "Huila", "Meta West" ])
-def_loc("pipeline", 3, [ "Cúcuta", "Arauca" ], [ "Venezuela", "Arauca", "Santaner" ])
+def_loc("pipeline", 3, [ "Cúcuta", "Arauca" ], [ "Venezuela", "Arauca", "Santander" ])
 def_loc("pipeline", 2, [ "Bogotá", "Yopal" ], [ "Santander", "Arauca", "Meta East"])
 
 let ayacucho = [
@@ -258,6 +267,8 @@ for (let a of ayacucho) {
 }
 
 data.last_loc = spaces.length-1
+
+data.last_space = spaces.length-1
 
 // City in Dept
 
@@ -394,9 +405,9 @@ adjacent("Amazonas", "Putumayo")
 
 data.coastal_spaces = [ "Cesar", "Atlántico", "Chocó", "Nariño" ].map(n=>space_name.indexOf(n)).sort((a,b)=>a-b)
 
-for (let i = 1; i < spaces.length; ++i)
+for (let i = 0; i < spaces.length; ++i) {
 	spaces[i].adjacent.sort((a,b)=>a-b)
-
+}
 
 data.card_name = card_name
 data.card_order = card_order
@@ -404,8 +415,8 @@ data.space_name = space_name
 data.spaces = spaces
 
 let pc_index = 0
-let pc_first = data.first_piece = [ [ 0, 0, 0, 0 ], [ 0, 0 ], [ 0, 0 ], [ 0, 0 ] ]
-let pc_last = data.last_piece = [ [ -1, -1, -1, -1 ], [ -1, -1 ], [ -1, -1 ], [ -1, -1 ] ]
+let pc_first = data.first_piece = [ [ 0, 0, 0, 0, 0 ], [ 0, 0 ], [ 0, 0 ], [ 0, 0 ] ]
+let pc_last = data.last_piece = [ [ -1, -1, -1, -1, -1 ], [ -1, -1 ], [ -1, -1 ], [ -1, -1 ] ]
 function def_piece(faction, type, count) {
 	pc_first[faction][type] = pc_index
 	pc_last[faction][type] = pc_index + count - 1

@@ -57,31 +57,36 @@ main { background-color: #777; }
 #cities { position: absolute; }
 #boxes { position: absolute; }
 
-path { fill: transparent; }
-path.action { fill: white; fill-opacity: 0.3; stroke: white; stroke-width: 4; }
+path { fill: transparent; stroke-width: 4; }
+path.action { fill: white; fill-opacity: 0.3; stroke: white; }
 path.action.foreign { fill: gold; stroke: lemonchiffon; }
 path.action.forest { fill: limegreen; stroke: limegreen; }
 path.action.grassland { fill: greenyellow; stroke: greenyellow; }
 path.action.mountain { fill: chocolate; stroke: chocolate; }
+path.selected { stroke: yellow; }
 
-.box{position:absolute;box-sizing:border-box;}
-.box.action{z-index:100; border:4px solid lemonchiffon;}
+.box{position:absolute;box-sizing:border-box;border:4px solid transparent}
 .box.city{border-radius:50%}
-.box.city.action{background-color:#6495ed55;border:4px solid cornflowerblue;}
 .box.loc{border-radius:50%}
-.box.loc.action{background-color:#fff5;border:4px solid white;}
+.box.action{border-color:lemonchiffon;}
+.box.city.action{background-color:#6495ed55;border-color:deepskyblue;}
+.box.loc.action{background-color:#fff5;border-color:white;}
+.box.selected{border-color:yellow;}
 
-.piece { position: absolute; }
-.piece { background-position: center; background-repeat: no-repeat; background-size: contain; }
+
 .piece {
+	position: absolute;
+	pointer-events: none;
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: contain;
 	transition-property: top, left;
 	transition-duration: 700ms;
 	transition-timing-function: ease;
-}
-.piece {
 	filter: drop-shadow(0 1px 2px #000a);
 }
 .piece.action {
+	pointer-events: auto;
 	filter:
 		drop-shadow(0 -2px 0 white)
 		drop-shadow(0 2px 0 white)
@@ -91,6 +96,7 @@ path.action.mountain { fill: chocolate; stroke: chocolate; }
 }
 
 .token {
+	pointer-events: none;
 	position: absolute;
 	transition-property: top, left;
 	transition-duration: 700ms;
@@ -101,6 +107,10 @@ path.action.mountain { fill: chocolate; stroke: chocolate; }
 	background-size: 45px 45px;
 	width: 45px;
 	height: 45px;
+}
+
+.token.action {
+	pointer-events: auto;
 }
 
 .token.terror,

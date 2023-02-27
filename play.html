@@ -37,6 +37,16 @@
 	<div class="icon_button" onclick="toggle_pieces()"><img src="/images/earth-america.svg"></div>
 	<div class="icon_button" onclick="toggle_zoom()"><img src="/images/magnifying-glass.svg"></div>
 	<div class="icon_button" onclick="toggle_log()"><img src="/images/scroll-quill.svg"></div>
+	<div id="trade_menu" class="menu">
+		<div class="menu_title"><img src="images/shaking-hands.svg"></div>
+		<div class="menu_popup">
+			<div id="trade_govt" class="menu_item" onclick="send_action('trade',0)">Government</div>
+			<div id="trade_farc" class="menu_item" onclick="send_action('trade',1)">FARC</div>
+			<div id="trade_auc" class="menu_item" onclick="send_action('trade',2)">AUC</div>
+			<div id="trade_cartels" class="menu_item" onclick="send_action('trade',3)">Cartels</div>
+		</div>
+	</div>
+	<div id="remove_button" class="icon_button" onclick="send_action('remove')"><img src="images/back-forth.svg"></div>
 	</div>
 	<div id="prompt"></div>
 	<div id="actions"></div>
