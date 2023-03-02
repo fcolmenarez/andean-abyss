@@ -780,6 +780,9 @@ function on_update() {
 	action_button("kidnap", "Process")
 	action_button("kidnap", "Bribe")
 
+	// Attack sub-actions
+	action_button("resolve", "Resolve!")
+
 	// Train/Rally sub-actions
 	action_button("move", "Move")
 	action_button("flip", "Flip")
