@@ -473,8 +473,16 @@ function is_dept(s) {
 	return s >= first_dept && s <= last_dept
 }
 
+function is_city_or_dept(s) {
+	return s >= first_city && s <= last_dept
+}
+
 function is_loc(s) {
 	return s >= first_loc && s <= last_loc
+}
+
+function is_pop(s) {
+	return s >= first_pop && s <= last_pop
 }
 
 function is_adjacent(a, b) {
@@ -534,6 +542,31 @@ function place_piece(p, s) {
 
 function move_piece(p, s) {
 	game.pieces[p] = s
+}
+
+function count_terror_and_sabotage() {
+	let n = (game.sabotage.length >> 1)
+	for (let i = 1; i < game.terror.length; i += 2)
+		n += game.terror[i]
+	return n
+}
+
+function place_terror(s) {
+	if (count_terror_and_sabotage() < 40)
+		map_set(game.terror, s, map_get(game.terror, s, 0) + 1)
+}
+
+function place_sabotage(s) {
+	if (count_terror_and_sabotage() < 40)
+		set_add(game.sabotage, s)
+}
+
+function has_sabotage(s) {
+	return set_has(game.sabotage, s)
+}
+
+function has_terror(s) {
+	return map_get(game.terror, s, 0) > 0
 }
 
 function has_govt_control(s) {
@@ -1576,9 +1609,91 @@ states.attack_remove = {
 
 states.terror = {
 	prompt() {
+		view.prompt = "Terror: Select space with Underground Guerrilla."
+
+		// TODO: can terror no-pop dept?
+
+		if (can_select_op_space(1)) {
+			for (let s = first_space; s <= last_dept; ++s) {
+				if (is_selected_op_space(s))
+					continue
+				if (has_underground_guerrilla(s, game.current))
+					gen_action_space(s)
+			}
+		}
+
+		if (can_select_op_space(0)) {
+			for (let s = first_loc; s <= last_loc; ++s) {
+				if (is_selected_op_space(s))
+					continue
+				if (has_underground_guerrilla(s, game.current))
+					gen_action_space(s)
+			}
+		}
+
+		gen_operation_common()
 	},
 	space(s) {
+		push_undo()
+
+		logi(`S${s}.`)
+
+		if (is_loc(s))
+			select_op_space(s, 0)
+		else
+			select_op_space(s, 1)
+
+		game.state = "terror_space"
+		game.op.where = s
 	},
+	done: end_operation,
+}
+
+function add_aid(n) {
+	game.aid = Math.max(0, game.aid + n)
+}
+
+states.terror_space = {
+	prompt() {
+		view.prompt = `Terror in ${space_name[game.op.where]}: Activate an Underground Guerrilla.`
+		gen_activate_guerrilla(game.op.where, game.current)
+	},
+	piece(p) {
+		set_active(p)
+
+		if (is_loc(game.op.where)) {
+			place_sabotage(game.op.where)
+		} else {
+			place_terror(game.op.where)
+
+			if (is_pop(game.op.where)) {
+				if (game.current === FARC) {
+					if (game.support[game.op.where] > -2)
+						game.support[game.op.where] --
+				} else {
+					if (game.support[game.op.where] > 0)
+						game.support[game.op.where] --
+					else if (game.support[game.op.where] < 0)
+						game.support[game.op.where] ++
+				}
+			}
+		}
+
+		if (game.current === AUC) {
+			console.log("AID CUT: ", game.op.spaces.length)
+			// if one space, drop aid by 3
+			if (game.op.spaces.length === 1) {
+				logi("Aid Cut by 3.")
+				add_aid(-3)
+			// if two or more spaces, drop aid by 5
+			} else if (game.op.spaces.length === 2) {
+				logi("Aid Cut by 2.")
+				add_aid(-2)
+			}
+		}
+
+		game.state = "terror"
+	}
 }
 
 // === SPECIAL ACTIVITIES ===

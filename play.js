@@ -302,6 +302,11 @@ function init_ui() {
 		}
 	}
 
+	for (let i = 0; i < 40; ++i) {
+		ui.terror[i] = e = create("div", { className: "hide" })
+		document.getElementById("tokens").appendChild(e)
+	}
+
 	function create_piece(c, action, id, x, y) {
 		let e = create("div", {
 			className: c,
@@ -598,6 +603,27 @@ function action_piece_list(list, action) {
 	}
 }
 
+function layout_terror(tix, s, n) {
+	let [ tx, ty ] = get_center_xy(s)
+	tx -= 20
+	ty -= 20
+	if (s <= last_city) {
+		let r = get_layout_radius(s)
+		tx -= r
+	} else {
+		ty += -60
+	}
+	for (let i = 0; i < n; ++i) {
+		ui.terror[tix].className = "token terror"
+		ui.terror[tix].style.left = tx + "px"
+		ui.terror[tix].style.top = ty + "px"
+		tx += 5
+		ty += 5
+		++tix
+	}
+	return tix
+}
+
 function layout_farc_zone(s, elt) {
 	let [x, y] = get_center_xy(s)
 	if (s <= last_pop) {
@@ -665,6 +691,8 @@ function on_update() {
 	for (let i = view.farc_zones.length; i < ui.farc_zones.length; ++i)
 		ui.farc_zones[i].className = "hide"
 
+	let tix = 0
+
 	let list = []
 	for (let s = 0; s < data.spaces.length; ++s) {
 		if (s <= last_pop) {
@@ -709,6 +737,8 @@ function on_update() {
 
 		// TODO: shipments with other faction/piece, not space
 
+		tix = layout_terror(tix, s, map_get(view.terror, s, 0) * 1)
+
 		let xy = get_layout_xy(s)
 		if (xy)
 			layout_pieces(list, xy[0], xy[1])
@@ -728,6 +758,9 @@ function on_update() {
 		ui.spaces[s].classList.toggle("action", is_action("space", s))
 		ui.spaces[s].classList.toggle("selected", view.where === s)
 	}
+
+	for (; tix < 40; ++tix)
+		ui.terror[tix].className = "hide"
 
 	list.length = 0
 	for (let i = 0; i < 4; ++i)
@@ -889,6 +922,22 @@ function set_has(set, item) {
 			return true
 	}
 	return false
+}
+
+function map_get(map, key, missing) {
+	let a = 0
+	let b = (map.length >> 1) - 1
+	while (a <= b) {
+		let m = (a + b) >> 1
+		let x = map[m << 1]
+		if (key < x)
+			b = m - 1
+		else if (key > x)
+			a = m + 1
+		else
+			return map[(m << 1) + 1]
+	}
+	return missing
 }
 
 init_ui()
