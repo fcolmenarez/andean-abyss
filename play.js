@@ -1,5 +1,4 @@
-// TODO: FARC zone
-// TODO: terror markers
+// TODO: show selected op spaces with highlight / pawn ?
 
 // Factions
 const GOVT = 0
@@ -231,10 +230,10 @@ function get_layout_radius(s) {
 }
 
 function init_ui() {
-	register_action(ui.resources[GOVT], "pay", GOVT)
-	register_action(ui.resources[FARC], "pay", FARC)
-	register_action(ui.resources[AUC], "pay", AUC)
-	register_action(ui.resources[CARTELS], "pay", CARTELS)
+	register_action(ui.resources[GOVT], "resources", GOVT)
+	register_action(ui.resources[FARC], "resources", FARC)
+	register_action(ui.resources[AUC], "resources", AUC)
+	register_action(ui.resources[CARTELS], "resources", CARTELS)
 
 	for (let i = 0; i < data.spaces.length; ++i) {
 		let id = data.spaces[i].id
@@ -654,10 +653,10 @@ function on_update() {
 	ui.header.classList.toggle("cartels", view.current === CARTELS)
 	ui.header.classList.toggle("farc", view.current === FARC)
 
-	ui.resources[GOVT].classList.toggle("action", is_action("pay", GOVT))
-	ui.resources[FARC].classList.toggle("action", is_action("pay", FARC))
-	ui.resources[AUC].classList.toggle("action", is_action("pay", AUC))
-	ui.resources[CARTELS].classList.toggle("action", is_action("pay", CARTELS))
+	ui.resources[GOVT].classList.toggle("action", is_action("resources", GOVT))
+	ui.resources[FARC].classList.toggle("action", is_action("resources", FARC))
+	ui.resources[AUC].classList.toggle("action", is_action("resources", AUC))
+	ui.resources[CARTELS].classList.toggle("action", is_action("resources", CARTELS))
 
 	ui.player[GOVT].classList.toggle("hide", view.scenario < 3)
 	ui.player[AUC].classList.toggle("hide", view.scenario < 4)
@@ -800,6 +799,8 @@ function on_update() {
 	else
 		for (let i = 0; i < ui.pieces.length; ++i)
 			ui.pieces[i].classList.remove("action")
+	for (let i = 0; i < ui.pieces.length; ++i)
+		ui.pieces[i].classList.toggle("selected", view.who === i)
 
 	action_button("remove", "Remove")
 	// menu trade

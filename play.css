@@ -94,6 +94,15 @@ path.selected { stroke: yellow; }
 		drop-shadow(2px 0 0 white)
 		;
 }
+.piece.selected {
+	pointer-events: auto;
+	filter:
+		drop-shadow(0 -2px 0 yellow)
+		drop-shadow(0 2px 0 yellow)
+		drop-shadow(-2px 0 0 yellow)
+		drop-shadow(2px 0 0 yellow)
+		;
+}
 
 .token {
 	pointer-events: none;
@@ -107,6 +116,10 @@ path.selected { stroke: yellow; }
 	background-size: 45px 45px;
 	width: 45px;
 	height: 45px;
+}
+
+.token.terror {
+	transition: none;
 }
 
 .token.action {

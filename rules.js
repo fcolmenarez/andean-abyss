@@ -1,5 +1,7 @@
 "use strict"
 
+// TODO: Automatic "All done" message. (limited / no more resources / no more available options).
+
 let states = {}
 let game = null
 let view = null
@@ -429,6 +431,30 @@ function has_underground_guerrilla(s, faction) {
 	return false
 }
 
+function has_any_guerrilla(s) {
+	return (
+		has_piece(s, FARC, GUERRILLA) ||
+		has_piece(s, AUC, GUERRILLA) ||
+		has_piece(s, CARTELS, GUERRILLA)
+	)
+}
+
+function has_any_active_guerrilla(s) {
+	return (
+		has_active_guerrilla(s, FARC) ||
+		has_active_guerrilla(s, AUC) ||
+		has_active_guerrilla(s, CARTELS)
+	)
+}
+
+function has_any_underground_guerrilla(s) {
+	return (
+		has_underground_guerrilla(s, FARC) ||
+		has_underground_guerrilla(s, AUC) ||
+		has_underground_guerrilla(s, CARTELS)
+	)
+}
+
 function count_bases(s) {
 	return (
 		count_pieces(s, GOVT, BASE) +
@@ -485,12 +511,24 @@ function is_pop(s) {
 	return s >= first_pop && s <= last_pop
 }
 
+function is_mountain(s) {
+	return data.spaces[s].type === "mountain"
+}
+
+function is_forest(s) {
+	return data.spaces[s].type === "forest"
+}
+
 function is_adjacent(a, b) {
 	return set_has(data.spaces[a].adjacent, b)
 }
 
 function is_active(p) {
 	return !is_underground(p)
+}
+
+function is_farc_zone(s) {
+	return set_has(game.farc_zones, s)
 }
 
 function is_guerrilla(p) {
@@ -592,7 +630,7 @@ function for_each_piece(faction, type, f) {
 		f(p)
 }
 
-function gen_piece_in_space(faction, type, space) {
+function gen_piece_in_space(space, faction, type) {
 	for_each_piece(faction, type, p => {
 		if (game.pieces[p] === space)
 			gen_action_piece(p)
@@ -617,7 +655,7 @@ function gen_place_piece(space, faction, type) {
 				gen_action_piece(p)
 }
 
-function gen_activate_guerrilla(s, faction) {
+function gen_underground_guerrillas(s, faction) {
 	for_each_piece(faction, GUERRILLA, p => {
 		if (game.pieces[p] === s)
 			if (is_underground(p))
@@ -625,16 +663,24 @@ function gen_activate_guerrilla(s, faction) {
 	})
 }
 
+function gen_active_guerrillas(s, faction) {
+	for_each_piece(faction, GUERRILLA, p => {
+		if (game.pieces[p] === s)
+			if (is_active(p))
+				gen_action_piece(p)
+	})
+}
+
 function gen_remove_piece(s, faction) {
 	if (faction === GOVT) {
-		gen_piece_in_space(GOVT, TROOPS, game.op.where)
-		gen_piece_in_space(GOVT, POLICE, game.op.where)
+		gen_piece_in_space(game.op.where, GOVT, TROOPS)
+		gen_piece_in_space(game.op.where, GOVT, POLICE)
 		if (!has_piece(game.op.where, GOVT, TROOPS) && !has_piece(game.op.where, GOVT, POLICE))
-			gen_piece_in_space(GOVT, BASE, game.op.where)
+			gen_piece_in_space(game.op.where, GOVT, BASE)
 	} else {
-		gen_piece_in_space(faction, GUERRILLA, game.op.where)
+		gen_piece_in_space(game.op.where, faction, GUERRILLA)
 		if (!has_piece(game.op.where, faction, GUERRILLA))
-			gen_piece_in_space(faction, BASE, game.op.where)
+			gen_piece_in_space(game.op.where, faction, BASE)
 	}
 }
 
@@ -1013,12 +1059,7 @@ function operation(state) {
 
 states.train = operation({
 	prompt() {
-		view.prompt = "Train: Place cubes first, then replace with Base or buy Civic Action."
-
-		if (can_use_special_activity()) {
-			view.actions.air_lift = 1
-			view.actions.eradicate = 1
-		}
+		view.prompt = "Train: Select spaces to place cubes."
 
 		// Any Departments or Cities
 		if (can_select_op_space(3)) {
@@ -1028,16 +1069,8 @@ states.train = operation({
 						gen_action_space(s)
 		}
 
-		// place base
-		view.actions.base = 1
-
-		// buy civic action
-		if (game.resources[game.current] >= 3)
-			view.actions.civic = 1
-		else
-			view.actions.civic = 0
-
-		gen_operation_common()
+		if (game.op.spaces.length > 0)
+			view.actions.next = 1
 	},
 	space(s) {
 		push_undo()
@@ -1050,22 +1083,11 @@ states.train = operation({
 		game.op.where = s
 		game.op.count = 6
 	},
-	base() {
+	next() {
 		push_undo()
-		game.state = "train_base"
-		game.op.where = -1
-	},
-	civic() {
-		push_undo()
-		game.state = "train_civic"
-		game.op.where = -1
-	},
-	done: end_operation,
+		game.state = "train_base_or_civic"
+	}
 })
-	},
-	air_lift: goto_air_lift,
-	eradicate: goto_eradicate,
-}
 
 states.train_place = operation({
 	prompt() {
@@ -1092,14 +1114,36 @@ states.train_place = operation({
 	},
 })
 
+states.train_base_or_civic = operation({
+	prompt() {
+		view.prompt = "Train: Build Base or buy Civic Action in one selected space?"
+		view.actions.base = 1
+		if (game.resources[game.current] >= 3)
+			view.actions.civic = 1
+		else
+			view.actions.civic = 0
+		view.actions.done = 1
+	},
+	base() {
+		push_undo()
+		game.state = "train_base"
+		game.op.where = -1
+	},
+	civic() {
+		push_undo()
+		game.state = "train_civic"
+		game.op.where = -1
+	},
+	done: end_operation,
+})
+
 states.train_base = operation({
 	prompt() {
 		if (game.op.where < 0) {
 			view.prompt = `Train: Replace 3 cubes with a Base.`
-			for (let s = first_space; s <= last_dept; ++s) {
-				if (can_select_op_space(3) || is_selected_op_space(s))
-					if (count_bases(s) < 2 && count_cubes(s) >= 3)
-						gen_action_space(s)
+			for (let s of game.op.spaces) {
+				if (count_bases(s) < 2 && count_cubes(s) >= 3)
+					gen_action_space(s)
 			}
 		} else {
 			if (game.op.count < 0) {
@@ -1107,8 +1151,8 @@ states.train_base = operation({
 				view.actions.done = 1
 			} else if (game.op.count > 0) {
 				view.prompt = `Train: ${game.op.count} cubes with a Base.`
-				gen_piece_in_space(GOVT, POLICE, game.op.where)
-				gen_piece_in_space(GOVT, TROOPS, game.op.where)
+				gen_piece_in_space(game.op.where, GOVT, POLICE)
+				gen_piece_in_space(game.op.where, GOVT, TROOPS)
 			} else {
 				view.prompt = `Train: Place Base.`
 				gen_place_piece(game.op.where, GOVT, BASE)
@@ -1117,8 +1161,6 @@ states.train_base = operation({
 	},
 	space(s) {
 		push_undo()
-		if (!is_selected_op_space(s))
-			select_op_space(s, 3)
 		game.op.where = s
 		game.op.count = 3
 	},
@@ -1140,26 +1182,25 @@ states.train_civic = operation({
 		if (game.op.where < 0) {
 			view.prompt = `Train: Buy Civic Action.`
 			if (res >= 3) {
-				for (let s = first_space; s <= last_dept; ++s) {
-					if (can_select_op_space(6) || is_selected_op_space(s))
-						if (can_govt_civic_action(s))
-							gen_action_space(s)
+				for (let s of game.op.spaces) {
+					if (can_govt_civic_action(s))
+						gen_action_space(s)
 				}
 			}
 		} else {
 			view.prompt = `Train: Buy Civic Action in ${space_name[game.op.where]}.`
 			view.where = game.op.where
-			if (res >= 3 && can_govt_civic_action(game.op.where))
+			if (res >= 3 && can_govt_civic_action(game.op.where)) {
+				//gen_action("resources", game.current)
 				gen_action_space(game.op.where)
-			else
+			} else {
 				view.prompt = `Train: All done.`
+			}
 			view.actions.done = 1
 		}
 	},
 	space(s) {
 		push_undo()
-		if (!is_selected_op_space(s))
-			select_op_space(s, 3)
 		game.op.where = s
 		game.resources[game.current] -= 3
 		game.support[game.op.where] += 1
@@ -1167,7 +1208,371 @@ states.train_civic = operation({
 	done: end_operation,
 })
 
+// OPERATION: PATROL
+
+function goto_patrol() {
+	if (!game.op.free)
+		game.resources[game.current] -= 3
+	if (game.op.limited)
+		game.state = "limited_patrol"
+	else
+		game.state = "patrol"
+	game.op.who = -1
+	game.op.pieces = []
 }
+
+states.limited_patrol = operation({
+	prompt() {
+		view.prompt = "Patrol: ... TODO LimOp Patrol ..."
+		view.actions.next = 1
+	},
+	next: goto_patrol_activate,
+})
+
+function gen_patrol_move(start) {
+	let queue = [ start ]
+	view.actions.space = []
+	while (queue.length > 0) {
+		let here = queue.shift()
+		for (let next of data.adjacent_patrol[here]) {
+			// already seen
+			if (set_has(view.actions.space, next))
+				continue
+
+			set_add(view.actions.space, next)
+
+			// must stop if guerrilla
+			if (has_any_guerrilla(next))
+				continue
+
+			queue.push(next)
+		}
+	}
+}
+
+states.patrol = operation({
+	prompt() {
+		view.prompt = "Patrol: ..."
+		view.who = game.op.who
+
+		if (game.op.who < 0) {
+			for_each_piece(GOVT, TROOPS, p => {
+				if (game.pieces[p] !== AVAILABLE && !set_has(game.op.pieces, p))
+					gen_action_piece(p)
+			})
+			for_each_piece(GOVT, POLICE, p => {
+				if (game.pieces[p] !== AVAILABLE && !set_has(game.op.pieces, p))
+					gen_action_piece(p)
+			})
+			
+		} else {
+			gen_action_piece(game.op.who)
+			gen_patrol_move(game.pieces[game.op.who])
+			let from = game.pieces[game.op.who]
+			for (let to of data.spaces[from].adjacent) {
+				if (is_city(to) || is_loc(to))
+					gen_action_space(to)
+			}
+		}
+
+		view.actions.next = 1
+	},
+	piece(p) {
+		if (game.op.who < 0) {
+			push_undo()
+			game.op.who = p
+			set_add(game.op.pieces, p)
+		} else {
+			pop_undo()
+		}
+	},
+	space(s) {
+		move_piece(game.op.who, s)
+		game.op.who = -1
+		update_control()
+	},
+	next: goto_patrol_activate,
+})
+
+function goto_patrol_activate() {
+	push_undo()
+	game.state = "patrol_activate"
+	game.op.count = []
+	for (let s = first_loc; s <= last_loc; ++s)
+		game.op.count[s - first_loc] = count_cubes(s)
+}
+
+states.patrol_activate = operation({
+	prompt() {
+		view.prompt = "Patrol: Activate 1 Guerrilla for each cube in LoCs."
+
+		// for each cube in each loc, activate 1 guerrilla
+		for (let s = first_loc; s <= last_loc; ++s) {
+			let n = game.op.count[s - first_loc]
+			if (n > 0) {
+				gen_underground_guerrillas(s, FARC)
+				gen_underground_guerrillas(s, AUC)
+				gen_underground_guerrillas(s, CARTELS)
+			}
+		}
+			
+		view.actions.next = 1
+	},
+	piece(p) {
+		push_undo()
+		let s = game.pieces[p]
+		set_active(p)
+		game.op.count[s - first_loc]--
+	},
+	next() {
+		push_undo()
+		game.state = "patrol_assault"
+	},
+})
+
+states.patrol_assault = operation({
+	prompt() {
+		view.prompt = "Patrol: Assault in one LoC?"
+
+		if (game.op.limited) {
+			for (let s of game.op.spaces)
+				if (can_assault_space(s))
+					gen_action_space(s)
+		} else {
+			for (let s = first_loc; s <= last_loc; ++s)
+				if (can_assault_space(s))
+					gen_action_space(s)
+		}
+
+		view.actions.done = 1
+	},
+	space(s) {
+		push_undo()
+		log(`Assault S${s}.`)
+
+		game.state = "patrol_assault_space"
+		game.op.where = s
+		game.op.count = count_cubes(s)
+	},
+	done: end_operation
+})
+
+states.patrol_assault_space = operation({
+	prompt() {
+		view.prompt = `Patrol: Remove up to ${game.op.count} enemy pieces in ${space_name[game.op.where]}.`
+		view.where = game.op.where
+
+		if (game.op.count > 0) {
+			gen_assault_piece(game.op.where, FARC)
+			gen_assault_piece(game.op.where, AUC)
+			gen_assault_piece(game.op.where, CARTELS)
+		}
+
+		if (!view.actions.piece)
+			view.prompt = "Patrol: All done."
+
+		view.actions.done = 1
+	},
+	piece(p) {
+		push_undo()
+		remove_piece(p)
+		update_control()
+	},
+	done: end_operation,
+})
+
+// OPERATION: SWEEP
+
+function can_sweep_move(here) {
+	if (has_piece(here, GOVT, TROOPS) || has_piece(here, GOVT, POLICE))
+		return true
+	for (let next of data.spaces[here].adjacent) {
+		if (has_piece(next, GOVT, TROOPS))
+			return true
+		if (is_loc(next) && !has_any_guerrilla(next)) {
+			for (let nextnext of data.spaces[next].adjacent) {
+				if (nextnext !== here)
+					if (has_piece(nextnext, GOVT, TROOPS))
+						return true
+			}
+		}
+	}
+	return false
+}
+
+function gen_sweep_move(here) {
+	for (let next of data.spaces[here].adjacent) {
+		gen_piece_in_space(next, GOVT, TROOPS)
+		if (is_loc(next) && !has_any_guerrilla(next)) {
+			for (let nextnext of data.spaces[next].adjacent) {
+				if (nextnext !== here)
+					gen_piece_in_space(nextnext, GOVT, TROOPS)
+			}
+		}
+	}
+}
+
+states.sweep = operation({
+	prompt() {
+		view.prompt = "Sweep: Select Cities and Departments."
+
+		if (can_select_op_space(3)) {
+			for (let s = first_space; s <= last_dept; ++s) {
+				if (is_selected_op_space(s))
+					continue
+				if (is_farc_zone(s))
+					continue
+				if (can_sweep_move(s))
+					gen_action_space(s)
+			}
+		}
+
+		if (!view.actions.space)
+			view.prompt = "Sweep: All done."
+
+		gen_operation_common()
+	},
+	space(s) {
+		push_undo()
+
+		logi(`S${s}.`)
+
+		select_op_space(s, 3)
+
+		game.state = "sweep_move"
+		game.op.where = s
+	},
+	done: end_operation,
+})
+
+states.sweep_move = operation({
+	prompt() {
+		view.prompt = `Sweep: Move Troops into ${space_name[game.op.where]}.`
+		view.where = game.op.where
+		gen_sweep_move(game.op.where)
+		view.actions.next = 1
+	},
+	piece(p) {
+		push_undo()
+		place_piece(p, game.op.where)
+		update_control()
+	},
+	next() {
+		push_undo()
+		game.state = "sweep_activate"
+		game.op.count = count_pieces(game.op.where, GOVT, TROOPS)
+		if (is_forest(game.op.where))
+			game.op.count >>= 1
+	},
+})
+
+states.sweep_activate = operation({
+	prompt() {
+		view.prompt = `Sweep: Activate up to ${game.op.count} Guerrillas in ${space_name[game.op.where]}.`
+		view.where = game.op.where
+
+		gen_underground_guerrillas(game.op.where, FARC)
+		gen_underground_guerrillas(game.op.where, AUC)
+		gen_underground_guerrillas(game.op.where, CARTELS)
+
+		view.actions.next = 1
+	},
+	piece(p) {
+		push_undo()
+		set_active(p)
+		if (--game.op.count === 0 || !has_any_underground_guerrilla(game.op.where))
+			game.state = "sweep"
+	},
+	next() {
+		push_undo()
+		game.state = "sweep"
+	},
+})
+
+// OPERATION: ASSAULT
+
+function can_assault_space(s) {
+	for (let faction = 1; faction < 4; ++faction) {
+		if (has_piece(s, faction, GUERRILLA)) {
+			if (has_active_guerrilla(s, faction))
+				return true
+		} else {
+			if (has_piece(s, faction, BASE))
+				return true
+		}
+	}
+	return false
+}
+
+function gen_assault_piece(s, faction) {
+	if (has_piece(s, faction, GUERRILLA))
+		gen_active_guerrillas(s, faction)
+	else
+		gen_piece_in_space(s, faction, BASE)
+}
+
+states.assault = operation({
+	prompt() {
+		view.prompt = "Assault: Select space to eliminate enemy forces."
+
+		if (can_select_op_space(3)) {
+			for (let s = first_space; s <= last_dept; ++s) {
+				if (is_selected_op_space(s))
+					continue
+				let n = count_pieces(s, GOVT, TROOPS)
+				if (n >= (is_mountain(s) ? 2 : 1)) {
+					if (can_assault_space(s))
+						gen_action_space(s)
+				}
+			}
+		}
+
+		if (!view.actions.space)
+			view.prompt = "Assault: All done."
+
+		gen_operation_common()
+	},
+	space(s) {
+		push_undo()
+
+		logi(`S${s}.`)
+
+		select_op_space(s, 3)
+
+		game.state = "assault_space"
+		game.op.where = s
+		game.op.count = count_pieces(s, GOVT, TROOPS)
+		if (is_city(s) || is_loc(s))
+			game.op.count += count_pieces(s, GOVT, POLICE)
+		if (is_mountain(s))
+			game.op.count >>= 1
+	},
+	done: end_operation,
+})
+
+states.assault_space = operation({
+	prompt() {
+		view.prompt = `Assault: Remove up to ${game.op.count} enemy pieces in ${space_name[game.op.where]}.`
+		view.where = game.op.where
+
+		gen_assault_piece(game.op.where, FARC)
+		gen_assault_piece(game.op.where, AUC)
+		gen_assault_piece(game.op.where, CARTELS)
+
+		view.actions.next = 1
+	},
+	piece(p) {
+		push_undo()
+		remove_piece(p)
+		update_control()
+		if (--game.op.count === 0 || !can_assault_space(game.op.where))
+			game.state = "assault"
+	},
+	next() {
+		push_undo()
+		game.state = "assault"
+	},
+})
 
 // OPERATION: RALLY
 
@@ -1185,18 +1590,6 @@ states.rally = operation({
 			view.prompt = "Rally: Select City or Department without Opposition."
 		else
 			view.prompt = "Rally: Select City or Department."
-
-		if (can_use_special_activity()) {
-			if (game.current === FARC)
-				view.actions.extort = 1
-			if (game.current === AUC)
-				view.actions.extort = 1
-			if (game.current === CARTELS) {
-				view.actions.cultivate = 1
-				view.actions.process = 1
-				view.actions.bribe = 1
-			}
-		}
 
 		// Departments or Cities
 		if (can_select_op_space(1)) {
@@ -1230,18 +1623,14 @@ states.rally = operation({
 
 		select_op_space(s, 1)
 
-		game.state = "rally_place"
+		game.state = "rally_space"
 		game.op.where = s
 		game.op.count = rally_count()
 	},
 	done: end_operation,
-	extort: goto_extort,
-	cultivate: goto_cultivate,
-	process: goto_process,
-	bribe: goto_bribe,
 })
 
-states.rally_place = operation({
+states.rally_space = operation({
 	prompt() {
 		view.prompt = `Rally: Place up to ${game.op.count} Guerrillas.`
 		view.where = game.op.where
@@ -1291,7 +1680,7 @@ states.rally_base = operation({
 	prompt() {
 		if (game.op.count > 0) {
 			view.prompt = `Rally: Replace ${game.op.count} Guerrillas with a Base.`
-			gen_piece_in_space(game.current, GUERRILLA, game.op.where)
+			gen_piece_in_space(game.op.where, game.current, GUERRILLA)
 		} else {
 			view.prompt = `Rally: Place a Base.`
 			gen_place_piece(game.op.where, game.current, BASE)
@@ -1353,18 +1742,6 @@ function can_march_to(to) {
 states.march = operation({
 	prompt() {
 		view.prompt = `March: Move Guerrillas to Cities/Departments/LoCs.`
-
-		if (can_use_special_activity()) {
-			if (game.current === FARC)
-				view.actions.extort = 1
-			if (game.current === AUC)
-				view.actions.extort = 1
-			if (game.current === CARTELS) {
-				view.actions.cultivate = 1
-				view.actions.process = 1
-				view.actions.bribe = 1
-			}
-		}
 
 		if (can_select_op_space(1)) {
 			for (let s = first_space; s <= last_dept; ++s) {
@@ -1614,7 +1991,7 @@ function goto_ambush() {
 states.ambush = {
 	prompt() {
 		view.prompt = `Ambush in ${space_name[game.op.where]}: Activate an Underground Guerrilla.`
-		gen_activate_guerrilla(game.op.where, game.current)
+		gen_underground_guerrillas(game.op.where, game.current)
 	},
 	piece(p) {
 		set_active(p)
@@ -1649,6 +2026,9 @@ states.terror = operation({
 			}
 		}
 
+		if (!view.actions.space)
+			view.prompt = "Terror: All done."
+
 		gen_operation_common()
 	},
 	space(s) {
@@ -1670,7 +2050,7 @@ states.terror = operation({
 states.terror_space = operation({
 	prompt() {
 		view.prompt = `Terror in ${space_name[game.op.where]}: Activate an Underground Guerrilla.`
-		gen_activate_guerrilla(game.op.where, game.current)
+		gen_underground_guerrillas(game.op.where, game.current)
 	},
 	piece(p) {
 		set_active(p)

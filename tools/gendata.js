@@ -156,7 +156,7 @@ function def_loc(type, econ, cities, depts) {
 			console.log("not a space: " + n)
 	let loc_spaces = loc_names.map(n => space_name.indexOf(n))
 	let ix = spaces.length
-	spaces.push({ type, id: to_ascii(name), econ, adjacent: loc_spaces.filter(x=>x>0) })
+	spaces.push({ type, id: to_ascii(name), econ, adjacent: loc_spaces.filter(x => x >= 0) })
 	for (let loc of loc_spaces)
 		if (loc >= 0)
 			add(spaces[loc].adjacent, ix)
@@ -413,6 +413,14 @@ data.card_name = card_name
 data.card_order = card_order
 data.space_name = space_name
 data.spaces = spaces
+
+data.adjacent_patrol = []
+for (let s = 0; s < spaces.length; ++s) {
+	let ap = data.adjacent_patrol[s] = []
+	for (let next of spaces[s].adjacent)
+		if ((next <= data.last_city) || (next >= data.first_loc && next <= data.last_loc))
+			ap.push(next)
+}
 
 let pc_index = 0
 let pc_first = data.first_piece = [ [ 0, 0, 0, 0, 0 ], [ 0, 0 ], [ 0, 0 ], [ 0, 0 ] ]
