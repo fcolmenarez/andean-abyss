@@ -231,6 +231,11 @@ function get_layout_radius(s) {
 }
 
 function init_ui() {
+	register_action(ui.resources[GOVT], "pay", GOVT)
+	register_action(ui.resources[FARC], "pay", FARC)
+	register_action(ui.resources[AUC], "pay", AUC)
+	register_action(ui.resources[CARTELS], "pay", CARTELS)
+
 	for (let i = 0; i < data.spaces.length; ++i) {
 		let id = data.spaces[i].id
 		let type = data.spaces[i].type
@@ -648,6 +653,11 @@ function on_update() {
 	ui.header.classList.toggle("auc", view.current === AUC)
 	ui.header.classList.toggle("cartels", view.current === CARTELS)
 	ui.header.classList.toggle("farc", view.current === FARC)
+
+	ui.resources[GOVT].classList.toggle("action", is_action("pay", GOVT))
+	ui.resources[FARC].classList.toggle("action", is_action("pay", FARC))
+	ui.resources[AUC].classList.toggle("action", is_action("pay", AUC))
+	ui.resources[CARTELS].classList.toggle("action", is_action("pay", CARTELS))
 
 	ui.player[GOVT].classList.toggle("hide", view.scenario < 3)
 	ui.player[AUC].classList.toggle("hide", view.scenario < 4)
