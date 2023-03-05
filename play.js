@@ -758,6 +758,13 @@ function on_update() {
 		for (let i = 0; i < ui.pieces.length; ++i)
 			ui.pieces[i].classList.remove("action")
 
+	action_button("remove", "Remove")
+	// menu trade
+	// action_button("trade", "Trade with Govt")
+	// action_button("trade", "Trade with FARC")
+	// action_button("trade", "Trade with AUC")
+	// action_button("trade", "Trade with Cartels")
+
 	action_button("train", "Train")
 	action_button("patrol", "Patrol")
 	action_button("sweep", "Sweep")
@@ -796,8 +803,7 @@ function on_update() {
 	action_button("limop", "LimOp")
 
 	action_button("next", "Next")
-	action_button("done", "Done")
-	action_button("remove", "Remove")
+	action_button("done", "Done!")
 	action_button("undo", "Undo")
 }
 

@@ -420,6 +420,15 @@ function has_active_guerrilla(s, faction) {
 	return false
 }
 
+function has_underground_guerrilla(s, faction) {
+	let first = first_piece[faction][GUERRILLA]
+	let last = last_piece[faction][GUERRILLA]
+	for (let p = first; p <= last; ++p)
+		if (game.pieces[p] === s && is_underground(p))
+			return true
+	return false
+}
+
 function count_bases(s) {
 	return (
 		count_pieces(s, GOVT, BASE) +
@@ -569,6 +578,14 @@ function gen_place_piece(space, faction, type) {
 		for (let p = p0; p <= p1; ++p)
 			if (game.pieces[p] !== space || (type === GUERRILLA && !is_underground(p)))
 				gen_action_piece(p)
+}
+
+function gen_activate_guerrilla(s, faction) {
+	for_each_piece(faction, GUERRILLA, p => {
+		if (game.pieces[p] === s)
+			if (is_underground(p))
+				gen_action_piece(p)
+	})
 }
 
 // === SEQUENCE OF PLAY ===
@@ -1452,8 +1469,20 @@ states.attack_space = {
 		view.prompt = `Attack in ${space_name[game.op.where]}.`
 		view.where = game.op.where
 		view.actions.resolve = 1
+
+		// Ambush activity modifies Attack action intead of being a stand-alone activity.
+		if (game.sa) {
+			if (game.current === FARC || game.current === AUC)
+				if (has_underground_guerrilla(game.op.where, game.current))
+					view.actions.ambush = 1
+				else
+					view.actions.ambush = 0
+		}
 	},
 	ambush() {
+		push_undo()
+		game.state = "ambush"
+		game.sa = 0
 	},
 	resolve() {
 		clear_undo()
@@ -1476,6 +1505,18 @@ states.attack_space = {
 			game.state = "attack"
 		}
 	},
+}
+
+states.ambush = {
+	prompt() {
+		view.prompt = `Ambush in ${space_name[game.op.where]}: Activate an Underground Guerrilla.`
+		gen_activate_guerrilla(game.op.where, game.current)
+	},
+	piece(p) {
+		set_active(p)
+		game.state = "attack_remove"
+		game.op.count = 2
+	}
 }
 
 states.attack_place = {
@@ -1734,12 +1775,32 @@ exports.view = function (state, role) {
 	} else {
 		view.actions = {}
 		view.who = game.who
-		if (game.op)
+
+		if (game.op) {
 			view.actions.remove = 1
+			/*
+			if (game.active === "Government + AUC")
+				view.actions.trade = [ FARC, CARTELS ]
+			if (game.active === "FARC + Cartels")
+				view.actions.trade = [ GOVT, AUC ]
+			if (game.active === "AUC + Cartels")
+				view.actions.trade = [ GOVT, FARC ]
+			if (game.active === "Government")
+				view.actions.trade = [ FARC, AUC, CARTELS ]
+			if (game.active === "FARC")
+				view.actions.trade = [ GOVT, AUC, CARTELS ]
+			if (game.active === "AUC")
+				view.actions.trade = [ GOVT, FARC, CARTELS ]
+			if (game.active === "Cartels")
+				view.actions.trade = [ GOVT, FARC, AUC ]
+			*/
+		}
+
 		if (states[game.state])
 			states[game.state].prompt()
 		else
 			view.prompt = "Unknown state: " + game.state
+
 		if (view.actions.undo === undefined) {
 			if (game.undo && game.undo.length > 0)
 				view.actions.undo = 1
