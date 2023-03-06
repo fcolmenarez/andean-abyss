@@ -825,11 +825,11 @@ function on_update() {
 
 	action_button("extort", "Extort")
 	action_button("ambush", "Ambush")
-	action_button("kidnap", "Assassinate")
+	action_button("assassinate", "Assassinate")
 	action_button("kidnap", "Kidnap")
-	action_button("kidnap", "Cultivate")
-	action_button("kidnap", "Process")
-	action_button("kidnap", "Bribe")
+	action_button("cultivate", "Cultivate")
+	action_button("process", "Process")
+	action_button("bribe", "Bribe")
 
 	// Attack sub-actions
 	action_button("resolve", "Resolve!")
@@ -846,8 +846,11 @@ function on_update() {
 	action_button("event", "Event")
 	action_button("limop", "LimOp")
 
+	action_button("end_activity", "End Activity")
+	action_button("end_operation", "End Op")
+
 	action_button("next", "Next")
-	action_button("done", "Done!")
+	action_button("done", "Done")
 	action_button("undo", "Undo")
 }
 
