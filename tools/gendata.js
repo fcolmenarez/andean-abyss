@@ -174,8 +174,7 @@ function adjacent(an, bn) {
 // Cities
 
 data.first_space = 0
-
-data.first_pop = 1
+data.first_pop = 0
 
 data.first_city = spaces.length
 
