@@ -50,6 +50,8 @@ const last_loc = data.last_loc
 const first_foreign = data.first_foreign
 const last_foreign = data.last_foreign
 
+const path_seen = new Array(last_space+1).fill(0)
+
 // Sequence of Play options
 const ELIGIBLE = 0
 const SOP_1ST_OP_ONLY = 1
@@ -949,10 +951,7 @@ states.op = {
 		view.prompt = "Choose an Operation."
 		if (game.current === GOVT) {
 			view.actions.train = 1
-			if (game.op.free || game.resources[game.current] >= 3)
-				view.actions.patrol = 1
-			else
-				view.actions.patrol = 0
+			view.actions.patrol = 1
 			if (is_final_card())
 				view.actions.sweep = 0
 			else
@@ -978,6 +977,10 @@ states.op = {
 		push_undo()
 		log_h3("Patrol")
 		goto_patrol()
+		if (game.op.free)
+			goto_patrol()
+		else
+			game.state = "patrol_pay"
 	},
 	sweep() {
 		push_undo()
@@ -1021,7 +1024,7 @@ function gen_operation_common() {
 }
 
 function can_select_op_space(cost) {
-	if (!game.free && game.resources[game.current] < cost)
+	if (!game.op.free && game.resources[game.current] < cost)
 		return false
 	if (game.op.limited)
 		return game.op.spaces.length === 0
@@ -1034,7 +1037,7 @@ function is_selected_op_space(s) {
 
 function select_op_space(s, cost) {
 	set_add(game.op.spaces, s)
-	if (!game.free)
+	if (!game.op.free)
 		game.resources[game.current] -= cost
 }
 
@@ -1210,36 +1213,102 @@ states.train_civic = operation({
 
 // OPERATION: PATROL
 
+states.patrol_pay = operation({
+	prompt() {
+		view.prompt = "Patrol: Pay 3 resources."
+		gen_action("resources", GOVT)
+	},
+	resources(_) {
+		game.resources[GOVT] -= 3
+		goto_patrol()
+	}
+})
+
 function goto_patrol() {
-	if (!game.op.free)
-		game.resources[game.current] -= 3
 	if (game.op.limited)
-		game.state = "limited_patrol"
+		game.state = "patrol_limop"
 	else
 		game.state = "patrol"
 	game.op.who = -1
 	game.op.pieces = []
 }
 
-states.limited_patrol = operation({
+states.patrol_limop = operation({
 	prompt() {
-		view.prompt = "Patrol: ... TODO LimOp Patrol ..."
+		view.prompt = "Patrol: Select destination City or LoC."
+
+		// TODO: check that destination can be reached by any cubes
+		for (let s = first_city; s <= last_city; ++s)
+			gen_action_space(s)
+		for (let s = first_loc; s <= last_loc; ++s)
+			gen_action_space(s)
+	},
+	space(s) {
+		push_undo()
+
+		logi(`S${s}.`)
+
+		select_op_space(s, 0)
+
+		game.op.where = s
+		game.state = "patrol_limop_move"
+	},
+})
+
+function gen_patrol_move_limop(start) {
+	let queue = [ start ]
+	path_seen.fill(0)
+	while (queue.length > 0) {
+		let here = queue.shift()
+		for (let next of data.spaces[here].adjacent) {
+			// already seen
+			if (path_seen[next])
+				continue
+
+			path_seen[next] = 1
+			gen_piece_in_space(next, GOVT, TROOPS)
+			gen_piece_in_space(next, GOVT, POLICE)
+
+			// must stop if guerrilla
+			if (has_any_guerrilla(next))
+				continue
+
+			// continue along locs and cities
+			if (is_loc(next) || is_city(next))
+				queue.push(next)
+		}
+	}
+}
+
+states.patrol_limop_move = operation({
+	prompt() {
+		view.prompt = `Patrol: Move cubes to ${space_name[game.op.where]}.`
+		view.where = game.op.where
+
+		gen_patrol_move_limop(game.op.where)
+
 		view.actions.next = 1
+	},
+	piece(p) {
+		push_undo()
+		move_piece(p, game.op.where)
+		update_control()
 	},
 	next: goto_patrol_activate,
 })
 
 function gen_patrol_move(start) {
 	let queue = [ start ]
-	view.actions.space = []
+	path_seen.fill(0)
 	while (queue.length > 0) {
 		let here = queue.shift()
 		for (let next of data.adjacent_patrol[here]) {
 			// already seen
-			if (set_has(view.actions.space, next))
+			if (path_seen[next])
 				continue
 
-			set_add(view.actions.space, next)
+			path_seen[next] = 1
+			gen_action_space(next)
 
 			// must stop if guerrilla
 			if (has_any_guerrilla(next))

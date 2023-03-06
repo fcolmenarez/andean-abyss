@@ -10,7 +10,6 @@ main { background-color: #777; }
 #role_AUC_\+_Cartels { background-image: linear-gradient(135deg, khaki 30%, darkseagreen 70%) }
 
 #log { background-color: whitesmoke; }
-#log > div { padding-left: 20px; text-indent: -12px; }
 #log .h1 { background-color: silver; font-weight: bold; padding-top:4px; padding-bottom:4px; }
 #log .h2 { background-color: gainsboro; padding-top:2px; padding-bottom:2px; }
 #log .h2.govt { background-color: #c6d1eb }
@@ -20,6 +19,10 @@ main { background-color: #777; }
 #log .h3 { text-decoration: underline; }
 #log .tip { cursor: pointer; }
 #log .tip:hover { text-decoration: underline; }
+
+#log div { padding-left: 20px; text-indent: -12px; }
+#log div.i { padding-left: 32px; text-indent: -12px; }
+#log div.ii { padding-left: 44px; text-indent: -12px; }
 
 .action { cursor: pointer }
 
