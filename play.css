@@ -76,6 +76,27 @@ path.selected { stroke: yellow; }
 .box.loc.action{background-color:#fff5;border-color:white;}
 .box.selected{border-color:yellow;}
 
+#capabilities .token {
+	position: static;
+	pointer-events: auto;
+}
+#capabilities {
+	display: flex;
+	justify-content: center;
+	align-content: center;
+	flex-wrap: wrap;
+	gap: 4px;
+}
+#insurgent_momentum {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 17px;
+}
+.card.momentum {
+	width: 186px;
+	height: 261px;
+	border-radius: 12px;
+}
 
 .piece {
 	position: absolute;

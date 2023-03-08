@@ -22,6 +22,56 @@ const NAME_GOVT_AUC = "Government + AUC"
 const NAME_FARC_CARTELS = "FARC + Cartels"
 const NAME_AUC_CARTELS = "AUC + Cartels"
 
+const capability_events = [ 1, 2, 3, 7, 9, 10, 11, 13 ]
+const momentum_events = [ 12, 17, 22, 27, 42, 67 ]
+
+const CAP_1ST_DIV = 1
+const CAP_OSPINA = 2
+const CAP_TAPIAS = 3
+const CAP_7TH_SF = 7
+const CAP_MTN_BNS = 9
+const CAP_BLACK_HAWKS = 10
+const CAP_NDSC = 11
+const CAP_METEORO = 13
+
+const MOM_PLAN_COLOMBIA = 12
+const MOM_MADRID_DONORS = 17
+const MOM_ALFONSO_CANO = 22
+const MOM_MISIL_ANTIAEREO = 27
+const MOM_SENADO_CAMARA = 42
+const MOM_MEXICAN_TRAFFICKERS = 67
+
+// Events with no shaded/unshaded variants
+const single_events = [ 19, 36, 46, 53, 54, 63, 65, 69 ]
+
+const event_name_unshaded = {
+	[CAP_1ST_DIV]: "Jointness.",
+	[CAP_OSPINA]: "COIN experts take charge.",
+	[CAP_TAPIAS]: "CO tightens civil-military bonds.",
+	[CAP_7TH_SF]: "Infrastructure protection training.",
+	[CAP_MTN_BNS]: "Elites guard high-altitude corridors.",
+	[CAP_BLACK_HAWKS]: "US helos delivered.",
+	[CAP_NDSC]: "Military-police jointness.",
+	[CAP_METEORO]: "Transport protection units.",
+}
+
+const event_name_shaded = {
+	[CAP_1ST_DIV]: "Service parochialism.",
+	[CAP_OSPINA]: "COIN strategy eludes Army.",
+	[CAP_TAPIAS]: "Civil-military rivalries fester.",
+	[CAP_7TH_SF]: "US training ineffective.",
+	[CAP_MTN_BNS]: "Equipment not delivered.",
+	[CAP_BLACK_HAWKS]: "Delivery of US helos delayed.",
+	[CAP_NDSC]: "Military-police rivalry.",
+	[CAP_METEORO]: "Transport security deemphasized.",
+	[MOM_PLAN_COLOMBIA]: "US aid focuses on drug war.",
+	[MOM_MADRID_DONORS]: "EU aid focuses on reconstruction.",
+	[MOM_ALFONSO_CANO]: "Ideologue.",
+	[MOM_MISIL_ANTIAEREO]: "MANPADs feared.",
+	[MOM_SENADO_CAMARA]: "Insurgent sympathies.",
+	[MOM_MEXICAN_TRAFFICKERS]: "New routes to US market.",
+}
+
 const faction_name = [ NAME_GOVT, NAME_FARC, NAME_AUC, NAME_CARTELS ]
 
 // Factions
@@ -205,6 +255,8 @@ exports.setup = function (seed, scenario, options) {
 		farc_control: 0,
 		govt_control: 0,
 		support: Array(23).fill(NEUTRAL),
+		momentum: [],
+		capabilities: [], // positive = unshaded, negative = shaded
 		farc_zones: [],
 		terror: [],
 		sabotage: [],
@@ -947,8 +999,10 @@ states.limop_or_event = {
 
 function goto_event() {
 	log_h2(faction_name[game.current] + " - Event")
-	log("TODO: Event")
-	resume_event_card()
+	if (set_has(single_events, this_card()))
+		execute_event()
+	else
+		game.state = "event"
 }
 
 function goto_op_only() {
@@ -984,10 +1038,6 @@ function end_operation() {
 	resume_event_card()
 }
 
-function can_use_special_activity() {
-	return game.sa === 1
-}
-
 function action_remove() {
 	push_undo()
 	game.save_state = game.state
@@ -1020,7 +1070,7 @@ states.remove = {
 	},
 	done() {
 		game.state = game.save_state
-		game.save_state = 0
+		delete game.save_state
 	},
 }
 
@@ -1123,9 +1173,17 @@ function select_op_space(s, cost) {
 
 // OPERATION: TRAIN
 
+function can_govt_train_base(s) {
+	return count_bases(s) < 2 && count_cubes(s) >= 3
+}
+
+function can_govt_train_place(s) {
+	return is_city(s) || has_piece(s, GOVT, BASE)
+}
+
 states.train = {
 	prompt() {
-		view.prompt = "Train: Select spaces to place cubes."
+		view.prompt = "Train: Select City or Department."
 
 		if (game.sa) {
 			view.actions.air_lift = 1
@@ -1135,24 +1193,25 @@ states.train = {
 		// Any Departments or Cities
 		if (can_select_op_space(3)) {
 			for (let s = first_space; s <= last_dept; ++s)
-				if (is_city(s) || has_piece(s, GOVT, BASE))
+				if (can_govt_train_place(s))
 					if (!is_selected_op_space(s))
 						gen_action_space(s)
 		}
 
-		if (game.op.spaces.length > 0)
-			view.actions.next = 1
+		view.actions.next = 1
 	},
 	space(s) {
 		push_undo()
 
-		logi(`S${s}.`)
+		log(`Train in S${s}.`)
 
 		select_op_space(s, 3)
 
-		game.state = "train_place"
-		game.op.where = s
-		game.op.count = 6
+		if (is_city(s) || has_piece(s, GOVT, BASE)) {
+			game.state = "train_place"
+			game.op.where = s
+			game.op.count = 6
+		}
 	},
 	next() {
 		push_undo()
@@ -1173,11 +1232,10 @@ states.train_place = {
 		view.actions.next = 1
 	},
 	piece(p) {
-		push_undo()
 		place_piece(p, game.op.where)
+		update_control()
 		if (--game.op.count == 0)
 			game.state = "train"
-		update_control()
 	},
 	next() {
 		game.op.count = 0
@@ -1190,12 +1248,14 @@ states.train_base_or_civic = {
 		view.prompt = "Train: Build Base or buy Civic Action in one selected space?"
 
 		view.actions.base = 1
+
 		if (game.resources[game.current] >= 3)
 			view.actions.civic = 1
 		else
 			view.actions.civic = 0
 
-		view.actions.end_operation = 1
+		if (game.op.spaces.length > 0)
+			view.actions.end_operation = 1
 	},
 	base() {
 		push_undo()
@@ -1214,14 +1274,14 @@ states.train_base = {
 	prompt() {
 		if (game.op.where < 0) {
 			view.prompt = `Train: Replace 3 cubes with a Base.`
-			for (let s of game.op.spaces) {
-				if (count_bases(s) < 2 && count_cubes(s) >= 3)
-					gen_action_space(s)
-			}
+			for (let s = first_space; s <= last_dept; ++s)
+				if (can_govt_train_base(s))
+					if (is_selected_op_space(s) || can_select_op_space(3))
+						gen_action_space(s)
 		} else {
 			if (game.op.count < 0) {
 				view.prompt = `Train: All done.`
-				view.actions.done = 1
+				view.actions.end_operation = 1
 			} else if (game.op.count > 0) {
 				view.prompt = `Train: ${game.op.count} cubes with a Base.`
 				gen_piece_in_space(game.op.where, GOVT, POLICE)
@@ -1238,7 +1298,8 @@ states.train_base = {
 		game.op.count = 3
 	},
 	piece(p) {
-		push_undo()
+		if (!is_selected_op_space(game.op.where))
+			select_op_space(game.op.where, 3)
 		if (game.op.count > 0)
 			remove_piece(p)
 		else
@@ -1255,16 +1316,15 @@ states.train_civic = {
 		if (game.op.where < 0) {
 			view.prompt = `Train: Buy Civic Action.`
 			if (res >= 3) {
-				for (let s of game.op.spaces) {
+				for (let s = first_space; s <= last_dept; ++s)
 					if (can_govt_civic_action(s))
-						gen_action_space(s)
-				}
+						if (is_selected_op_space(s) || can_select_op_space(3))
+							gen_action_space(s)
 			}
 		} else {
 			view.prompt = `Train: Buy Civic Action in ${space_name[game.op.where]}.`
 			view.where = game.op.where
 			if (res >= 3 && can_govt_civic_action(game.op.where)) {
-				//gen_action("resources", game.current)
 				gen_action_space(game.op.where)
 			} else {
 				view.prompt = `Train: All done.`
@@ -1745,6 +1805,9 @@ states.assault_space = {
 		game.op.targeted |= target_faction(p)
 		remove_piece(p)
 		update_control()
+
+		// TODO: 3.2.5 Drug Bust
+
 		if (--game.op.count === 0 || !can_assault_space(game.op.where))
 			game.state = "assault"
 	},
@@ -2199,6 +2262,9 @@ states.attack_remove = {
 		game.op.targeted |= target_faction(p)
 		remove_piece(p)
 		update_control()
+
+		// TODO: Captured Goods
+
 		if (--game.op.count === 0 || !has_exposed_enemy_piece(game.op.where, game.current))
 			game.state = "attack"
 	},
@@ -2718,6 +2784,8 @@ states.kidnap_space = {
 		let g = is_city_or_loc(s) && game.resources[GOVT] > 0
 		let c = has_piece(s, CARTELS, BASE) && game.resources[CARTELS] > 0
 
+		// TODO: Drug Ransom if targeting Cartels with Shipment
+
 		if (g)
 			gen_action_resources(GOVT)
 		if (c)
@@ -3046,6 +3114,8 @@ states.bribe_space = {
 			gen_piece_in_space(game.sa.where, AUC, GUERRILLA)
 		}
 
+		// TODO: Contraband
+
 		if (did_maximum_damage(game.sa.targeted))
 			view.actions.next = 1
 		else
@@ -3228,6 +3298,8 @@ exports.view = function (state, role) {
 		farc_control: game.farc_control,
 		support: game.support,
 		farc_zones: game.farc_zones,
+		capabilities: game.capabilities,
+		momentum: game.momentum,
 		terror: game.terror,
 		sabotage: game.sabotage,
 	}
@@ -3302,6 +3374,68 @@ exports.action = function (state, role, action, arg) {
 
 exports.is_checkpoint = function (a, b) {
 	return a.turn !== b.turn
+}
+
+// === EVENTS ===
+
+states.event = {
+	prompt() {
+		let c = this_card()
+		view.prompt = `${data.card_name[c]}: Choose effect.`
+		view.actions.shaded = 1
+		view.actions.unshaded = 1
+	},
+	shaded() {
+		execute_shaded_event()
+	},
+	unshaded() {
+		execute_unshaded_event()
+	},
+}
+
+function execute_event() {
+	let c = this_card()
+	log(`C${c} - Event`)
+
+	log("TODO")
+	resume_event_card()
+}
+
+function execute_unshaded_event() {
+	let c = this_card()
+	log(`C${c} - Unshaded`)
+
+	if (set_has(capability_events, c)) {
+		logi(event_name_unshaded[c])
+		set_add(game.capabilities, c)
+		resume_event_card()
+		return
+	}
+
+	log("TODO")
+	resume_event_card()
+}
+
+function execute_shaded_event() {
+	let c = this_card()
+	log(`C${c} - Shaded`)
+
+	if (set_has(capability_events, c)) {
+		logi(event_name_shaded[c])
+		set_add(game.capabilities, -c)
+		resume_event_card()
+		return
+	}
+
+	if (set_has(momentum_events, c)) {
+		logi(event_name_shaded[c])
+		set_add(game.momentum, c)
+		resume_event_card()
+		return
+	}
+
+	log("TODO")
+	resume_event_card()
 }
 
 // === COMMON LIBRARY ===

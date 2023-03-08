@@ -44,6 +44,25 @@ const SOP_C2 = 6
 const SOP_PASS = 7
 const INELIGIBLE = 8
 
+const capability_events = [ 1, 2, 3, 7, 9, 10, 11, 13 ]
+const momentum_events = [ 12, 17, 22, 27, 42, 67 ]
+
+const CAP_1ST_DIV = 1
+const CAP_OSPINA = 2
+const CAP_TAPIAS = 3
+const CAP_7TH_SF = 7
+const CAP_MTN_BNS = 9
+const CAP_BLACK_HAWKS = 10
+const CAP_NDSC = 11
+const CAP_METEORO = 13
+
+const MOM_PLAN_COLOMBIA = 12
+const MOM_MADRID_DONORS = 17
+const MOM_ALFONSO_CANO = 22
+const MOM_MISIL_ANTIAEREO = 27
+const MOM_SENADO_CAMARA = 42
+const MOM_MEXICAN_TRAFFICKERS = 67
+
 let ui = {
 	favicon: document.getElementById("favicon"),
 	header: document.querySelector("header"),
@@ -56,6 +75,24 @@ let ui = {
 		document.getElementById("role_FARC_+_Cartels"),
 		document.getElementById("role_AUC_+_Cartels"),
 	],
+	capabilities: {
+		[CAP_1ST_DIV]: document.getElementById("cap_first_div"),
+		[CAP_OSPINA]: document.getElementById("cap_ospina"),
+		[CAP_TAPIAS]: document.getElementById("cap_tapias"),
+		[CAP_7TH_SF]: document.getElementById("cap_seventh_sf"),
+		[CAP_MTN_BNS]: document.getElementById("cap_mtn_bns"),
+		[CAP_BLACK_HAWKS]: document.getElementById("cap_black_hawks"),
+		[CAP_NDSC]: document.getElementById("cap_ndsc"),
+		[CAP_METEORO]: document.getElementById("cap_meteoro"),
+	},
+	momentum: {
+		[MOM_PLAN_COLOMBIA]: document.getElementById("mom_12"),
+		[MOM_MADRID_DONORS]: document.getElementById("mom_17"),
+		[MOM_ALFONSO_CANO]: document.getElementById("mom_22"),
+		[MOM_MISIL_ANTIAEREO]: document.getElementById("mom_27"),
+		[MOM_SENADO_CAMARA]: document.getElementById("mom_42"),
+		[MOM_MEXICAN_TRAFFICKERS]: document.getElementById("mom_67"),
+	},
 	spaces: [],
 	control: [],
 	support: [],
@@ -234,6 +271,11 @@ function init_ui() {
 	register_action(ui.resources[FARC], "resources", FARC)
 	register_action(ui.resources[AUC], "resources", AUC)
 	register_action(ui.resources[CARTELS], "resources", CARTELS)
+
+	for (let c of momentum_events)
+		register_card_tip(ui.momentum[c], c)
+	for (let c of capability_events)
+		register_card_tip(ui.capabilities[c], c)
 
 	for (let i = 0; i < data.spaces.length; ++i) {
 		let id = data.spaces[i].id
@@ -676,6 +718,23 @@ function on_update() {
 
 	ui.tokens.president.style.left = [ 0, "254px", "337px", "420px" ][view.president]
 
+	for (let cap of capability_events) {
+		let shaded = set_has(view.capabilities, -cap)
+		let unshaded = set_has(view.capabilities, cap)
+		console.log("CAP", cap, shaded, unshaded)
+		if (shaded || unshaded) {
+			ui.capabilities[cap].classList.toggle("shaded", shaded)
+			ui.capabilities[cap].classList.toggle("unshaded", unshaded)
+			ui.capabilities[cap].classList.toggle("hide", false)
+		} else {
+			ui.capabilities[cap].classList.toggle("hide", true)
+		}
+	}
+
+	for (let cap of momentum_events) {
+		ui.momentum[cap].classList.toggle("hide", !set_has(view.momentum, cap))
+	}
+
 	if (view.propaganda > 0) {
 		ui.tokens.propaganda.style.top = "744px"
 		ui.tokens.propaganda.style.left = (1124 + 75 * (view.propaganda - 1)) + "px"
@@ -852,6 +911,12 @@ function on_update() {
 	action_button("next", "Next")
 	action_button("done", "Done")
 	action_button("undo", "Undo")
+}
+
+function register_card_tip(e, c) {
+	e.onmouseenter = () => //console.log("FOCUS ME", c)
+	on_focus_card_tip(c)
+	e.onmouseleave = on_blur_card_tip
 }
 
 function on_focus_card_tip(c) {
