@@ -25,6 +25,8 @@ const NAME_AUC_CARTELS = "AUC + Cartels"
 const capability_events = [ 1, 2, 3, 7, 9, 10, 11, 13 ]
 const momentum_events = [ 12, 17, 22, 27, 42, 67 ]
 
+// TODO: 7th SF - sabotage phase
+
 const CAP_1ST_DIV = 1
 const CAP_OSPINA = 2
 const CAP_TAPIAS = 3
@@ -364,6 +366,7 @@ function setup_standard() {
 
 	// XXX
 	setup_support(BOGOTA, ACTIVE_OPPOSITION)
+	game.capabilities = [ -13, -11, -10, -9, -7, -3, -2, -1 ]
 }
 
 function setup_quick() {
@@ -398,6 +401,9 @@ function setup_quick() {
 	game.resources[GOVT] = 30
 
 	game.president = PASTRANA
+
+	// XXX
+	game.capabilities = [ 1, 2, 3, 7, 9, 10, 11, 13 ]
 }
 
 function shuffle_all_cards() {
@@ -463,6 +469,10 @@ function count_pieces(s, faction, type) {
 	return n
 }
 
+function is_police(p) {
+	return p >= first_piece[GOVT][POLICE] && p <= last_piece[GOVT][POLICE]
+}
+
 function is_base(p) {
 	if (p >= first_piece[GOVT][BASE] && p <= last_piece[GOVT][BASE])
 		return true
@@ -510,6 +520,18 @@ function did_maximum_damage(targeted) {
 	return true
 }
 
+function has_momentum(c) {
+	return set_has(game.momentum, c)
+}
+
+function has_capability(c) {
+	return set_has(game.capabilities, c)
+}
+
+function has_shaded_capability(c) {
+	return set_has(game.capabilities, -c)
+}
+
 function has_piece(s, faction, type) {
 	let first = first_piece[faction][type]
 	let last = last_piece[faction][type]
@@ -535,6 +557,16 @@ function has_underground_guerrilla(s, faction) {
 		if (game.pieces[p] === s && is_underground(p))
 			return true
 	return false
+}
+
+function count_underground_guerrillas(s, faction) {
+	let first = first_piece[faction][GUERRILLA]
+	let last = last_piece[faction][GUERRILLA]
+	let n = 0
+	for (let p = first; p <= last; ++p)
+		if (game.pieces[p] === s && is_underground(p))
+			++n
+	return n
 }
 
 function find_underground_guerrilla(s, faction) {
@@ -583,6 +615,22 @@ function count_cubes(s) {
 	return (
 		count_pieces(s, GOVT, TROOPS) +
 		count_pieces(s, GOVT, POLICE)
+	)
+}
+
+function count_any_guerrillas(s) {
+	return (
+		count_pieces(s, FARC, GUERRILLA) +
+		count_pieces(s, AUC, GUERRILLA) +
+		count_pieces(s, CARTELS, GUERRILLA)
+	)
+}
+
+function count_any_underground_guerrillas(s) {
+	return (
+		count_underground_guerrillas(s, FARC) +
+		count_underground_guerrillas(s, AUC) +
+		count_underground_guerrillas(s, CARTELS)
 	)
 }
 
@@ -753,7 +801,12 @@ function add_aid(n) {
 }
 
 function can_govt_civic_action(s) {
-	return game.support[s] < 2 && has_govt_control(s) && has_piece(s, GOVT, TROOPS) && has_piece(s, GOVT, POLICE)
+	if (game.support[s] < 2 && has_govt_control(s)) {
+		if (has_shaded_capability(CAP_1ST_DIV))
+			return count_pieces(s, GOVT, TROOPS) >= 2 && count_pieces(s, GOVT, POLICE) >= 2
+		return has_piece(s, GOVT, TROOPS) && has_piece(s, GOVT, POLICE)
+	}
+	return false
 }
 
 function for_each_piece(faction, type, f) {
@@ -1106,21 +1159,21 @@ states.op = {
 	patrol() {
 		push_undo()
 		log_h3("Patrol")
-		goto_patrol()
-		if (game.op.free)
-			goto_patrol()
-		else
-			game.state = "patrol_pay"
+		goto_patrol1()
 	},
 	sweep() {
 		push_undo()
 		log_h3("Sweep")
 		game.state = "sweep"
+		if (has_shaded_capability(CAP_OSPINA))
+			game.op.limited = 1
 	},
 	assault() {
 		push_undo()
 		log_h3("Assault")
 		game.state = "assault"
+		if (has_shaded_capability(CAP_TAPIAS))
+			game.op.limited = 1
 	},
 
 	rally() {
@@ -1343,18 +1396,27 @@ states.train_civic = {
 
 // OPERATION: PATROL
 
+function goto_patrol1() {
+	if (!game.op.free && game.resources[GOVT] < 3)
+		game.state = "patrol_pay"
+	else
+		goto_patrol2()
+}
+
 states.patrol_pay = {
 	prompt() {
 		view.prompt = "Patrol: Pay 3 resources."
-		gen_action("resources", GOVT)
+		if (game.resources[GOVT] >= 3)
+			gen_action("resources", GOVT)
 	},
 	resources(_) {
-		game.resources[GOVT] -= 3
-		goto_patrol()
+		goto_patrol2()
 	}
 }
 
-function goto_patrol() {
+function goto_patrol2() {
+	if (!game.op.free)
+		game.resources[GOVT] -= 3
 	if (game.op.limited)
 		game.state = "patrol_limop"
 	else
@@ -1504,7 +1566,7 @@ function goto_patrol_activate() {
 	game.state = "patrol_activate"
 	game.op.count = []
 	for (let s = first_loc; s <= last_loc; ++s)
-		game.op.count[s - first_loc] = count_cubes(s)
+		game.op.count[s - first_loc] = Math.min(count_cubes(s), count_any_underground_guerrillas(s))
 }
 
 states.patrol_activate = {
@@ -1534,31 +1596,63 @@ states.patrol_activate = {
 		game.op.targeted |= target_faction(p)
 		set_active(p)
 		game.op.count[s - first_loc]--
+
+		let n = 0
+		for (let x of game.op.count)
+			n += x
+		if (n === 0)
+			goto_patrol_assault()
 	},
 	next() {
 		push_undo()
-		// TODO: is possible?
-		game.state = "patrol_assault"
+		goto_patrol_assault()
 	},
+}
+
+function goto_patrol_assault() {
+	game.state = "patrol_assault"
+	if (has_shaded_capability(CAP_METEORO))
+		game.state = "patrol_done"
+	else if (has_capability(CAP_METEORO))
+		game.op.spaces = []
+}
+
+function end_patrol_assault_space() {
+	if (has_capability(CAP_METEORO))
+		game.state = "patrol_assault"
+	else
+		game.state = "patrol_done"
 }
 
 states.patrol_assault = {
 	prompt() {
-		view.prompt = "Patrol: Assault in one LoC?"
 
 		gen_any_govt_special()
 
-		if (game.op.limited) {
-			for (let s of game.op.spaces)
+		view.actions.next = 1
+
+		if (has_capability(CAP_METEORO)) {
+			view.prompt = "Patrol: Free Assault in each LoC."
+			for (let s = first_loc; s <= last_loc; ++s) {
+				if (set_has(game.op.spaces, s))
+					continue
 				if (can_assault_space(s))
 					gen_action_space(s)
-		} else {
-			for (let s = first_loc; s <= last_loc; ++s)
-				if (can_assault_space(s))
-					gen_action_space(s)
+			}
 		}
 
-		view.actions.end_operation = 1
+		else {
+			view.prompt = "Patrol: Free Assault in one LoC."
+			if (game.op.limited) {
+				for (let s of game.op.spaces)
+					if (can_assault_space(s))
+						gen_action_space(s)
+			} else {
+				for (let s = first_loc; s <= last_loc; ++s)
+					if (can_assault_space(s))
+						gen_action_space(s)
+			}
+		}
 	},
 	space(s) {
 		push_undo()
@@ -1568,7 +1662,10 @@ states.patrol_assault = {
 		game.op.where = s
 		game.op.count = count_cubes(s)
 	},
-	end_operation,
+	next() {
+		push_undo()
+		game.state = "patrol_done"
+	},
 }
 
 states.patrol_assault_space = {
@@ -1584,19 +1681,29 @@ states.patrol_assault_space = {
 			gen_exposed_piece(game.op.where, CARTELS)
 		}
 
-		if (!view.actions.piece)
-			view.prompt = "Patrol: All done."
-
 		if (did_maximum_damage(game.op.targeted))
-			view.actions.end_operation = 1
+			view.actions.next = 1
 		else
-			view.actions.end_operation = 0
+			view.actions.next = 0
 	},
 	piece(p) {
 		push_undo()
 		game.op.targeted |= target_faction(p)
 		remove_piece(p)
 		update_control()
+
+		if (--game.op.count === 0 || !can_assault_space(game.op.where))
+			end_patrol_assault_space()
+	},
+	next() {
+		end_patrol_assault_space()
+	},
+}
+
+states.patrol_done = {
+	prompt() {
+		view.prompt = "Patrol: All done."
+		view.actions.end_operation = 1
 	},
 	end_operation,
 }
@@ -1606,14 +1713,20 @@ states.patrol_assault_space = {
 function can_sweep_move(here) {
 	if (has_piece(here, GOVT, TROOPS) || has_piece(here, GOVT, POLICE))
 		return true
+	let ndsc = has_capability(CAP_NDSC)
 	for (let next of data.spaces[here].adjacent) {
 		if (has_piece(next, GOVT, TROOPS))
 			return true
+		if (ndsc && has_piece(next, GOVT, POLICE))
+			return true
 		if (is_loc(next) && !has_any_guerrilla(next)) {
 			for (let nextnext of data.spaces[next].adjacent) {
-				if (nextnext !== here)
+				if (nextnext !== here) {
 					if (has_piece(nextnext, GOVT, TROOPS))
 						return true
+					if (ndsc && has_piece(next, GOVT, POLICE))
+						return true
+				}
 			}
 		}
 	}
@@ -1622,11 +1735,16 @@ function can_sweep_move(here) {
 
 function gen_sweep_move(here) {
 	for (let next of data.spaces[here].adjacent) {
+		if (game.op.ndsc)
+			gen_piece_in_space(next, GOVT, POLICE)
 		gen_piece_in_space(next, GOVT, TROOPS)
 		if (is_loc(next) && !has_any_guerrilla(next)) {
 			for (let nextnext of data.spaces[next].adjacent) {
-				if (nextnext !== here)
+				if (nextnext !== here) {
+					if (game.op.ndsc)
+						gen_piece_in_space(nextnext, GOVT, POLICE)
 					gen_piece_in_space(nextnext, GOVT, TROOPS)
+				}
 			}
 		}
 	}
@@ -1638,7 +1756,11 @@ states.sweep = {
 
 		gen_any_govt_special()
 
-		if (can_select_op_space(3)) {
+		let cost = 3
+		if (has_capability(CAP_OSPINA))
+			cost = 1
+
+		if (can_select_op_space(cost)) {
 			for (let s = first_space; s <= last_dept; ++s) {
 				if (is_selected_op_space(s))
 					continue
@@ -1663,6 +1785,9 @@ states.sweep = {
 
 		game.state = "sweep_move"
 		game.op.where = s
+
+		if (has_capability(CAP_NDSC))
+			game.op.ndsc = 1
 	},
 	end_operation,
 }
@@ -1679,14 +1804,24 @@ states.sweep_move = {
 		view.actions.next = 1
 	},
 	piece(p) {
-		push_undo()
 		place_piece(p, game.op.where)
 		update_control()
+
+		// NDSC
+		if (is_police(p))
+			game.op.ndsc = 0
 	},
 	next() {
 		push_undo()
 		game.state = "sweep_activate"
-		game.op.count = count_pieces(game.op.where, GOVT, TROOPS)
+
+		let n_troops = count_pieces(game.op.where, GOVT, TROOPS)
+		let n_police = count_pieces(game.op.where, GOVT, POLICE)
+		game.op.count = n_troops + n_police
+
+		if (has_shaded_capability(CAP_NDSC))
+			game.op.count = Math.max(n_troops, n_police)
+
 		if (is_forest(game.op.where))
 			game.op.count >>= 1
 	},
@@ -1743,21 +1878,36 @@ function gen_exposed_piece(s, faction) {
 		gen_piece_in_space(s, faction, BASE)
 }
 
+function assault_kill_count(s) {
+	let n = count_pieces(s, GOVT, TROOPS)
+	if (is_city_or_loc(s))
+		return n + count_pieces(s, GOVT, POLICE)
+	if (is_mountain(s)) {
+		if (has_capability(CAP_MTN_BNS))
+			return n + count_pieces(s, GOVT, POLICE)
+		if (has_shaded_capability(CAP_MTN_BNS))
+			return n >> 2
+		return n >> 1
+	}
+	return n
+}
+
 states.assault = {
 	prompt() {
 		view.prompt = "Assault: Select space to eliminate enemy forces."
 
 		gen_any_govt_special()
 
-		if (can_select_op_space(3)) {
+		let cost = 3
+		if (has_capability(CAP_TAPIAS))
+			cost = 1
+
+		if (can_select_op_space(cost)) {
 			for (let s = first_space; s <= last_dept; ++s) {
 				if (is_selected_op_space(s))
 					continue
-				let n = count_pieces(s, GOVT, TROOPS)
-				if (n >= (is_mountain(s) ? 2 : 1)) {
-					if (can_assault_space(s))
-						gen_action_space(s)
-				}
+				if (can_assault_space(s) && assault_kill_count(s) > 0)
+					gen_action_space(s)
 			}
 		}
 
@@ -1775,11 +1925,7 @@ states.assault = {
 
 		game.state = "assault_space"
 		game.op.where = s
-		game.op.count = count_pieces(s, GOVT, TROOPS)
-		if (is_city_or_loc(s))
-			game.op.count += count_pieces(s, GOVT, POLICE)
-		if (is_mountain(s))
-			game.op.count >>= 1
+		game.op.count = assault_kill_count(s)
 	},
 	end_operation,
 }
@@ -2398,6 +2544,8 @@ function end_special_activity() {
 
 // SPECIAL ACTIVITY: AIR LIFT
 
+// TODO: from or to first?
+
 function goto_air_lift() {
 	push_undo()
 	log_h3("Air Lift")
@@ -2407,10 +2555,14 @@ function goto_air_lift() {
 		from: -1,
 		to: -1,
 	}
-	game.state = "air_lift"
+	game.state = "air_lift_from"
+	if (has_capability(CAP_BLACK_HAWKS))
+		game.sa.count = 30
+	if (has_shaded_capability(CAP_BLACK_HAWKS))
+		game.sa.count = 1
 }
 
-states.air_lift = {
+states.air_lift_from = {
 	prompt() {
 		view.prompt = "Air Lift: Select origin space."
 		for (let s = first_space; s <= last_space; ++s)
@@ -2451,7 +2603,7 @@ states.air_lift_move = {
 		push_undo()
 		move_piece(p, game.sa.to)
 		update_control()
-		if (--game.sa.count === 0)
+		if (--game.sa.count === 0 || count_cubes(game.sa.from) === 0)
 			end_special_activity()
 	},
 	end_activity() {
