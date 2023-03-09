@@ -63,6 +63,13 @@ const MOM_MISIL_ANTIAEREO = 27
 const MOM_SENADO_CAMARA = 42
 const MOM_MEXICAN_TRAFFICKERS = 67
 
+const senado_class_list = [
+	"token reminder hide",
+	"token reminder senado_farc",
+	"token reminder senado_auc",
+	"token reminder senado_cartels",
+]
+
 let ui = {
 	favicon: document.getElementById("favicon"),
 	header: document.querySelector("header"),
@@ -117,6 +124,7 @@ let ui = {
 		oppose_plus_bases: document.getElementById("token_oppose_plus_bases"),
 		president: document.getElementById("token_el_presidente"),
 		propaganda: document.getElementById("token_prop_card"),
+		senado: document.getElementById("rem_senado"),
 	},
 	pieces: [],
 	resources: [
@@ -717,6 +725,7 @@ function on_update() {
 	ui.player[AUC_CARTELS].classList.toggle("active",  view.current === AUC || view.current === CARTELS)
 
 	ui.tokens.president.style.left = [ 0, "254px", "337px", "420px" ][view.president]
+	ui.tokens.senado.classList = senado_class_list[view.senado]
 
 	for (let cap of capability_events) {
 		let shaded = set_has(view.capabilities, -cap)

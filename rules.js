@@ -26,6 +26,8 @@ const capability_events = [ 1, 2, 3, 7, 9, 10, 11, 13 ]
 const momentum_events = [ 12, 17, 22, 27, 42, 67 ]
 
 // TODO: 7th SF - sabotage phase
+// TODO: Alfonso Cane - agitation phase
+// TODO: Mexican Traffickres - resources phase
 
 const CAP_1ST_DIV = 1
 const CAP_OSPINA = 2
@@ -248,6 +250,7 @@ exports.setup = function (seed, scenario, options) {
 
 		deck: [],
 		president: 0,
+		senado: 0,
 		aid: 0,
 		cylinder: [ ELIGIBLE, ELIGIBLE, ELIGIBLE, ELIGIBLE ],
 		resources: [ 0, 0, 0, 0 ],
@@ -1563,6 +1566,13 @@ states.patrol = {
 
 function goto_patrol_activate() {
 	push_undo()
+
+	if (has_momentum(MOM_PLAN_COLOMBIA)) {
+		log("No Activation by Patrol.")
+		goto_patrol_assault()
+		return
+	}
+
 	game.state = "patrol_activate"
 	game.op.count = []
 	for (let s = first_loc; s <= last_loc; ++s)
@@ -1713,6 +1723,10 @@ states.patrol_done = {
 function can_sweep_move(here) {
 	if (has_piece(here, GOVT, TROOPS) || has_piece(here, GOVT, POLICE))
 		return true
+
+	if (is_dept(here) && has_momentum(MOM_MADRID_DONORS))
+		return false
+
 	let ndsc = has_capability(CAP_NDSC)
 	for (let next of data.spaces[here].adjacent) {
 		if (has_piece(next, GOVT, TROOPS))
@@ -1824,7 +1838,18 @@ states.sweep_move = {
 
 		if (is_forest(game.op.where))
 			game.op.count >>= 1
+
+		if (game.op.count === 0 || !can_sweep_activate(game.op.where))
+			game.state = "sweep"
 	},
+}
+
+function can_sweep_activate(s) {
+	return (
+		(game.senado !== FARC && has_underground_guerrilla(s, FARC)) ||
+		(game.senado !== AUC && has_underground_guerrilla(s, AUC)) ||
+		(game.senado !== CARTELS && has_underground_guerrilla(s, CARTELS))
+	)
 }
 
 states.sweep_activate = {
@@ -1834,9 +1859,12 @@ states.sweep_activate = {
 
 		gen_any_govt_special()
 
-		gen_underground_guerrillas(game.op.where, FARC)
-		gen_underground_guerrillas(game.op.where, AUC)
-		gen_underground_guerrillas(game.op.where, CARTELS)
+		if (game.senado !== FARC)
+			gen_underground_guerrillas(game.op.where, FARC)
+		if (game.senado !== AUC)
+			gen_underground_guerrillas(game.op.where, AUC)
+		if (game.senado !== CARTELS)
+			gen_underground_guerrillas(game.op.where, CARTELS)
 
 		if (did_maximum_damage(game.op.targeted))
 			view.actions.next = 1
@@ -1847,7 +1875,7 @@ states.sweep_activate = {
 		push_undo()
 		game.op.targeted |= target_faction(p)
 		set_active(p)
-		if (--game.op.count === 0 || !has_any_underground_guerrilla(game.op.where))
+		if (--game.op.count === 0 || !can_sweep_activate(game.op.where))
 			game.state = "sweep"
 	},
 	next() {
@@ -1859,7 +1887,11 @@ states.sweep_activate = {
 // OPERATION: ASSAULT
 
 function can_assault_space(s) {
+	if (is_dept(s) && has_momentum(MOM_MADRID_DONORS))
+		return false
 	for (let faction = 1; faction < 4; ++faction) {
+		if (game.senado === faction)
+			continue
 		if (has_piece(s, faction, GUERRILLA)) {
 			if (has_active_guerrilla(s, faction))
 				return true
@@ -1937,9 +1969,12 @@ states.assault_space = {
 
 		gen_any_govt_special()
 
-		gen_exposed_piece(game.op.where, FARC)
-		gen_exposed_piece(game.op.where, AUC)
-		gen_exposed_piece(game.op.where, CARTELS)
+		if (game.senado !== FARC)
+			gen_exposed_piece(game.op.where, FARC)
+		if (game.senado !== AUC)
+			gen_exposed_piece(game.op.where, AUC)
+		if (game.senado !== CARTELS)
+			gen_exposed_piece(game.op.where, CARTELS)
 
 		if (did_maximum_damage(game.op.targeted))
 			view.actions.next = 1
@@ -2532,8 +2567,11 @@ function gen_special(faction, action, disable = false) {
 function gen_any_govt_special() {
 	if (game.sa) {
 		view.actions.air_lift = 1
-		view.actions.air_strike = 1
 		view.actions.eradicate = 1
+		if (has_momentum(MOM_PLAN_COLOMBIA))
+			view.actions.air_strike = 0
+		else
+			view.actions.air_strike = 1
 	}
 }
 
@@ -2565,9 +2603,11 @@ function goto_air_lift() {
 states.air_lift_from = {
 	prompt() {
 		view.prompt = "Air Lift: Select origin space."
+		let manpad = has_momentum(MOM_MISIL_ANTIAEREO)
 		for (let s = first_space; s <= last_space; ++s)
 			if (has_piece(s, GOVT, TROOPS))
-				gen_action_space(s)
+				if (!manpad || !has_any_guerrilla(s))
+					gen_action_space(s)
 	},
 	space(s) {
 		push_undo()
@@ -2580,9 +2620,11 @@ states.air_lift_to = {
 	prompt() {
 		view.prompt = "Air Lift: Select destination space."
 		view.where = game.sa.from
+		let manpad = has_momentum(MOM_MISIL_ANTIAEREO)
 		for (let s = first_space; s <= last_space; ++s)
-			if (s !== game.sa.from && !is_farc_zone(s)) // TODO: Foreign?
-				gen_action_space(s)
+			if (s !== game.sa.from && !is_farc_zone(s))
+				if (!manpad || !has_any_guerrilla(s))
+					gen_action_space(s)
 	},
 	space(s) {
 		push_undo()
@@ -2624,10 +2666,13 @@ function goto_air_strike() {
 states.air_strike = {
 	prompt() {
 		view.prompt = "Air Strike: Destroy exposed Insurgent unit."
+		let manpad = has_momentum(MOM_MISIL_ANTIAEREO)
 		for (let s = first_space; s <= last_space; ++s) {
-			gen_exposed_piece(s, FARC)
-			gen_exposed_piece(s, AUC)
-			gen_exposed_piece(s, CARTELS)
+			if (!manpad || !has_any_guerrilla(s)) {
+				gen_exposed_piece(s, FARC)
+				gen_exposed_piece(s, AUC)
+				gen_exposed_piece(s, CARTELS)
+			}
 		}
 	},
 	piece(p) {
@@ -2655,9 +2700,11 @@ function goto_eradicate() {
 states.eradicate = {
 	prompt() {
 		view.prompt = "Eradicate: Destroy rural Cartels Bases."
+		let manpad = has_momentum(MOM_MISIL_ANTIAEREO)
 		for (let s = first_dept; s <= last_dept; ++s)
 			if (has_piece(s, CARTELS, GUERRILLA) || has_piece(s, CARTELS, BASE))
-				gen_action_space(s)
+				if (!manpad || !has_any_guerrilla(s))
+					gen_action_space(s)
 	},
 	space(s) {
 		push_undo()
@@ -3440,6 +3487,7 @@ exports.view = function (state, role) {
 		current: game.current,
 		deck: [ this_card, next_card, deck_size ],
 		president: game.president,
+		senado: game.senado,
 		aid: game.aid,
 		cylinder: game.cylinder,
 		resources: game.resources,
@@ -3571,6 +3619,11 @@ function execute_unshaded_event() {
 function execute_shaded_event() {
 	let c = this_card()
 	log(`C${c} - Shaded`)
+
+	if (c === MOM_SENADO_CAMARA) {
+		log("No Sweep or Assault against " + faction_name[game.current] + " until next Propaganda.")
+		game.senado = game.current
+	}
 
 	if (set_has(capability_events, c)) {
 		logi(event_name_shaded[c])
