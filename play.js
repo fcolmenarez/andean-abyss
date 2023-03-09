@@ -63,6 +63,9 @@ const MOM_MISIL_ANTIAEREO = 27
 const MOM_SENADO_CAMARA = 42
 const MOM_MEXICAN_TRAFFICKERS = 67
 
+const EVT_SUCUMBIOS = 33
+const EVT_DARIEN = 71
+
 const senado_class_list = [
 	"token reminder hide",
 	"token reminder senado_farc",
@@ -125,6 +128,8 @@ let ui = {
 		president: document.getElementById("token_el_presidente"),
 		propaganda: document.getElementById("token_prop_card"),
 		senado: document.getElementById("rem_senado"),
+		darien: document.getElementById("rem_darien"),
+		sucumbios: document.getElementById("rem_sucumbios"),
 	},
 	pieces: [],
 	resources: [
@@ -284,6 +289,9 @@ function init_ui() {
 		register_card_tip(ui.momentum[c], c)
 	for (let c of capability_events)
 		register_card_tip(ui.capabilities[c], c)
+	register_card_tip(ui.tokens.senado, MOM_SENADO_CAMARA)
+	register_card_tip(ui.tokens.darien, EVT_DARIEN)
+	register_card_tip(ui.tokens.sucumbios, EVT_SUCUMBIOS)
 
 	for (let i = 0; i < data.spaces.length; ++i) {
 		let id = data.spaces[i].id
@@ -726,6 +734,9 @@ function on_update() {
 
 	ui.tokens.president.style.left = [ 0, "254px", "337px", "420px" ][view.president]
 	ui.tokens.senado.classList = senado_class_list[view.senado]
+
+	ui.tokens.darien.classList.toggle("hide", !set_has(view.capabilities, EVT_DARIEN))
+	ui.tokens.sucumbios.classList.toggle("hide", !set_has(view.capabilities, EVT_SUCUMBIOS))
 
 	for (let cap of capability_events) {
 		let shaded = set_has(view.capabilities, -cap)

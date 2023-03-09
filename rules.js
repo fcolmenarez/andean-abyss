@@ -45,6 +45,9 @@ const MOM_MISIL_ANTIAEREO = 27
 const MOM_SENADO_CAMARA = 42
 const MOM_MEXICAN_TRAFFICKERS = 67
 
+const EVT_SUCUMBIOS = 33
+const EVT_DARIEN = 71
+
 // Events with no shaded/unshaded variants
 const single_events = [ 19, 36, 46, 53, 54, 63, 65, 69 ]
 
@@ -174,11 +177,10 @@ const VAUPES = 25
 const AMAZONAS = 26
 
 // Foreign Countries
-const BRASIL = 27
-const ECUADOR = 28
-const PANAMA = 29
-const PERU = 30
-const VENEZUELA = 31
+const ECUADOR = 27
+const PANAMA = 28
+
+const next_to_venezuela = [ CESAR, SANTANDER, ARAUCA, VICHADA, GUAINIA ]
 
 const COASTAL_SPACES = [ ATLANTICO, CHOCO, NARINO, CESAR ]
 
@@ -3624,6 +3626,11 @@ function execute_shaded_event() {
 		log("No Sweep or Assault against " + faction_name[game.current] + " until next Propaganda.")
 		game.senado = game.current
 	}
+
+	if (c === EVT_DARIEN)
+		set_add(game.capabilities, EVT_DARIEN)
+	if (c === EVT_SUCUMBIOS)
+		set_add(game.capabilities, EVT_SUCUMBIOS)
 
 	if (set_has(capability_events, c)) {
 		logi(event_name_shaded[c])

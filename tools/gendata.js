@@ -222,11 +222,8 @@ data.last_dept = spaces.length-1
 
 data.first_foreign = spaces.length
 
-def_space("foreign", 0, "Panamá")
 def_space("foreign", 0, "Ecuador")
-def_space("foreign", 0, "Brasil")
-def_space("foreign", 0, "Perú")
-def_space("foreign", 0, "Venezuela")
+def_space("foreign", 0, "Panamá")
 
 data.last_foreign = spaces.length-1
 
@@ -249,14 +246,14 @@ def_loc("pipeline", 1, [ "Ibagué", "Cali"], [ "Chocó", "Huila" ])
 
 def_loc("pipeline", 2, [ "Bucaramanga", "Ibagué", "Bogotá" ], [ "Antioquia", "Santander", "Huila" ])
 def_loc("pipeline", 2, [ "Bogotá", "Neiva" ], [ "Huila", "Meta West" ])
-def_loc("pipeline", 3, [ "Cúcuta", "Arauca" ], [ "Venezuela", "Arauca", "Santander" ])
+def_loc("pipeline", 3, [ "Cúcuta", "Arauca" ], [ "Arauca", "Santander" ])
 def_loc("pipeline", 2, [ "Bogotá", "Yopal" ], [ "Santander", "Arauca", "Meta East"])
 
 let ayacucho = [
 	def_loc("pipeline", 2, [ "Santa Marta", "Ayacucho" ], [ "Cesar", "Santander", "Antioquia", "Atlántico" ]),
 	def_loc("pipeline", 2, [ "Bucaramanga", "Ayacucho" ], [ "Antioquia", "Atlántico", "Cesar", "Santander" ]),
 	def_loc("pipeline", 3, [ "Sincelejo", "Ayacucho" ], [ "Atlántico", "Cesar", "Santander", "Antioquia" ]),
-	def_loc("pipeline", 3, [ "Cúcuta", "Ayacucho" ], [ "Santander", "Antioquia", "Atlántico", "Cesar", "Venezuela" ]),
+	def_loc("pipeline", 3, [ "Cúcuta", "Ayacucho" ], [ "Santander", "Antioquia", "Atlántico", "Cesar" ]),
 ]
 
 for (let a of ayacucho) {
@@ -289,7 +286,6 @@ adjacent("Pasto", "Nariño")
 adjacent("Pasto", "Huila")
 adjacent("Pasto", "Putumayo")
 adjacent("Pasto", "Ecuador")
-adjacent("Cúcuta", "Venezuela")
 adjacent("Cúcuta", "Santander")
 adjacent("Bucaramanga", "Antioquia")
 adjacent("Bucaramanga", "Santander")
@@ -305,21 +301,8 @@ adjacent("Neiva", "Putumayo")
 
 adjacent("Panamá", "Chocó")
 
-adjacent("Venezuela", "Cesar")
-adjacent("Venezuela", "Santander")
-adjacent("Venezuela", "Arauca")
-adjacent("Venezuela", "Vichada")
-adjacent("Venezuela", "Guainía")
-
-adjacent("Brasil", "Guainía")
-adjacent("Brasil", "Vaupés")
-adjacent("Brasil", "Amazonas")
-
 adjacent("Ecuador", "Nariño")
 adjacent("Ecuador", "Putumayo")
-
-adjacent("Perú", "Putumayo")
-adjacent("Perú", "Amazonas")
 
 // Dept - Dept (with redundancies)
 

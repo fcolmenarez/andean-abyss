@@ -146,6 +146,7 @@ path.selected { stroke: yellow; }
 	transition: none;
 }
 
+.token.reminder,
 .token.action {
 	pointer-events: auto;
 }
