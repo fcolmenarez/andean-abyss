@@ -130,6 +130,94 @@ def_card(74, "Propaganda!")
 def_card(75, "Propaganda!")
 def_card(76, "Propaganda!")
 
+let card_flavor = []
+let card_flavor_shaded = []
+
+function flavor(id, unshaded, shaded) {
+	id = parseInt(id)
+	if (unshaded)
+		card_flavor[id] = unshaded
+	if (shaded)
+		card_flavor_shaded[id] = shaded
+}
+
+flavor("1. 1st Division","Jointness","Service parochialism")
+flavor("2. Ospina & Mora","COIN experts take charge","COIN strategy eludes Army")
+flavor("3. Tapias","CO tightens civil-military bonds","Civil-military rivalries fester")
+flavor("4. Caño Limón - Coveñas","Profitable pipeline","Pipeline draws attacks")
+flavor("5. Occidental & Ecopetrol","Oil company security","Industry thought exploitative")
+flavor("6. Oil Spill","Rebels blamed","Multinationals make mess")
+flavor("7. 7th Special Forces","Infrastructure protection training","US training ineffective")
+flavor("8. Fuerza Aérea Colombiana","COIN strike aircraft","Budget diverted to expensive jets")
+flavor("9. High Mountain Battalions","Elites guard high-altitude corridors","Equipment not delivered")
+flavor("10. Blackhawks","US helos delivered","Delivery of US helos delayed")
+flavor("11. National Defense & Security Council","Military-police jointness","Military-police rivalry")
+flavor("12. Plan Colombia","US \"War on Drugs\"","US aid focuses on drug war")
+flavor("13. Plan Meteoro","Transport protection units","Transport security deemphasized")
+flavor("14. Tres Esquinas","Forward base","Base overrun")
+flavor("15. War Tax","Defense budget shot in the arm","Middle class resents cost of war")
+flavor("16. Coffee Prices","They're up","They're down")
+flavor("17. Madrid Donors","Aid conference generous","EU aid focuses on reconstruction")
+flavor("18. NSPD-18","US \"War on Terror\" takes on FARC","US focused on Mid-East and South Asia")
+flavor("19. General Offensive","","")
+flavor("20. Mono Jojoy","KIA puts FARC in disarray","Military strategist")
+flavor("21. Raúl Reyes","FARC Deputy killed","FARC Deputy channels foreign support")
+flavor("22. Alfonso Cano","FARC leader killed in military strike","Ideologue")
+flavor("23. DoD Contractors","US provides aircrew","Plane down - hostage search and evasion")
+flavor("24. Operación Jaque","Dramatic hostage rescue","Hostage rescue goes awry")
+flavor("25. Ejército de Liberación Nacional","ELN and FARC jockey","ELN and FARC coordinate ops")
+flavor("26. Gramaje","FARC protection rejected","Schedule of fees")
+flavor("27. Misil Antiaéreo","FARC MANPADs deemed a myth","MANPADs feared")
+flavor("28. Hugo Chávez","Caracas controls border","Caracas aids rebels")
+flavor("29. Kill Zone","Army sniffs out FARC trap","Tactics lure enemy in")
+flavor("30. Peace Commission","FARC accused in Commissioner's killing","Peace bid")
+flavor("31. Betancourt","Sympathy for famous hostage","Hostage negotiations forum for FARC")
+flavor("32. Secuestrados","Fed up with hostage-taking","Ransoming highly profitable")
+flavor("33. Sucumbíos","Ecuadoran buffer zone","Cross-border war")
+flavor("34. Airdropped AKs","Insurgents scammed by Russian criminals","Covert weapons delivery")
+flavor("35. Crop Substitution","Government initiative","FARC proposals lauded")
+flavor("36. Zona de Convivencia","ELN gets its DMZ","")
+flavor("37. Former Military","Ties that bind","Ex-officers advise paramilitaries")
+flavor("38. National Coordination Center","New command fights paramilitaries","Sympathizers alert AUC")
+flavor("39. Soldados Campesinos","Local forces platoons","Local forces augment autodefensas")
+flavor("40. Demobilization","Negotiated reintegration","Talks a ruse, fighters recycled")
+flavor("41. Mancuso","AUC No.2 extradited","AUC drug lord")
+flavor("42. Senado & Cámara","Unity behind Presidential war policy","Insurgent sympathies")
+flavor("43. Calima Front","Suspect leftists massacred","Brutality blamed on Army")
+flavor("44. Colombia Nueva","Anti-corruption campaign","Political campaign divisive")
+flavor("45. Los Derechos Humanos","Officers disciplined","International human rights cartel")
+flavor("46. Limpieza","Ruthless elimination","")
+flavor("47. Pinto & del Rosario","Human rights investigators","Prosecutors killed")
+flavor("48. Unión Sindical Obrera","AUC targets oil labor organizers","Labor backs FARC")
+flavor("49. Bloques","Militias defy Castaño","Independent militias join AUC")
+flavor("50. Carabineros","National police field forces","National police corruption")
+flavor("51. Pipeline Repairs","Speedy patching","Security concerns hinder maintenance")
+flavor("52. Castaño","AUC leader's memoir a best seller","Charismatic AUC political leader")
+flavor("53. Criminal Air Force","Insurgent access to small aircraft","")
+flavor("54. Deserters & Defectors","","")
+flavor("55. DEA Agents","Law enforcement assistance","Más Yanquis")
+flavor("56. Drogas La Rebaja","Cali cartel's drugstore chain seized","Retail empire")
+flavor("57. Op Millenium","Colombian-US strike at Bernal syndicate","Investigation penetrated")
+flavor("58. General Serrano","National Police hammer cartels","Officials on cartel payroll")
+flavor("59. Salcedo","Cartel informant","Cali cartel security chief")
+flavor("60. The Chess Player","Kingpin strategy scores","Cali's Gilberto Rodríguez Orejuela expands empire")
+flavor("61. Air Bridge","Peruvian coca supply controlled","Colombian coca growers fill Peruvian void")
+flavor("62. Amazonía","Brasília's Op Cobra blocks border","Jungle landing strips")
+flavor("63. Narco-War","Rival syndicates go for the throat","")
+flavor("64. Cocaine Labs","FARC taps suppliers","Well-oiled industry")
+flavor("65. Poppies","Growers and Government eradication focus on heroin source","")
+flavor("66. Tingo María","Coca crop fails","Hearty coca variety")
+flavor("67. Mexican Traffickers","Major shipment busted en route","New routes to US market")
+flavor("68. Narco-Subs","Submersibles seized","Littoral stealth")
+flavor("69. Riverines & Fast Boats","","")
+flavor("70. Ayahuasca Tourism","Eco-tourism helps trade balance","Eco-tourists taken")
+flavor("71. Darién","Arms traffic interdicted","Border sanctuary")
+flavor("72. Sicarios","Hired drug guns unreliable","Unemployed ready to work for syndicates")
+flavor("73. Propaganda!","","")
+flavor("74. Propaganda!","","")
+flavor("75. Propaganda!","","")
+flavor("76. Propaganda!","","")
+
 let spaces = [ ]
 let space_name = [ ]
 
@@ -391,8 +479,10 @@ for (let i = 0; i < spaces.length; ++i) {
 	spaces[i].adjacent.sort((a,b)=>a-b)
 }
 
-data.card_name = card_name
 data.card_order = card_order
+data.card_name = card_name
+data.card_flavor = card_flavor
+data.card_flavor_shaded = card_flavor_shaded
 data.space_name = space_name
 data.spaces = spaces
 

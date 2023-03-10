@@ -51,34 +51,6 @@ const EVT_DARIEN = 71
 // Events with no shaded/unshaded variants
 const single_events = [ 19, 36, 46, 53, 54, 63, 65, 69 ]
 
-const event_name_unshaded = {
-	[CAP_1ST_DIV]: "Jointness.",
-	[CAP_OSPINA]: "COIN experts take charge.",
-	[CAP_TAPIAS]: "CO tightens civil-military bonds.",
-	[CAP_7TH_SF]: "Infrastructure protection training.",
-	[CAP_MTN_BNS]: "Elites guard high-altitude corridors.",
-	[CAP_BLACK_HAWKS]: "US helos delivered.",
-	[CAP_NDSC]: "Military-police jointness.",
-	[CAP_METEORO]: "Transport protection units.",
-}
-
-const event_name_shaded = {
-	[CAP_1ST_DIV]: "Service parochialism.",
-	[CAP_OSPINA]: "COIN strategy eludes Army.",
-	[CAP_TAPIAS]: "Civil-military rivalries fester.",
-	[CAP_7TH_SF]: "US training ineffective.",
-	[CAP_MTN_BNS]: "Equipment not delivered.",
-	[CAP_BLACK_HAWKS]: "Delivery of US helos delayed.",
-	[CAP_NDSC]: "Military-police rivalry.",
-	[CAP_METEORO]: "Transport security deemphasized.",
-	[MOM_PLAN_COLOMBIA]: "US aid focuses on drug war.",
-	[MOM_MADRID_DONORS]: "EU aid focuses on reconstruction.",
-	[MOM_ALFONSO_CANO]: "Ideologue.",
-	[MOM_MISIL_ANTIAEREO]: "MANPADs feared.",
-	[MOM_SENADO_CAMARA]: "Insurgent sympathies.",
-	[MOM_MEXICAN_TRAFFICKERS]: "New routes to US market.",
-}
-
 const faction_name = [ NAME_GOVT, NAME_FARC, NAME_AUC, NAME_CARTELS ]
 
 // Factions
@@ -3606,9 +3578,9 @@ function execute_event() {
 function execute_unshaded_event() {
 	let c = this_card()
 	log(`C${c} - Unshaded`)
+	log(data.card_flavor[c] + ".")
 
 	if (set_has(capability_events, c)) {
-		logi(event_name_unshaded[c])
 		set_add(game.capabilities, c)
 		resume_event_card()
 		return
@@ -3621,6 +3593,7 @@ function execute_unshaded_event() {
 function execute_shaded_event() {
 	let c = this_card()
 	log(`C${c} - Shaded`)
+	log(data.card_flavor_shaded[c] + ".")
 
 	if (c === MOM_SENADO_CAMARA) {
 		log("No Sweep or Assault against " + faction_name[game.current] + " until next Propaganda.")
@@ -3633,14 +3606,12 @@ function execute_shaded_event() {
 		set_add(game.capabilities, EVT_SUCUMBIOS)
 
 	if (set_has(capability_events, c)) {
-		logi(event_name_shaded[c])
 		set_add(game.capabilities, -c)
 		resume_event_card()
 		return
 	}
 
 	if (set_has(momentum_events, c)) {
-		logi(event_name_shaded[c])
 		set_add(game.momentum, c)
 		resume_event_card()
 		return
