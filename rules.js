@@ -1306,7 +1306,7 @@ states.remove_pieces = {
 	},
 	done() {
 		game.state = game.transfer
-		game.transfer = 0
+		game.transfer = null
 		transfer_or_remove_shipments()
 	},
 }
@@ -1353,9 +1353,7 @@ function resume_transfer_dropped_shipments() {
 			return
 		}
 	}
-	game.current = game.transfer.current
-	game.state = game.transfer.state
-	game.transfer = 0
+	end_negotiation()
 }
 
 states.transfer_dropped_shipments = {
@@ -1377,43 +1375,7 @@ states.transfer_dropped_shipments = {
 	},
 }
 
-function goto_drug_bust() {
-	game.transfer = game.state
-	resume_drug_bust()
-}
-
-function resume_drug_bust() {
-	if (has_dropped_shipments()) {
-		game.state = "drug_bust"
-	} else {
-		game.state = game.transfer
-		game.transfer = 0
-	}
-}
-
-states.drug_bust = {
-	prompt() {
-		view.prompt = "Drug Bust: Gain 6 resources per removed Shipment."
-		gen_action_resources(GOVT)
-		for (let sh = 0; sh < 4; ++sh)
-			if (is_shipment_dropped(sh))
-				gen_action_shipment(sh)
-	},
-	shipment(sh) {
-		add_resources(GOVT, 6)
-		remove_shipment(sh)
-		resume_drug_bust()
-	},
-	resources(_) {
-		for (let sh = 0; sh < 4; ++sh) {
-			if (is_shipment_dropped(sh)) {
-				add_resources(GOVT, 6)
-				remove_shipment(sh)
-			}
-		}
-		resume_drug_bust()
-	},
-}
+// === SHIP FOR EXTRA LIMOP ===
 
 states.ship = {
 	prompt() {
@@ -1478,11 +1440,11 @@ states.ask_resources = {
 	},
 	resources(faction) {
 		game.current = faction
-		game.state = "give_resources"
+		game.state = "transfer_resources"
 	},
 }
 
-states.give_resources = {
+states.transfer_resources = {
 	disable_negotiation: true,
 	prompt() {
 		view.prompt = `${faction_name[game.transfer.current]} asked for Resources.`
@@ -1546,12 +1508,12 @@ states.ask_shipment = {
 	shipment(sh) {
 		let p = game.shipments[sh] >> 2
 		game.current = piece_faction(p)
-		game.state = "give_shipment"
+		game.state = "transfer_shipment"
 		game.transfer.shipment = sh
 	},
 }
 
-states.give_shipment = {
+states.transfer_shipment = {
 	disable_negotiation: true,
 	prompt() {
 		view.prompt = `${faction_name[game.transfer.current]} asked for Shipment.`
@@ -1575,8 +1537,49 @@ states.give_shipment = {
 function end_negotiation() {
 	game.current = game.transfer.current
 	game.state = game.transfer.state
-	game.transfer = 0
+	game.transfer = null
 }
+
+// === DRUG BUST ===
+
+function goto_drug_bust() {
+	game.transfer = game.state
+	resume_drug_bust()
+}
+
+function resume_drug_bust() {
+	if (has_dropped_shipments()) {
+		game.state = "drug_bust"
+	} else {
+		game.state = game.transfer
+		game.transfer = null
+	}
+}
+
+states.drug_bust = {
+	prompt() {
+		view.prompt = "Drug Bust: Gain 6 resources per removed Shipment."
+		gen_action_resources(GOVT)
+		for (let sh = 0; sh < 4; ++sh)
+			if (is_shipment_dropped(sh))
+				gen_action_shipment(sh)
+	},
+	shipment(sh) {
+		add_resources(GOVT, 6)
+		remove_shipment(sh)
+		resume_drug_bust()
+	},
+	resources(_) {
+		for (let sh = 0; sh < 4; ++sh) {
+			if (is_shipment_dropped(sh)) {
+				add_resources(GOVT, 6)
+				remove_shipment(sh)
+			}
+		}
+		resume_drug_bust()
+	},
+}
+
 
 // === OPERATIONS ===
 
