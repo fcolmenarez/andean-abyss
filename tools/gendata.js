@@ -18,13 +18,13 @@ function to_ascii(s) {
 
 const IMAP = { G: GOVT, F: FARC, A: AUC, C: CARTELS }
 let order = null
-let card_name = [ null ]
+let card_title = [ null ]
 let card_order = [ null ]
 function def_order(s) {
 	order = [ IMAP[s[0]], IMAP[s[1]], IMAP[s[2]], IMAP[s[3]] ]
 }
 function def_card(number, name) {
-	card_name[number] = name
+	card_title[number] = name
 	card_order[number] = order
 }
 def_order("GFAC")
@@ -480,7 +480,7 @@ for (let i = 0; i < spaces.length; ++i) {
 }
 
 data.card_order = card_order
-data.card_name = card_name
+data.card_title = card_title
 data.card_flavor = card_flavor
 data.card_flavor_shaded = card_flavor_shaded
 data.space_name = space_name

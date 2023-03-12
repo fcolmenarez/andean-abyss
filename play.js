@@ -451,6 +451,9 @@ function layout_pieces(list, xorig, yorig) {
 			e.style.left = (xo + x) + "px"
 			e.style.top = (yo + y) + "px"
 			e.style.zIndex = z
+			e.my_x = x + 15
+			e.my_y = y + 24
+			e.my_z = z
 		}
 		let z = 50
 		let i = 0
@@ -461,10 +464,19 @@ function layout_pieces(list, xorig, yorig) {
 }
 
 function place_piece(p, x, y, z) {
-	p.style.top = y + "px"
 	p.style.left = x + "px"
+	p.style.top = y + "px"
 	if (z)
 		p.style.zIndex = z
+	p.my_x = x
+	p.my_y = y
+	p.my_z = z
+}
+
+function place_piece_under(p, other) {
+	p.style.left = (other.my_x - 26) + "px"
+	p.style.top = (other.my_y - 22) + "px"
+	p.style.zIndex = (other.my_z - 1)
 }
 
 function layout_space_bases(list, xc, yc, r) {
@@ -823,8 +835,6 @@ function on_update() {
 		filter_piece_list(list, s, GOVT, TROOPS)
 		filter_piece_list(list, s, GOVT, POLICE)
 
-		// TODO: shipments with other faction/piece, not space
-
 		tix = layout_terror(tix, s, map_get(view.terror, s, 0) * 1)
 
 		let xy = get_layout_xy(s)
@@ -851,9 +861,24 @@ function on_update() {
 		ui.terror[tix].className = "hide"
 
 	list.length = 0
-	for (let i = 0; i < 4; ++i)
-		if (view.shipments[i] === AVAILABLE)
+	for (let i = 0; i < 4; ++i) {
+		let shx = view.shipments[i]
+		if (shx < 0) {
 			list.push(ui.shipments[i])
+		} else if ((shx & 3) === 0) {
+			let holder = ui.pieces[shx >> 2]
+			place_piece_under(ui.shipments[i], holder)
+		} else {
+			// abandoned shipment!
+			let xy = get_center_xy(shx >> 2)
+			place_piece(ui.shipments[i], xy[0] - 26, xy[1] - 72, 0)
+		}
+		if (view.actions && view.actions.shipment && set_has(view.actions.shipment, i))
+			ui.shipments[i].classList.add("action")
+		else
+			ui.shipments[i].classList.remove("action")
+		ui.shipments[i].classList.toggle("selected", view.selected_shipment === i)
+	}
 	layout_available_bases(list, 1532, 1722, 2, 2, 89, 69)
 
 	list.length = 0
@@ -947,9 +972,21 @@ function on_blur_card_tip(c) {
 	document.getElementById("card_tip").className = "hide"
 }
 
+function on_focus_space_tip(s) {
+	ui.spaces[s].classList.add("tip")
+}
+
+function on_blur_space_tip(s) {
+	ui.spaces[s].classList.remove("tip")
+}
+
+function on_click_space_tip(s) {
+	ui.spaces[s].scrollIntoView({ block:"center", inline:"center", behavior:"smooth" })
+}
+
 function sub_card(match, p1) {
 	let x = p1 | 0
-	let n = data.card_name[x]
+	let n = data.card_title[x]
 	return `<span class="tip" onmouseenter="on_focus_card_tip(${x})" onmouseleave="on_blur_card_tip(${x})" onclick="on_click_card_tip(${x})">${n}</span>`
 }
 
