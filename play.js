@@ -146,6 +146,25 @@ let ui = {
 	],
 }
 
+function action_menu_item(action) {
+	let menu = document.getElementById(action + "_menu")
+	if (view.actions && action in view.actions) {
+		menu.classList.toggle("hide", false)
+		menu.classList.toggle("disabled", view.actions[action] === 0)
+		return 1
+	} else {
+		menu.classList.toggle("hide", true)
+		return 0
+	}
+}
+
+function action_menu(menu, action_list) {
+	let x = 0
+	for (let action of action_list)
+		x |= action_menu_item(action)
+	menu.classList.toggle("hide", !x)
+}
+
 function create(t, p, ...c) {
 	let e = document.createElement(t)
 	Object.assign(e, p)
@@ -906,12 +925,11 @@ function on_update() {
 	for (let i = 0; i < ui.pieces.length; ++i)
 		ui.pieces[i].classList.toggle("selected", view.who === i)
 
-	action_button("remove", "Remove")
-	// menu trade
-	// action_button("trade", "Trade with Govt")
-	// action_button("trade", "Trade with FARC")
-	// action_button("trade", "Trade with AUC")
-	// action_button("trade", "Trade with Cartels")
+	action_menu(document.getElementById("negotiate_menu"), [
+		"remove_pieces",
+		"ask_shipment",
+		"ask_resources"
+	])
 
 	action_button("train", "Train")
 	action_button("patrol", "Patrol")

@@ -37,16 +37,14 @@
 	<div class="icon_button" onclick="toggle_pieces()"><img src="/images/earth-america.svg"></div>
 	<div class="icon_button" onclick="toggle_zoom()"><img src="/images/magnifying-glass.svg"></div>
 	<div class="icon_button" onclick="toggle_log()"><img src="/images/scroll-quill.svg"></div>
-	<div id="trade_menu" class="menu">
+	<div id="negotiate_menu" class="menu hide">
 		<div class="menu_title"><img src="images/shaking-hands.svg"></div>
 		<div class="menu_popup">
-			<div id="g_button" class="menu_item" onclick="send_action('g')">Government</div>
-			<div id="f_button" class="menu_item" onclick="send_action('f')">FARC</div>
-			<div id="a_button" class="menu_item" onclick="send_action('a')">AUC</div>
-			<div id="c_button" class="menu_item" onclick="send_action('c')">Cartels</div>
+			<div id="remove_pieces_menu" class="menu_item" onclick="send_action('remove_pieces')">Remove Pieces</div>
+			<div id="ask_resources_menu" class="menu_item" onclick="send_action('ask_resources')">Ask for Resources...</div>
+			<div id="ask_shipment_menu" class="menu_item" onclick="send_action('ask_shipment')">Ask for Shipment...</div>
 		</div>
 	</div>
-	<div id="remove_button" class="icon_button" onclick="send_action('remove')"><img src="images/back-forth.svg"></div>
 	</div>
 	<div id="prompt"></div>
 	<div id="actions"></div>

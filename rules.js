@@ -819,6 +819,10 @@ function drop_shipment(sh) {
 	game.shipments[sh] = (s << 2) | f
 }
 
+function is_shipment_held(sh) {
+	return game.shipments[sh] >= 0
+}
+
 function is_shipment_held_by_piece(sh, p) {
 	return game.shipments[sh] === p << 2
 }
@@ -873,7 +877,7 @@ function has_dropped_shipments() {
 	return false
 }
 
-function can_transfer_shipments() {
+function can_transfer_dropped_shipments() {
 	for (let sh = 0; sh < 4; ++sh)
 		if (is_shipment_dropped(sh))
 			if (has_any_guerrilla(get_dropped_shipment_space(sh)))
@@ -884,10 +888,10 @@ function can_transfer_shipments() {
 function auto_transfer_dropped_shipments(s) {
 	for (let sh = 0; sh < 4; ++sh)
 		if (is_shipment_dropped(sh))
-			auto_transfer_shipment(sh)
+			auto_transfer_dropped_shipments(sh)
 }
 
-function auto_transfer_shipment(sh) {
+function auto_transfer_dropped_shipments(sh) {
 	let f = get_dropped_shipment_faction(sh)
 	let s = get_dropped_shipment_space(sh)
 	let a, b, p
@@ -1269,13 +1273,14 @@ function end_operation() {
 
 // === REMOVE PIECES (VOLUNTARILY) ===
 
-function action_remove() {
+function action_remove_pieces() {
 	push_undo()
-	game.save_state = game.state
-	game.state = "remove"
+	game.transfer = game.state
+	game.state = "remove_pieces"
 }
 
-states.remove = {
+states.remove_pieces = {
+	disable_negotiation: true,
 	prompt() {
 		view.prompt = "Remove pieces to Available Forces."
 		for (let p = first_piece[game.current][BASE]; p <= last_piece[game.current][BASE]; ++p)
@@ -1300,20 +1305,20 @@ states.remove = {
 		update_control()
 	},
 	done() {
-		game.state = game.save_state
-		delete game.save_state
+		game.state = game.transfer
+		game.transfer = 0
 		transfer_or_remove_shipments()
 	},
 }
 
-// === CLAIM SHIPMENTS ===
+// === TRANSFER SHIPMENTS ===
 
 function transfer_or_remove_shipments()
 {
 	auto_transfer_dropped_shipments()
 	if (has_dropped_shipments()) {
-		if (can_transfer_shipments())
-			goto_transfer_shipments()
+		if (can_transfer_dropped_shipments())
+			goto_transfer_dropped_shipments()
 		else
 			remove_dropped_shipments()
 	}
@@ -1323,37 +1328,38 @@ function transfer_or_drug_bust_shipments()
 {
 	auto_transfer_dropped_shipments()
 	if (has_dropped_shipments()) {
-		if (can_transfer_shipments())
-			goto_transfer_shipments()
+		if (can_transfer_dropped_shipments())
+			goto_transfer_dropped_shipments()
 		else
 			goto_drug_bust()
 	}
 }
 
-function goto_transfer_shipments() {
+function goto_transfer_dropped_shipments() {
 	game.transfer = {
-		active: game.active,
+		current: game.current,
 		state: game.state,
 		shipment: 0,
 	}
-	resume_transfer_shipments()
+	resume_transfer_dropped_shipments()
 }
 
-function resume_transfer_shipments() {
+function resume_transfer_dropped_shipments() {
 	for (let sh = 0; sh < 4; ++sh) {
 		if (is_shipment_dropped(sh)) {
-			game.active = get_dropped_shipment_faction(sh)
-			game.state = "transfer_shipment"
+			game.current = get_dropped_shipment_faction(sh)
+			game.state = "transfer_dropped_shipments"
 			game.transfer.shipment = sh
 			return
 		}
 	}
-	game.active = game.active
+	game.current = game.transfer.current
 	game.state = game.transfer.state
 	game.transfer = 0
 }
 
-states.transfer_shipment = {
+states.transfer_dropped_shipments = {
+	disable_negotiation: true,
 	prompt() {
 		view.prompt = "Transfer Shipment to another Guerrilla."
 		let s = get_dropped_shipment_space(game.transfer.shipment)
@@ -1367,7 +1373,7 @@ states.transfer_shipment = {
 	piece(p) {
 		push_undo()
 		place_shipment(game.transfer.shipment, p)
-		resume_transfer_shipments()
+		resume_transfer_dropped_shipments()
 	},
 }
 
@@ -1427,6 +1433,149 @@ states.ship = {
 		game.op.ship = 0
 		end_operation()
 	},
+}
+
+// === NEGOTIATION ===
+
+function is_player_govt() {
+	return game.active === NAME_GOVT || game.active === NAME_GOVT_AUC
+}
+
+function is_player_farc() {
+	return game.active === NAME_FARC || game.active === NAME_FARC_CARTELS
+}
+
+function is_player_auc() {
+	return game.active === NAME_AUC || game.active === NAME_GOVT_AUC || game.active === NAME_AUC_CARTELS
+}
+
+function is_player_cartels() {
+	return game.active === NAME_CARTELS || game.active === NAME_FARC_CARTELS || game.active === NAME_AUC_CARTELS
+}
+
+function action_ask_resources() {
+	push_undo()
+	game.transfer = {
+		current: game.current,
+		state: game.state,
+	}
+	game.state = "ask_resources"
+}
+
+states.ask_resources = {
+	disable_negotiation: true,
+	prompt() {
+		view.prompt = "Ask another faction for resources?"
+		console.log("game.current", game.current)
+		if (!is_player_govt() && game.resources[GOVT] > 0)
+			gen_action_resources(GOVT)
+		if (!is_player_farc() && game.resources[FARC] > 0)
+			gen_action_resources(FARC)
+		if (!is_player_auc() && game.resources[AUC] > 0)
+			gen_action_resources(AUC)
+		if (!is_player_cartels() && game.resources[CARTELS] > 0)
+			gen_action_resources(CARTELS)
+	},
+	resources(faction) {
+		game.current = faction
+		game.state = "give_resources"
+	},
+}
+
+states.give_resources = {
+	disable_negotiation: true,
+	prompt() {
+		view.prompt = `${faction_name[game.transfer.current]} asked for Resources.`
+		if (game.resources[game.current] >= 1)
+			gen_action_resources(game.current)
+		view.actions.done = 1
+	},
+	resources(_) {
+		push_undo()
+		add_resources(game.current, -1)
+		add_resources(game.transfer.current, 1)
+	},
+	done() {
+		end_negotiation()
+	},
+}
+
+function action_ask_shipment() {
+	push_undo()
+	game.transfer = {
+		current: game.current,
+		state: game.state,
+		shipment: -1,
+	}
+	game.state = "ask_shipment"
+}
+
+function can_ask_shipment() {
+	for (let sh = 1; sh < 4; ++sh) {
+		if (is_shipment_held(sh)) {
+			let p = game.shipments[sh] >> 2
+			let s = game.pieces[p]
+			if (!is_player_farc() && is_farc_guerrilla(p) && has_piece(s, game.current, GUERRILLA))
+				return true
+			if (!is_player_auc() && is_auc_guerrilla(p) && has_piece(s, game.current, GUERRILLA))
+				return true
+			if (!is_player_cartels() && is_cartels_guerrilla(p) && has_piece(s, game.current, GUERRILLA))
+				return true
+		}
+	}
+	return false
+}
+
+states.ask_shipment = {
+	disable_negotiation: true,
+	prompt() {
+		view.prompt = "Ask another faction to transfer shipment?"
+		for (let sh = 1; sh < 4; ++sh) {
+			if (is_shipment_held(sh)) {
+				let p = game.shipments[sh] >> 2
+				let s = game.pieces[p]
+				if (!is_player_farc() && is_farc_guerrilla(p) && has_piece(s, game.current, GUERRILLA))
+					gen_action_shipment(sh)
+				if (!is_player_auc() && is_auc_guerrilla(p) && has_piece(s, game.current, GUERRILLA))
+					gen_action_shipment(sh)
+				if (!is_player_cartels() && is_cartels_guerrilla(p) && has_piece(s, game.current, GUERRILLA))
+					gen_action_shipment(sh)
+			}
+		}
+	},
+	shipment(sh) {
+		let p = game.shipments[sh] >> 2
+		game.current = piece_faction(p)
+		game.state = "give_shipment"
+		game.transfer.shipment = sh
+	},
+}
+
+states.give_shipment = {
+	disable_negotiation: true,
+	prompt() {
+		view.prompt = `${faction_name[game.transfer.current]} asked for Shipment.`
+		view.selected_shipment = game.transfer.shipment
+		let sh = game.transfer.shipment
+		let p = game.shipments[sh] >> 2
+		let s = game.pieces[p]
+		gen_piece_in_space(s, game.transfer.current, GUERRILLA)
+		view.actions.done = 1
+	},
+	piece(p) {
+		push_undo()
+		place_shipment(game.transfer.shipment, p)
+		end_negotiation()
+	},
+	done() {
+		end_negotiation()
+	},
+}
+
+function end_negotiation() {
+	game.current = game.transfer.current
+	game.state = game.transfer.state
+	game.transfer = 0
 }
 
 // === OPERATIONS ===
@@ -3846,30 +3995,19 @@ exports.view = function (state, role) {
 		view.actions = {}
 		view.who = game.who
 
-		if (game.op) {
-			view.actions.remove = 1
-			/*
-			if (game.active === "Government + AUC")
-				view.actions.trade = [ FARC, CARTELS ]
-			if (game.active === "FARC + Cartels")
-				view.actions.trade = [ GOVT, AUC ]
-			if (game.active === "AUC + Cartels")
-				view.actions.trade = [ GOVT, FARC ]
-			if (game.active === "Government")
-				view.actions.trade = [ FARC, AUC, CARTELS ]
-			if (game.active === "FARC")
-				view.actions.trade = [ GOVT, AUC, CARTELS ]
-			if (game.active === "AUC")
-				view.actions.trade = [ GOVT, FARC, CARTELS ]
-			if (game.active === "Cartels")
-				view.actions.trade = [ GOVT, FARC, AUC ]
-			*/
-		}
-
 		if (states[game.state])
 			states[game.state].prompt()
 		else
 			view.prompt = "Unknown state: " + game.state
+
+		if (!states[game.state].disable_negotiation) {
+			view.actions.remove_pieces = 1
+			view.actions.ask_resources = 1
+			if (can_ask_shipment())
+				view.actions.ask_shipment = 1
+			else
+				view.actions.ask_shipment = 0
+		}
 
 		if (view.actions.undo === undefined) {
 			if (game.undo && game.undo.length > 0)
@@ -3895,8 +4033,14 @@ exports.action = function (state, role, action, arg) {
 	} else {
 		if (action === "undo" && game.undo && game.undo.length > 0)
 			pop_undo()
-		else if (action === "remove")
-			action_remove()
+		else if (action === "remove_pieces")
+			action_remove_pieces()
+		else if (action === "ask_resources")
+			action_ask_resources()
+		else if (action === "ask_shipment")
+			action_ask_shipment()
+		else if (action === "transfer")
+			action_transfer()
 		else if (game.op && action in special_activities)
 			special_activities[action](arg)
 		else

@@ -178,6 +178,7 @@ path.tip { stroke: yellow; }
 }
 .token.shipment { background-color: #01904b; border-color: #01904b; box-shadow: 0 0 0 1px #002c00, 0px 1px 4px #0008; }
 .token.shipment.action { box-shadow: 0 0 0 3px white; }
+.token.shipment.selected { box-shadow: 0 0 0 3px yellow; }
 
 #token_total_support { background-color: #006cb7; border-color: #348cda #004d95 #004d95 #348cda; box-shadow: 0 0 0 1px #000d55, 0px 1px 4px #0008; }
 #token_prop_card { background-color: #80643e; border-color: #a0835c #614721 #614721 #a0835c; box-shadow: 0 0 0 1px #291200, 0px 1px 4px #0008; }
