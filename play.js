@@ -882,13 +882,13 @@ function on_update() {
 	list.length = 0
 	for (let i = 0; i < 4; ++i) {
 		let shx = view.shipments[i]
-		if (shx < 0) {
+		if (shx === 0) {
 			list.push(ui.shipments[i])
 		} else if ((shx & 3) === 0) {
 			let holder = ui.pieces[shx >> 2]
 			place_piece_under(ui.shipments[i], holder)
 		} else {
-			// abandoned shipment!
+			// dropped shipment!
 			let xy = get_center_xy(shx >> 2)
 			place_piece(ui.shipments[i], xy[0] - 26, xy[1] - 72, 0)
 		}

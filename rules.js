@@ -230,7 +230,7 @@ exports.setup = function (seed, scenario, options) {
 		aid: 0,
 		cylinder: [ ELIGIBLE, ELIGIBLE, ELIGIBLE, ELIGIBLE ],
 		resources: [ 0, 0, 0, 0 ],
-		shipments: [ AVAILABLE, AVAILABLE, AVAILABLE, AVAILABLE ],
+		shipments: [ 0, 0, 0, 0 ],
 		pieces: Array(153).fill(AVAILABLE),
 		underground: [ 0, 0, 0, 0 ],
 		farc_control: 0,
@@ -809,7 +809,7 @@ function place_shipment(sh, p) {
 }
 
 function remove_shipment(sh) {
-	game.shipments[sh] = -1
+	game.shipments[sh] = 0
 }
 
 function drop_shipment(sh) {
@@ -819,17 +819,40 @@ function drop_shipment(sh) {
 	game.shipments[sh] = (s << 2) | f
 }
 
+function is_shipment_available(sh) {
+	return game.shipments[sh] === 0
+}
+
 function is_shipment_held(sh) {
-	return game.shipments[sh] >= 0
+	return game.shipments[sh] !== 0 && (game.shipments[sh] & 3) === 0
+}
+
+function get_held_shipment_faction(sh) {
+	return piece_faction(game.shipments[sh] >> 2)
+}
+
+function get_held_shipment_piece(sh) {
+	return (game.shipments[sh] >> 2)
+}
+
+function is_shipment_dropped(sh) {
+	return (game.shipments[sh] & 3) !== 0
+}
+
+function get_dropped_shipment_faction(sh) {
+	return (game.shipments[sh] & 3)
+}
+
+function get_dropped_shipment_space(sh) {
+	return (game.shipments[sh] >> 2)
 }
 
 function is_shipment_held_by_piece(sh, p) {
-	return game.shipments[sh] === p << 2
+	return is_shipment_held(sh) && get_held_shipment_piece(sh) === p
 }
 
 function is_shipment_held_by_faction(sh, f) {
-	let x = game.shipments[sh]
-	return x >= 0 && is_faction_guerrilla(x >> 2, f)
+	return is_shipment_held(sh) && get_held_shipment_faction(sh) === f
 }
 
 function is_any_shipment_held_by_faction(faction) {
@@ -839,23 +862,11 @@ function is_any_shipment_held_by_faction(faction) {
 	return false
 }
 
-function is_any_shipment_held_by_any_faction() {
+function is_any_shipment_held() {
 	for (let sh = 0; sh < 4; ++sh)
-		if (sh >= 0)
+		if (is_shipment_held(sh))
 			return true
 	return false
-}
-
-function is_shipment_dropped(sh) {
-	return game.shipments[sh] >= 0 && (game.shipments[sh] & 3) > 0
-}
-
-function get_dropped_shipment_faction(sh) {
-	return game.shipments[sh] & 3
-}
-
-function get_dropped_shipment_space(sh) {
-	return game.shipments[sh] >> 2
 }
 
 function remove_dropped_shipments() {
@@ -1239,7 +1250,7 @@ function goto_limop() {
 
 function goto_ship_limop() {
 	log_h2(faction_name[game.current] + " - Ship")
-	goto_operation(0, 1, 0, 0)
+	goto_operation(1, 1, 0, 0)
 }
 
 function goto_operation(free, limited, special, ship) {
@@ -1257,8 +1268,7 @@ function goto_operation(free, limited, special, ship) {
 }
 
 function can_ship() {
-	// TODO: ship by other faction?
-	return game.op.ship && is_any_shipment_held_by_faction(game.current)
+	return game.op.ship && is_any_shipment_held(game.current)
 }
 
 function end_operation() {
@@ -1308,92 +1318,6 @@ states.remove_pieces = {
 		game.state = game.transfer
 		game.transfer = null
 		transfer_or_remove_shipments()
-	},
-}
-
-// === TRANSFER SHIPMENTS ===
-
-function transfer_or_remove_shipments()
-{
-	auto_transfer_dropped_shipments()
-	if (has_dropped_shipments()) {
-		if (can_transfer_dropped_shipments())
-			goto_transfer_dropped_shipments()
-		else
-			remove_dropped_shipments()
-	}
-}
-
-function transfer_or_drug_bust_shipments()
-{
-	auto_transfer_dropped_shipments()
-	if (has_dropped_shipments()) {
-		if (can_transfer_dropped_shipments())
-			goto_transfer_dropped_shipments()
-		else
-			goto_drug_bust()
-	}
-}
-
-function goto_transfer_dropped_shipments() {
-	game.transfer = {
-		current: game.current,
-		state: game.state,
-		shipment: 0,
-	}
-	resume_transfer_dropped_shipments()
-}
-
-function resume_transfer_dropped_shipments() {
-	for (let sh = 0; sh < 4; ++sh) {
-		if (is_shipment_dropped(sh)) {
-			game.current = get_dropped_shipment_faction(sh)
-			game.state = "transfer_dropped_shipments"
-			game.transfer.shipment = sh
-			return
-		}
-	}
-	end_negotiation()
-}
-
-states.transfer_dropped_shipments = {
-	disable_negotiation: true,
-	prompt() {
-		view.prompt = "Transfer Shipment to another Guerrilla."
-		let s = get_dropped_shipment_space(game.transfer.shipment)
-
-		gen_piece_in_space(s, FARC, GUERRILLA)
-		gen_piece_in_space(s, AUC, GUERRILLA)
-		gen_piece_in_space(s, CARTELS, GUERRILLA)
-
-		view.actions.undo = 0
-	},
-	piece(p) {
-		push_undo()
-		place_shipment(game.transfer.shipment, p)
-		resume_transfer_dropped_shipments()
-	},
-}
-
-// === SHIP FOR EXTRA LIMOP ===
-
-states.ship = {
-	prompt() {
-		view.prompt = "Ship: Remove Shipment for a free, extra Limited Operation?"
-		view.actions.end_op = 1
-		// TODO: ask another faction?
-		for (let sh = 0; sh < 4; ++sh)
-			if (is_shipment_held_by_faction(sh, game.current))
-				gen_action_shipment(sh)
-	},
-	shipment(sh) {
-		push_undo()
-		remove_shipment(sh)
-		goto_ship_limop()
-	},
-	end_operation() {
-		game.op.ship = 0
-		end_operation()
 	},
 }
 
@@ -1475,14 +1399,16 @@ function action_ask_shipment() {
 function can_ask_shipment() {
 	for (let sh = 1; sh < 4; ++sh) {
 		if (is_shipment_held(sh)) {
-			let p = game.shipments[sh] >> 2
+			let p = get_held_shipment_piece(sh)
 			let s = game.pieces[p]
-			if (!is_player_farc() && is_farc_guerrilla(p) && has_piece(s, game.current, GUERRILLA))
-				return true
-			if (!is_player_auc() && is_auc_guerrilla(p) && has_piece(s, game.current, GUERRILLA))
-				return true
-			if (!is_player_cartels() && is_cartels_guerrilla(p) && has_piece(s, game.current, GUERRILLA))
-				return true
+			if (has_piece(s, game.current, GUERRILLA)) {
+				if (!is_player_farc() && is_farc_guerrilla(p))
+					return true
+				if (!is_player_auc() && is_auc_guerrilla(p))
+					return true
+				if (!is_player_cartels() && is_cartels_guerrilla(p))
+					return true
+			}
 		}
 	}
 	return false
@@ -1494,19 +1420,21 @@ states.ask_shipment = {
 		view.prompt = "Ask another faction to transfer shipment?"
 		for (let sh = 1; sh < 4; ++sh) {
 			if (is_shipment_held(sh)) {
-				let p = game.shipments[sh] >> 2
+				let p = get_held_shipment_piece(sh)
 				let s = game.pieces[p]
-				if (!is_player_farc() && is_farc_guerrilla(p) && has_piece(s, game.current, GUERRILLA))
-					gen_action_shipment(sh)
-				if (!is_player_auc() && is_auc_guerrilla(p) && has_piece(s, game.current, GUERRILLA))
-					gen_action_shipment(sh)
-				if (!is_player_cartels() && is_cartels_guerrilla(p) && has_piece(s, game.current, GUERRILLA))
-					gen_action_shipment(sh)
+				if (has_piece(s, game.current, GUERRILLA)) {
+					if (!is_player_farc() && is_farc_guerrilla(p))
+						gen_action_shipment(sh)
+					if (!is_player_auc() && is_auc_guerrilla(p))
+						gen_action_shipment(sh)
+					if (!is_player_cartels() && is_cartels_guerrilla(p))
+						gen_action_shipment(sh)
+				}
 			}
 		}
 	},
 	shipment(sh) {
-		let p = game.shipments[sh] >> 2
+		let p = get_held_shipment_piece(sh)
 		game.current = piece_faction(p)
 		game.state = "transfer_shipment"
 		game.transfer.shipment = sh
@@ -1518,8 +1446,7 @@ states.transfer_shipment = {
 	prompt() {
 		view.prompt = `${faction_name[game.transfer.current]} asked for Shipment.`
 		view.selected_shipment = game.transfer.shipment
-		let sh = game.transfer.shipment
-		let p = game.shipments[sh] >> 2
+		let p = get_held_shipment_piece(game.trasfer.shipment)
 		let s = game.pieces[p]
 		gen_piece_in_space(s, game.transfer.current, GUERRILLA)
 		view.actions.done = 1
@@ -1538,6 +1465,118 @@ function end_negotiation() {
 	game.current = game.transfer.current
 	game.state = game.transfer.state
 	game.transfer = null
+}
+
+// === SHIP FOR EXTRA LIMOP ===
+
+states.ship = {
+	prompt() {
+		view.prompt = "Ship: Remove Shipment for a free, extra Limited Operation?"
+		view.actions.end_operation = 1
+		for (let sh = 0; sh < 4; ++sh)
+			if (is_shipment_held(sh))
+				gen_action_shipment(sh)
+	},
+	shipment(sh) {
+		push_undo()
+		let faction = get_held_shipment_faction(sh)
+		if (faction !== game.current) {
+			game.transfer = {
+				current: game.current,
+				state: game.state,
+				shipment: sh,
+			}
+			game.current = faction
+			game.state = "ask_ship"
+		} else {
+			remove_shipment(sh)
+			goto_ship_limop()
+		}
+	},
+	end_operation() {
+		game.op.ship = 0
+		end_operation()
+	},
+}
+
+states.ask_ship = {
+	prompt() {
+		view.prompt = `Ship: Remove Shipment to give ${faction_name[game.transfer.current]} a free extra Limited Operation?`
+		view.actions.done = 1
+		gen_action_shipment(game.transfer.shipment)
+	},
+	shipment(sh) {
+		end_negotiation()
+		remove_shipment(sh)
+		goto_ship_limop()
+	},
+	done() {
+		end_negotiation()
+	},
+}
+
+// === TRANSFER SHIPMENTS ===
+
+function transfer_or_remove_shipments()
+{
+	auto_transfer_dropped_shipments()
+	if (has_dropped_shipments()) {
+		if (can_transfer_dropped_shipments())
+			goto_transfer_dropped_shipments()
+		else
+			remove_dropped_shipments()
+	}
+}
+
+function transfer_or_drug_bust_shipments()
+{
+	auto_transfer_dropped_shipments()
+	if (has_dropped_shipments()) {
+		if (can_transfer_dropped_shipments())
+			goto_transfer_dropped_shipments()
+		else
+			goto_drug_bust()
+	}
+}
+
+function goto_transfer_dropped_shipments() {
+	game.transfer = {
+		current: game.current,
+		state: game.state,
+		shipment: 0,
+	}
+	resume_transfer_dropped_shipments()
+}
+
+function resume_transfer_dropped_shipments() {
+	for (let sh = 0; sh < 4; ++sh) {
+		if (is_shipment_dropped(sh)) {
+			game.current = get_dropped_shipment_faction(sh)
+			game.state = "transfer_dropped_shipments"
+			game.transfer.shipment = sh
+			return
+		}
+	}
+	end_negotiation()
+}
+
+states.transfer_dropped_shipments = {
+	disable_negotiation: true,
+	prompt() {
+		view.prompt = "Transfer Shipment to another Guerrilla."
+		let s = get_dropped_shipment_space(game.transfer.shipment)
+
+		gen_piece_in_space(s, FARC, GUERRILLA)
+		gen_piece_in_space(s, AUC, GUERRILLA)
+		gen_piece_in_space(s, CARTELS, GUERRILLA)
+
+		view.actions.undo = 0
+	},
+	piece(p) {
+		push_undo()
+		place_shipment(game.transfer.shipment, p)
+		resume_transfer_dropped_shipments()
+	},
 }
 
 // === DRUG BUST ===
@@ -3624,16 +3663,16 @@ states.cultivate_move = {
 // SPECIAL ACTIVITY: PROCESS
 
 function has_available_shipment() {
-	for (let i = 0; i < 4; ++i)
-		if (game.shipments[i] < 0)
+	for (let sh = 0; sh < 4; ++sh)
+		if (is_shipment_available(sh))
 			return true
 	return false
 }
 
 function find_available_shipment() {
-	for (let i = 0; i < 4; ++i)
-		if (game.shipments[i] < 0)
-			return i
+	for (let sh = 0; sh < 4; ++sh)
+		if (is_shipment_available(sh))
+			return sh
 	return -1
 }
 
