@@ -32,6 +32,7 @@ const last_loc = data.last_loc
 
 // Spaces
 const AVAILABLE = -1
+const OUT_OF_PLAY = -2
 
 // Sequence of Play options
 const ELIGIBLE = 0
@@ -877,6 +878,9 @@ function on_update() {
 
 	for (; tix < 40; ++tix)
 		ui.terror[tix].className = "hide"
+
+	for (let i = first_piece[AUC][GUERRILLA]; i <= last_piece[AUC][GUERRILLA]; ++i)
+		ui.pieces[i].classList.toggle("hide", view.pieces[i] === OUT_OF_PLAY)
 
 	list.length = 0
 	for (let i = 0; i < 4; ++i) {

@@ -115,6 +115,7 @@ const PASTRANA = 2
 const URIBE = 3
 
 const AVAILABLE = -1
+const OUT_OF_PLAY = -2
 
 // Cities
 const BOGOTA = 0
@@ -1296,18 +1297,18 @@ states.remove_pieces = {
 	prompt() {
 		view.prompt = "Remove pieces to Available Forces."
 		for (let p = first_piece[game.current][BASE]; p <= last_piece[game.current][BASE]; ++p)
-			if (game.pieces[p] !== AVAILABLE)
+			if (game.pieces[p] >= 0)
 				gen_action_piece(p)
 		if (game.current === GOVT) {
 			for (let p = first_piece[game.current][TROOPS]; p <= last_piece[game.current][TROOPS]; ++p)
-				if (game.pieces[p] !== AVAILABLE)
+				if (game.pieces[p] >= 0)
 					gen_action_piece(p)
 			for (let p = first_piece[game.current][POLICE]; p <= last_piece[game.current][POLICE]; ++p)
-				if (game.pieces[p] !== AVAILABLE)
+				if (game.pieces[p] >= 0)
 					gen_action_piece(p)
 		} else {
 			for (let p = first_piece[game.current][GUERRILLA]; p <= last_piece[game.current][GUERRILLA]; ++p)
-				if (game.pieces[p] !== AVAILABLE)
+				if (game.pieces[p] >= 0)
 					gen_action_piece(p)
 		}
 		view.actions.done = 1
@@ -2168,11 +2169,11 @@ states.patrol = {
 
 		if (game.op.who < 0) {
 			for_each_piece(GOVT, TROOPS, p => {
-				if (game.pieces[p] !== AVAILABLE && !set_has(game.op.pieces, p))
+				if (game.pieces[p] >= 0 && !set_has(game.op.pieces, p))
 					gen_action_piece(p)
 			})
 			for_each_piece(GOVT, POLICE, p => {
-				if (game.pieces[p] !== AVAILABLE && !set_has(game.op.pieces, p))
+				if (game.pieces[p] >= 0 && !set_has(game.op.pieces, p))
 					gen_action_piece(p)
 			})
 			
@@ -2784,7 +2785,7 @@ states.rally_move = {
 		view.prompt = `Rally: Move any Guerrillas to ${space_name[game.op.where]} then flip all Underground.`
 
 		for_each_piece(game.current, GUERRILLA, p => {
-			if (game.pieces[p] !== game.op.where && game.pieces[p] !== AVAILABLE)
+			if (game.pieces[p] !== game.op.where && game.pieces[p] >= 0)
 				gen_action_piece(p)
 		})
 
@@ -3799,7 +3800,7 @@ states.cultivate_move = {
 		view.prompt = `Cultivate: Relocate Base to ${space_name[game.sa.where]}.`
 		view.where = game.sa.where
 		for_each_piece(CARTELS, BASE, p => {
-			if (game.pieces[p] !== game.sa.where && game.pieces[p] !== AVAILABLE)
+			if (game.pieces[p] !== game.sa.where && game.pieces[p] >= 0)
 				gen_action_piece(p)
 		})
 	},
