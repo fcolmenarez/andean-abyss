@@ -176,7 +176,8 @@ path.tip { stroke: yellow; }
 	width: 50px;
 	height: 50px;
 }
-.token.shipment { background-color: #01904b; border-color: #01904b; box-shadow: 0 0 0 1px #002c00, 0px 1px 4px #0008; }
+
+#token_aid.action { box-shadow: 0 0 0 3px white; }
 .token.shipment.action { box-shadow: 0 0 0 3px white; }
 .token.shipment.selected { box-shadow: 0 0 0 3px yellow; }
 
@@ -185,6 +186,7 @@ path.tip { stroke: yellow; }
 #token_oppose_plus_bases { background-color: #d74729; border-color: #ff6f50 #ad1800 #ad1800 #ff6f50; box-shadow: 0 0 0 1px #5a0000, 0px 1px 4px #0008; }
 #token_el_presidente { background-color: #004e81; border-color: #23669b #003768 #003768 #23669b; box-shadow: 0 0 0 1px #000939, 0px 1px 4px #0008; }
 #token_aid { background-color: #6a8796; border-color: #8eacbc #486472 #486472 #8eacbc; box-shadow: 0 0 0 1px #08232f, 0px 1px 4px #0008; }
+.token.shipment { background-color: #01904b; border-color: #01904b; box-shadow: 0 0 0 1px #002c00, 0px 1px 4px #0008; }
 .token.passive_support { background-color: #4b87c0; border-color: #70ade8 #266399 #266399 #70ade8; box-shadow: 0 0 0 1px #001e50, 0px 1px 4px #0008; }
 .token.passive_opposition { background-color: #b75f61; border-color: #df8384 #903c40 #903c40 #df8384; box-shadow: 0 0 0 1px #460005, 0px 1px 4px #0008; }
 .token.active_support { background-color: #0054a6; border-color: #286fc4 #003989 #003989 #286fc4; box-shadow: 0 0 0 1px #000051, 0px 1px 4px #0008; }

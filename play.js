@@ -300,6 +300,7 @@ function get_layout_radius(s) {
 }
 
 function init_ui() {
+	register_action(ui.tokens.aid, "aid", undefined)
 	register_action(ui.resources[GOVT], "resources", GOVT)
 	register_action(ui.resources[FARC], "resources", FARC)
 	register_action(ui.resources[AUC], "resources", AUC)
@@ -743,6 +744,7 @@ function on_update() {
 	ui.header.classList.toggle("cartels", view.current === CARTELS)
 	ui.header.classList.toggle("farc", view.current === FARC)
 
+	ui.tokens.aid.classList.toggle("action", is_action("aid"))
 	ui.resources[GOVT].classList.toggle("action", is_action("resources", GOVT))
 	ui.resources[FARC].classList.toggle("action", is_action("resources", FARC))
 	ui.resources[AUC].classList.toggle("action", is_action("resources", AUC))
