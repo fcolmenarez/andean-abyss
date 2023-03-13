@@ -772,7 +772,6 @@ function on_update() {
 	for (let cap of capability_events) {
 		let shaded = set_has(view.capabilities, -cap)
 		let unshaded = set_has(view.capabilities, cap)
-		console.log("CAP", cap, shaded, unshaded)
 		if (shaded || unshaded) {
 			ui.capabilities[cap].classList.toggle("shaded", shaded)
 			ui.capabilities[cap].classList.toggle("unshaded", unshaded)
@@ -927,8 +926,10 @@ function on_update() {
 
 	action_menu(document.getElementById("negotiate_menu"), [
 		"remove_pieces",
+		"transfer_resources",
+		"transfer_shipment",
+		"ask_resources",
 		"ask_shipment",
-		"ask_resources"
 	])
 
 	action_button("train", "Train")
@@ -972,6 +973,7 @@ function on_update() {
 	action_button("end_operation", "End Op")
 
 	action_button("next", "Next")
+	action_button("deny", "Deny")
 	action_button("done", "Done")
 	action_button("undo", "Undo")
 }
