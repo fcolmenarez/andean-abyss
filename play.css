@@ -165,7 +165,10 @@ path.tip { stroke: yellow; }
 	background-size: 36px 36px;
 	width: 36px;
 	height: 36px;
-	margin: 4px 5px 5px 4px;
+}
+
+.token.reminder {
+	//margin: 4px 5px 5px 4px;
 }
 
 .token.shipment

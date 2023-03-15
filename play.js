@@ -445,9 +445,16 @@ function init_ui() {
 	register_action(ui.sop[7], "sop", 7)
 }
 
+function is_carrying_shipment(p) {
+	for (let i = 0; i < 4; ++i)
+		if (view.shipments[i] === p << 2)
+			return true
+	return false
+}
+
 function filter_piece_list(list, space, faction, type) {
 	for (let i = first_piece[faction][type]; i <= last_piece[faction][type]; ++i)
-		if (view.pieces[i] === space)
+		if (view.pieces[i] === space && (type !== GUERRILLA || !is_carrying_shipment(i)))
 			list.push(ui.pieces[i])
 }
 
@@ -731,6 +738,74 @@ function layout_farc_zone(s, elt) {
 	elt.style.left = (x - 25) + "px"
 }
 
+const shipment_layout_city = [
+	[ -60,    0, 3 ],
+	[ -48,  -30, 2 ],
+	[ -36,  -60, 1 ],
+	[ -72,   30, 4 ],
+]
+
+const shipment_layout_dept = [
+	[ -18,  -60, 2 ],
+	[  18,  -60, 3 ],
+	[ -54,  -60, 1 ],
+	[  54,  -60, 4 ],
+]
+
+const shipment_layout_loc_ns = [
+	[ 36, 18, 3 ],
+	[ 36, -18, 2 ],
+	[ 36, 54, 4 ],
+	[ 36, -54, 1 ],
+]
+
+const shipment_layout_loc_ew = [
+	[ -18, 36, 2 ],
+	[ 18, 36, 3 ],
+	[ 54, 36, 4 ],
+	[ -54, 36, 1 ],
+]
+
+function layout_shipments_push(list, pc, sh) {
+	for (let i = 0; i < list.length; ++i) {
+		if (list[i][0] === pc) {
+			list[i].push(sh)
+			return
+		}
+	}
+	list.push([pc, sh])
+}
+
+function layout_shipments(s, list, xc, yc) {
+	let shipment_layout = shipment_layout_dept
+	if (s <= last_city)
+		shipment_layout = shipment_layout_city
+	if (s >= first_loc)
+		shipment_layout = shipment_layout_loc_ew
+	if (list.length > 0) {
+		for (let i = 0; i < list.length; ++i) {
+			let [xo, yo, zo] = shipment_layout[i]
+			let x = xc + xo
+			let y = yc + yo
+			let z = zo * 4
+			let pc = list[i][0]
+			if (pc) {
+				pc.style.left = (x+5) + "px"
+				pc.style.top = (y-8) + "px"
+				pc.style.zIndex = z + 1
+			}
+			for (let k = 1; k < list[i].length; ++k) {
+				let sh = list[i][k]
+				sh.style.left = (x) + "px"
+				sh.style.top = (y) + "px"
+				sh.style.zIndex = z--
+				x += 8
+				y += 8
+			}
+		}
+	}
+}
+
 function on_update() {
 	switch (player) {
 	case "Government": favicon.href = "images/icon_govt.png"; break
@@ -874,6 +949,18 @@ function on_update() {
 		else
 			console.log("NO SPACE", s, data.space_name[s])
 
+		list.length = 0
+		for (let i = 0; i < 4; ++i) {
+			let shx = view.shipments[i]
+			if (shx !== 0) {
+				if ((shx & 3) === 0 && view.pieces[(shx >> 2)] === s)
+					layout_shipments_push(list, ui.pieces[shx >> 2], ui.shipments[i])
+				else if ((shx & 3) !== 0 && (shx >> 2) === s)
+					layout_shipments_push(list, null, ui.shipments[i])
+			}
+		}
+		layout_shipments(s, list, xy[0]-26, xy[1]-26)
+
 		ui.spaces[s].classList.toggle("action", is_action("space", s))
 		ui.spaces[s].classList.toggle("selected", view.where === s)
 	}
@@ -889,16 +976,6 @@ function on_update() {
 		let shx = view.shipments[i]
 		if (shx === 0)
 			list.push(ui.shipments[i])
-		/*
-		if ((shx & 3) === 0) {
-			let holder = ui.pieces[shx >> 2]
-			place_piece_under(ui.shipments[i], holder)
-		} else {
-			// dropped shipment!
-			let xy = get_center_xy(shx >> 2)
-			place_piece(ui.shipments[i], xy[0] - 26, xy[1] - 72, 0)
-		}
-		*/
 		if (view.actions && view.actions.shipment && set_has(view.actions.shipment, i))
 			ui.shipments[i].classList.add("action")
 		else

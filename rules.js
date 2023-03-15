@@ -4045,6 +4045,83 @@ states.bribe_flip = {
 	},
 }
 
+// === PROPAGANDA ===
+
+function goto_propaganda_card() {
+	throw "TODO"
+}
+
+// === EVENTS ===
+
+states.event = {
+	prompt() {
+		let c = this_card()
+		view.prompt = `${data.card_title[c]}: Choose effect.`
+		view.actions.shaded = 1
+		view.actions.unshaded = 1
+	},
+	shaded() {
+		execute_shaded_event()
+	},
+	unshaded() {
+		execute_unshaded_event()
+	},
+}
+
+function execute_event() {
+	let c = this_card()
+	log(`C${c} - Event`)
+
+	log("TODO")
+	resume_event_card()
+}
+
+function execute_unshaded_event() {
+	let c = this_card()
+	log(`C${c} - Unshaded`)
+	log(data.card_flavor[c] + ".")
+
+	if (set_has(capability_events, c)) {
+		set_add(game.capabilities, c)
+		resume_event_card()
+		return
+	}
+
+	log("TODO")
+	resume_event_card()
+}
+
+function execute_shaded_event() {
+	let c = this_card()
+	log(`C${c} - Shaded`)
+	log(data.card_flavor_shaded[c] + ".")
+
+	if (c === MOM_SENADO_CAMARA) {
+		log("No Sweep or Assault against " + faction_name[game.current] + " until next Propaganda.")
+		game.senado = game.current
+	}
+
+	if (c === EVT_DARIEN)
+		set_add(game.capabilities, EVT_DARIEN)
+	if (c === EVT_SUCUMBIOS)
+		set_add(game.capabilities, EVT_SUCUMBIOS)
+
+	if (set_has(capability_events, c)) {
+		set_add(game.capabilities, -c)
+		resume_event_card()
+		return
+	}
+
+	if (set_has(momentum_events, c)) {
+		set_add(game.momentum, c)
+		resume_event_card()
+		return
+	}
+
+	log("TODO")
+	resume_event_card()
+}
+
 // === GAME OVER ===
 
 function goto_game_over(result, victory) {
@@ -4255,77 +4332,6 @@ exports.action = function (state, role, action, arg) {
 
 exports.is_checkpoint = function (a, b) {
 	return a.turn !== b.turn
-}
-
-// === EVENTS ===
-
-states.event = {
-	prompt() {
-		let c = this_card()
-		view.prompt = `${data.card_title[c]}: Choose effect.`
-		view.actions.shaded = 1
-		view.actions.unshaded = 1
-	},
-	shaded() {
-		execute_shaded_event()
-	},
-	unshaded() {
-		execute_unshaded_event()
-	},
-}
-
-function execute_event() {
-	let c = this_card()
-	log(`C${c} - Event`)
-
-	log("TODO")
-	resume_event_card()
-}
-
-function execute_unshaded_event() {
-	let c = this_card()
-	log(`C${c} - Unshaded`)
-	log(data.card_flavor[c] + ".")
-
-	if (set_has(capability_events, c)) {
-		set_add(game.capabilities, c)
-		resume_event_card()
-		return
-	}
-
-	log("TODO")
-	resume_event_card()
-}
-
-function execute_shaded_event() {
-	let c = this_card()
-	log(`C${c} - Shaded`)
-	log(data.card_flavor_shaded[c] + ".")
-
-	if (c === MOM_SENADO_CAMARA) {
-		log("No Sweep or Assault against " + faction_name[game.current] + " until next Propaganda.")
-		game.senado = game.current
-	}
-
-	if (c === EVT_DARIEN)
-		set_add(game.capabilities, EVT_DARIEN)
-	if (c === EVT_SUCUMBIOS)
-		set_add(game.capabilities, EVT_SUCUMBIOS)
-
-	if (set_has(capability_events, c)) {
-		set_add(game.capabilities, -c)
-		resume_event_card()
-		return
-	}
-
-	if (set_has(momentum_events, c)) {
-		set_add(game.momentum, c)
-		resume_event_card()
-		return
-	}
-
-	log("TODO")
-	resume_event_card()
 }
 
 // === COMMON LIBRARY ===
