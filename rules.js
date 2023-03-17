@@ -150,6 +150,14 @@ const GUAINIA = 24
 const VAUPES = 25
 const AMAZONAS = 26
 
+// LoCs
+const CUCUTA_AYACUCHO = data.space_name.indexOf("Cúcuta / Ayacucho")
+const CUCUTA_ARAUCA = data.space_name.indexOf("Cúcuta / Arauca")
+const PASTO_TUMACO = data.space_name.indexOf("Pasto / Tumaco")
+const CALI_BUENAVENTURA = data.space_name.indexOf("Cali / Buenaventura")
+const CARTAGENA_SINCELEJO = data.space_name.indexOf("Cartagena / Sincelejo")
+const SANTA_MARTA_CARTAGENA = data.space_name.indexOf("Santa Marta / Cartagena")
+
 // Foreign Countries
 const ECUADOR = 27
 const PANAMA = 28
@@ -731,6 +739,10 @@ function is_pop(s) {
 	return s >= first_pop && s <= last_pop
 }
 
+function is_pipeline(s) {
+	return data.spaces[s].type === "pipeline"
+}
+
 function is_mountain(s) {
 	return data.spaces[s].type === "mountain"
 }
@@ -970,6 +982,135 @@ function has_govt_control(s) {
 
 function has_farc_control(s) {
 	return game.farc_control & (1 << s)
+}
+
+function has_cartels_base(s) {
+	return has_piece(s, CARTELS, BASE)
+}
+
+function is_cartels_base(p) {
+	return p >= first_piece[CARTELS][BASE] && p <= last_piece[CARTELS][BASE]
+}
+
+function is_cartels_guerrilla(p) {
+	return p >= first_piece[CARTELS][GUERRILLA] && p <= last_piece[CARTELS][GUERRILLA]
+}
+
+function is_cartels_piece(p) {
+	return is_cartels_base(p) || is_cartels_guerrilla(p)
+}
+
+function has_farc_guerrilla(s) {
+	return has_piece(s, FARC, GUERRILLA)
+}
+
+function is_unsabotaged_pipeline(s) {
+	return is_pipeline(s) && !has_sabotage(s)
+}
+
+function has_no_guerrilla(s) {
+	return !has_any_guerrilla(s)
+}
+
+function has_auc_piece(s) {
+	return has_piece(s, AUC, BASE) || has_piece(s, AUC, GUERRILLA)
+}
+
+function has_farc_piece(s) {
+	return has_piece(s, FARC, BASE) || has_piece(s, FARC, GUERRILLA)
+}
+
+function has_cartels_piece(s) {
+	return has_piece(s, CARTELS, BASE) || has_piece(s, CARTELS, GUERRILLA)
+}
+
+function is_neutral(s) {
+	return is_pop(s) && game.support[s] === NEUTRAL
+}
+
+function has_passive_support(s) {
+	return is_pop(s) && game.support[s] === PASSIVE_SUPPORT
+}
+
+function has_passive_opposition(s) {
+	return is_pop(s) && game.support[s] === PASSIVE_OPPOSITION
+}
+
+function has_active_support(s) {
+	return is_pop(s) && game.support[s] === ACTIVE_SUPPORT
+}
+
+function has_active_opposition(s) {
+	return is_pop(s) && game.support[s] === ACTIVE_OPPOSITION
+}
+
+function has_support(s) {
+	return is_pop(s) && game.support[s] > 0
+}
+
+function has_opposition(s) {
+	return is_pop(s) && game.support[s] < 0
+}
+
+function has_cubes(s) {
+	return has_piece(s, GOVT, TROOPS) || has_piece(s, GOVT, POLICE)
+}
+
+function has_troops(s) {
+	return has_piece(s, GOVT, TROOPS)
+}
+
+function has_police(s) {
+	return has_piece(s, GOVT, POLICE)
+}
+
+function is_next_to_venezuela(s) {
+	return (
+		s === CESAR ||
+		s === CUCUTA ||
+		s === SANTANDER ||
+		s === ARAUCA ||
+		s === VICHADA ||
+		s === GUAINIA ||
+		s === AYACUCHO_CUCUTA ||
+		s === CUCUTA_ARAUCA
+	)
+}
+
+function is_next_to_ecuador(s) {
+	return (
+		s === NARINO ||
+		s === PASTO ||
+		s === PUTUMAYO ||
+		s === ARAUCA ||
+		s === PASTO_TUMACO
+	)
+}
+
+function is_coastal(s) {
+	return (
+		s === CESAR ||
+		s === SANTA_MARTA ||
+		s === ATLANTICO ||
+		s === CARTAGENA ||
+		s === SINCELEJO ||
+		s === CHOCO ||
+		s === NARINO ||
+		s === PANAMA ||
+		s === ECUADOR ||
+		s === PASTO_TUMACO ||
+		s === CALI_BUENAVENTURA ||
+		s === CARTAGENA_SINCELEJO ||
+		s === SANTA_MARTA_CARTAGENA
+	)
+}
+
+function is_zero_pop_dept(s) {
+	return !is_pop(s) && is_dept(s)
+}
+
+function is_zero_pop_forest(s) {
+	return !is_pop(s) && is_forest(s)
 }
 
 function add_aid(n) {
