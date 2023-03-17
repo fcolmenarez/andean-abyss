@@ -1056,6 +1056,7 @@ function on_update() {
 
 	action_button("end_activity", "End Activity")
 	action_button("end_operation", "End Op")
+	action_button("end_event", "End Event")
 
 	action_button("next", "Next")
 	action_button("deny", "Deny")
