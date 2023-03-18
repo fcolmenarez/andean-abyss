@@ -496,8 +496,8 @@ EVENT 37
 SHADED 37
 	current AUC
 	free_march
-	space 1 set_has(game.vm.m, s)
-		piece 1 is_piece_in_event_space(s) && is_auc_guerrilla(p)
+	space 1 set_has(game.vm.m, s) && has_underground_guerrilla(s, AUC)
+		piece 1 is_piece_in_event_space(p) && is_auc_guerrilla(p) && is_underground(p)
 			free_ambush
 		endpiece
 	endspace
@@ -801,6 +801,15 @@ SHADED 58
 		endspace
 	endpiece
 
+EVENT 59
+	current GOVT
+	piece 0 is_cartels_guerrilla(p) && is_underground(p)
+		activate
+	endpiece
+	space 0 can_assault(s, CARTELS)
+		free_assault_cartels
+	endspace
+
 SHADED 59
 	current CARTELS
 	prompt Flip all Cartels Guerrillas underground.
@@ -956,12 +965,6 @@ SHADED 72
 # --- --- --- --- ---
 
 EOF
-
-FREE ACTIVITIES / OPS
-
-EVENT 59
-	all cartels guerrillas to active
-	free assault cartels in each space
 
 EVENT 69
 	select source space

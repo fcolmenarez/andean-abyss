@@ -285,7 +285,7 @@ exports.setup = function (seed, scenario, options) {
 			setup_deck(4, 0, 15)
 	}
 
-	game.deck[0] = 19
+	game.deck[0] = 59
 	log("DECK " + game.deck.join(", "))
 
 	update_control()
@@ -2887,21 +2887,32 @@ function do_sweep_next() {
 function vm_free_assault() {
 	init_free_operation("assault_space")
 	game.op.where = game.vm.s
-	game.op.count = assault_kill_count(game.vm.s)
+	game.op.count = assault_kill_count(game.vm.s, undefined)
 }
 
 function vm_free_assault_auc() {
 	init_free_operation("assault_space")
 	game.op.faction = AUC
 	game.op.where = game.vm.s
-	game.op.count = assault_kill_count(game.vm.s)
+	game.op.count = assault_kill_count(game.vm.s, AUC)
 }
 
 function vm_free_assault_farc() {
 	init_free_operation("assault_space")
 	game.op.faction = FARC
 	game.op.where = game.vm.s
-	game.op.count = assault_kill_count(game.vm.s)
+	game.op.count = assault_kill_count(game.vm.s, FARC)
+}
+
+function vm_free_assault_cartels() {
+	init_free_operation("assault_space")
+	game.op.faction = CARTELS
+	game.op.where = game.vm.s
+	game.op.count = assault_kill_count(game.vm.s, CARTELS)
+}
+
+function can_assault(s, target) {
+	return can_assault_space(s, target) && assault_kill_count(s, target) > 0
 }
 
 function can_assault_space(s, target) {
@@ -2917,6 +2928,13 @@ function can_assault_space(s, target) {
 		if (has_piece(s, AUC, GUERRILLA))
 			return has_active_guerrilla(s, AUC)
 		return has_piece(s, AUC, BASE)
+	}
+
+	// Card 59
+	if (target === CARTELS) {
+		if (has_piece(s, CARTELS, GUERRILLA))
+			return has_active_guerrilla(s, CARTELS)
+		return has_piece(s, CARTELS, BASE)
 	}
 
 	if (is_dept(s) && has_momentum(MOM_MADRID_DONORS))
@@ -2943,11 +2961,11 @@ function gen_exposed_piece(s, faction) {
 		gen_piece_in_space(s, faction, BASE)
 }
 
-function assault_kill_count(s) {
+function assault_kill_count(s, target) {
 	let n = count_pieces(s, GOVT, TROOPS)
 
 	// Card 47: All Police free Assault AUC as if Troops.
-	if (game.op.faction === AUC) {
+	if (target === AUC) {
 		n = count_pieces(s, GOVT, POLICE)
 		if (is_mountain(s)) {
 			if (has_capability(CAP_MTN_BNS))
@@ -2960,7 +2978,7 @@ function assault_kill_count(s) {
 	}
 
 	// Event 37: AUC Guerillas act as Troops
-	if (game.op.faction === FARC)
+	if (target === FARC)
 		n += count_pieces(s, AUC, GUERRILLA)
 
 	if (is_city_or_loc(s))
@@ -2989,7 +3007,7 @@ states.assault = {
 			for (let s = first_space; s <= last_dept; ++s) {
 				if (is_selected_op_space(s))
 					continue
-				if (can_assault_space(s, game.op.faction) && assault_kill_count(s) > 0)
+				if (can_assault_space(s, game.op.faction) && assault_kill_count(s, game.op.faction) > 0)
 					gen_action_space(s)
 			}
 		}
@@ -3008,7 +3026,7 @@ states.assault = {
 
 		game.state = "assault_space"
 		game.op.where = s
-		game.op.count = assault_kill_count(s)
+		game.op.count = assault_kill_count(s, game.op.faction)
 	},
 	end_operation,
 }
@@ -3712,7 +3730,7 @@ function end_special_activity() {
 
 // SPECIAL ACTIVITY: AIR LIFT
 
-function goto_free_air_lift() {
+function vm_free_air_lift() {
 	throw "TODO"
 }
 
@@ -3790,7 +3808,7 @@ states.air_lift_move = {
 
 // SPECIAL ACTIVITY: AIR STRIKE
 
-function goto_free_air_strike() {
+function vm_free_air_strike() {
 	throw "TODO"
 }
 
@@ -3826,7 +3844,7 @@ states.air_strike = {
 
 // SPECIAL ACTIVITY: ERADICATE
 
-function goto_free_eradicate() {
+function vm_free_eradicate() {
 	throw "TODO"
 }
 
@@ -3936,6 +3954,12 @@ states.eradicate_shift = {
 
 // SPECIAL ACTIVITY: AMBUSH
 
+function vm_free_ambush() {
+	init_free_operation("attack_place")
+	set_active(game.vm.p)
+	game.op.where = game.vm.s
+}
+
 function goto_ambush() {
 	push_undo()
 	log_h3("Ambush")
@@ -3951,7 +3975,6 @@ states.ambush = {
 	piece(p) {
 		set_active(p)
 		game.state = "attack_place"
-		game.op.count = 2
 	}
 }
 
@@ -4430,6 +4453,10 @@ states.process_space = {
 
 // SPECIAL ACTIVITY: BRIBE
 
+function vm_free_bribe() {
+	throw "TODO"
+}
+
 function goto_bribe() {
 	push_undo()
 	log_h3("Bribe")
@@ -4679,10 +4706,6 @@ function vm_goto(op, nop, dir, step) {
 	}
 	game.vm.pc += step
 	vm_exec()
-}
-
-function vm_TODO() {
-	throw "TODO"
 }
 
 function vm_momentum() {
@@ -5360,7 +5383,7 @@ states.vm_free_sweep_or_assault_farc = {
 	prompt() {
 		event_prompt(`Free Sweep or Assault FARC in ${space_name[game.vm.s]}.`)
 		view.actions.sweep = 1
-		if (can_assault_space(game.vm.s, FARC))
+		if (can_assault(game.vm.s, FARC))
 			view.actions.assault = 1
 		else
 			view.actions.assault = 0
@@ -5399,23 +5422,10 @@ states.vm_free_govt_activity = {
 		view.actions.air_strike = 1
 		view.actions.eradicate = 1
 	},
-	air_lift: goto_free_air_lift,
-	air_strike: goto_free_air_strike,
-	eradicate: goto_free_eradicate,
+	air_lift: vm_free_air_lift,
+	air_strike: vm_free_air_strike,
+	eradicate: vm_free_eradicate,
 }
-
-function vm_free_air_strike() {
-	goto_free_air_strike()
-}
-
-function vm_free_bribe() {
-	goto_free_bribe(game.vm.s)
-}
-
-function vm_free_ambush() {
-	goto_free_ambush(game.vm.s, game.vm.p)
-}
-
 
 // === GAME OVER ===
 
@@ -6383,8 +6393,8 @@ const CODE = [
 	// SHADED 37
 	[ vm_current, AUC ],
 	[ vm_free_march ],
-	[ vm_space, 1, (s)=>set_has(game.vm.m, s) ],
-	[ vm_piece, 1, (p,s)=>is_piece_in_event_space(s) && is_auc_guerrilla(p) ],
+	[ vm_space, 1, (s)=>set_has(game.vm.m, s) && has_underground_guerrilla(s, AUC) ],
+	[ vm_piece, 1, (p,s)=>is_piece_in_event_space(p) && is_auc_guerrilla(p) && is_underground(p) ],
 	[ vm_free_ambush ],
 	[ vm_endpiece ],
 	[ vm_endspace ],
@@ -6695,7 +6705,14 @@ const CODE = [
 	[ vm_endpiece ],
 	[ vm_return ],
 	// EVENT 59
-	// TODO
+	[ vm_current, GOVT ],
+	[ vm_piece, 0, (p,s)=>is_cartels_guerrilla(p) && is_underground(p) ],
+	[ vm_activate ],
+	[ vm_endpiece ],
+	[ vm_space, 0, (s)=>can_assault(s, CARTELS) ],
+	[ vm_free_assault_cartels ],
+	[ vm_endspace ],
+	[ vm_return ],
 	// SHADED 59
 	[ vm_current, CARTELS ],
 	[ vm_prompt, "Flip all Cartels Guerrillas underground." ],
@@ -6860,4 +6877,4 @@ const CODE = [
 	[ vm_endwhile ],
 	[ vm_return ],
 ]
-const CODE_INDEX = [ 0, 3, 6, 9, 12, 15, 18, 23, 28, 58, 64, 69, 78, 81, 84, 89, 91, 94, 97, 100, 103, 106, 109, 112, 115, 118, 121, 129, 138, 141, 145, 150, 152, 155, 158, 161, 165, -1, 176, 182, 188, 193, 198, 202, 205, 214, 221, 226, 235, 241, 247, 252, 257, 261, 264, 271, 278, 286, 292, 299, 332, 339, 343, 347, 349, 356, 362, 364, 371, 379, 384, -1, 417, 422, 430, 436, 442, 446, 457, 464, 479, 486, 491, 496, 500, 508, 514, 519, 524, 528, 535, -1, 551, 558, -1, 571, 575, 579, 584, -1, 595, 604, 609, 613, 620, -1, -1, -1, 637, 644, 648, 650, 657, 665, 673, 678, -1, 687, 700, 707, 715, 722, 726, 731, 735, -1, 746, 751, -1, -1, 760, 764, 768, 770, -1, 773, -1, -1, 778, 783, 791, 797, 803, 810 ]
+const CODE_INDEX = [ 0, 3, 6, 9, 12, 15, 18, 23, 28, 58, 64, 69, 78, 81, 84, 89, 91, 94, 97, 100, 103, 106, 109, 112, 115, 118, 121, 129, 138, 141, 145, 150, 152, 155, 158, 161, 165, -1, 176, 182, 188, 193, 198, 202, 205, 214, 221, 226, 235, 241, 247, 252, 257, 261, 264, 271, 278, 286, 292, 299, 332, 339, 343, 347, 349, 356, 362, 364, 371, 379, 384, -1, 417, 422, 430, 436, 442, 446, 457, 464, 479, 486, 491, 496, 500, 508, 514, 519, 524, 528, 535, -1, 551, 558, -1, 571, 575, 579, 584, -1, 595, 604, 609, 613, 620, -1, -1, -1, 637, 644, 648, 650, 657, 665, 673, 678, 687, 695, 708, 715, 723, 730, 734, 739, 743, -1, 754, 759, -1, -1, 768, 772, 776, 778, -1, 781, -1, -1, 786, 791, 799, 805, 811, 818 ]
