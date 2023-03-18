@@ -25,9 +25,6 @@ const NAME_GOVT_AUC = "Government + AUC"
 const NAME_FARC_CARTELS = "FARC + Cartels"
 const NAME_AUC_CARTELS = "AUC + Cartels"
 
-const capability_events = [ 1, 2, 3, 7, 9, 10, 11, 13 ]
-const momentum_events = [ 12, 17, 22, 27, 42, 67 ]
-
 // TODO: 7th SF - sabotage phase
 // TODO: Alfonso Cane - agitation phase
 // TODO: Mexican Traffickres - resources phase
@@ -366,7 +363,6 @@ function setup_standard() {
 
 	// XXX
 	setup_support(BOGOTA, ACTIVE_OPPOSITION)
-	game.capabilities = [ -13, -11, -10, -9, -7, -3, -2, -1 ]
 }
 
 function setup_quick() {
@@ -401,9 +397,6 @@ function setup_quick() {
 	game.resources[GOVT] = 30
 
 	game.president = PASTRANA
-
-	// XXX
-	game.capabilities = [ 1, 2, 3, 7, 9, 10, 11, 13 ]
 }
 
 function shuffle_all_cards() {
@@ -4259,12 +4252,6 @@ function execute_unshaded_event() {
 	log(`C${c} - Unshaded`)
 	log(data.card_flavor[c] + ".")
 
-	if (set_has(capability_events, c)) {
-		set_add(game.capabilities, c)
-		resume_event_card()
-		return
-	}
-
 	console.log("UNSHADED", c, UNSHADED_START[c])
 
 	if (UNSHADED_START[c] >= 0) {
@@ -4290,18 +4277,6 @@ function execute_shaded_event() {
 		set_add(game.capabilities, EVT_DARIEN)
 	if (c === EVT_SUCUMBIOS)
 		set_add(game.capabilities, EVT_SUCUMBIOS)
-
-	if (set_has(capability_events, c)) {
-		set_add(game.capabilities, -c)
-		resume_event_card()
-		return
-	}
-
-	if (set_has(momentum_events, c)) {
-		set_add(game.momentum, c)
-		resume_event_card()
-		return
-	}
 
 	console.log("SHADED", c, SHADED_START[c])
 
@@ -4330,6 +4305,7 @@ function goto_vm(start) {
 		p: 0,
 		die: 0,
 		opt: 0,
+		prompt: 0,
 	}
 	vm_exec()
 }
@@ -4357,6 +4333,36 @@ function vm_goto(op, dir, step) {
 	vm_exec()
 }
 
+function vm_momentum() {
+	set_add(game.momentum, this_card())
+	vm_next()
+}
+
+function vm_capability() {
+	set_add(game.capabilities, this_card())
+	vm_next()
+}
+
+function vm_shaded_capability() {
+	set_add(game.capabilities, -this_card())
+	vm_next()
+}
+
+function vm_optional() {
+	game.vm.opt = 1
+	vm_next()
+}
+
+function vm_log() {
+	log(vm_operand(1))
+	vm_next()
+}
+
+function vm_prompt() {
+	game.vm.prompt = game.vm.pc
+	vm_next()
+}
+
 function vm_endevent() {
 	game.state = "vm_endevent"
 }
@@ -4369,10 +4375,6 @@ states.vm_endevent = {
 	end_event: resume_event_card,
 }
 
-function vm_optional() {
-	game.vm.opt = 1
-	vm_next()
-}
 
 function vm_space() {
 	if (can_vm_space()) {
@@ -4402,7 +4404,9 @@ states.vm_space = {
 	prompt() {
 		let n = CODE[game.vm.pc][1]
 		let f = CODE[game.vm.pc][2]
-		if (n === 0)
+		if (game.vm.prompt)
+			view.prompt = CODE[game.vm.prompt][1]
+		else if (n === 0)
 			view.prompt = "Select each space."
 		else if (n === 1)
 			view.prompt = "Select one space."
@@ -4444,7 +4448,9 @@ states.vm_piece = {
 	prompt() {
 		let n = CODE[game.vm.pc][1]
 		let f = CODE[game.vm.pc][2]
-		if (n === 0)
+		if (game.vm.prompt)
+			view.prompt = CODE[game.vm.prompt][1]
+		else if (n === 0)
 			view.prompt = "Select each piece."
 		else if (n === 1)
 			view.prompt = "Select one piece."
@@ -4719,8 +4725,8 @@ function vm_ineligible() {
 
 function vm_roll() {
 	// TODO: pause for button "Roll" ?
-	game.vm.die = random() + 1
-	log("Rolled " + game.vm.die)
+	game.vm.die = random(6) + 1
+	log("Rolled " + game.vm.die + ".")
 	vm_next()
 }
 
@@ -5195,7 +5201,18 @@ function map_delete(map, item) {
 // :r !python3 tools/gencode.py
 
 const CODE = [
+	// EVENT 1
+	[ vm_log, "1 Civic Action space each Support Phase requires Govt Control and any cube." ],
+	[ vm_capability ],
+	[ vm_endevent ],
+	// EVENT 2
+	[ vm_capability ],
+	[ vm_endevent ],
+	// EVENT 3
+	[ vm_capability ],
+	[ vm_endevent ],
 	// EVENT 4
+	[ vm_prompt, "Select unsabotaged pipelines." ],
 	[ vm_space, 3, (s)=>is_unsabotaged_pipeline(s) ],
 	[ vm_resources, GOVT, ()=>(2*data.spaces[game.vm.s].econ) ],
 	[ vm_endspace ],
@@ -5205,9 +5222,24 @@ const CODE = [
 	[ vm_set_passive_support ],
 	[ vm_endspace ],
 	[ vm_endevent ],
+	// EVENT 7
+	[ vm_capability ],
+	[ vm_endevent ],
+	// EVENT 9
+	[ vm_capability ],
+	[ vm_endevent ],
+	// EVENT 10
+	[ vm_capability ],
+	[ vm_endevent ],
+	// EVENT 11
+	[ vm_capability ],
+	[ vm_endevent ],
 	// EVENT 12
 	[ vm_resources, GOVT, ()=>(Math.min(game.aid,20)) ],
 	[ vm_aid, 10 ],
+	[ vm_endevent ],
+	// EVENT 13
+	[ vm_capability ],
 	[ vm_endevent ],
 	// EVENT 14
 	[ vm_current, GOVT ],
@@ -5399,9 +5431,20 @@ const CODE = [
 	[ vm_resources, CARTELS, -20 ],
 	[ vm_endevent ],
 	// EVENT 70
+	[ vm_prompt, "Select each Forest without Guerrillas." ],
 	[ vm_space, 0, (s)=>is_forest(s) && !has_any_guerrilla(s) ],
 	[ vm_resources, GOVT, 6 ],
 	[ vm_endspace ],
+	[ vm_endevent ],
+	// SHADED 1
+	[ vm_log, "Civic Action requires at least 2 Troops and 2 Police." ],
+	[ vm_shaded_capability ],
+	[ vm_endevent ],
+	// SHADED 2
+	[ vm_shaded_capability ],
+	[ vm_endevent ],
+	// SHADED 3
+	[ vm_shaded_capability ],
 	[ vm_endevent ],
 	// SHADED 4
 	[ vm_space, 3, (s)=>is_highest_value_pipeline_without_cubes(s) ],
@@ -5409,13 +5452,32 @@ const CODE = [
 	[ vm_endspace ],
 	[ vm_endevent ],
 	// SHADED 5
+	[ vm_prompt, "Shift space adjacent to a 3-Econ LoC by 2 levels toward Active Opposition." ],
 	[ vm_space, 1, (s)=>is_adjacent_to_loc3(s) ],
 	[ vm_shift_opposition ],
 	[ vm_shift_opposition ],
 	[ vm_endspace ],
 	[ vm_endevent ],
+	// SHADED 7
+	[ vm_shaded_capability ],
+	[ vm_endevent ],
 	// SHADED 8
 	[ vm_resources, GOVT, -9 ],
+	[ vm_endevent ],
+	// SHADED 9
+	[ vm_shaded_capability ],
+	[ vm_endevent ],
+	// SHADED 10
+	[ vm_shaded_capability ],
+	[ vm_endevent ],
+	// SHADED 11
+	[ vm_shaded_capability ],
+	[ vm_endevent ],
+	// SHADED 12
+	[ vm_momentum ],
+	[ vm_endevent ],
+	// SHADED 13
+	[ vm_shaded_capability ],
 	[ vm_endevent ],
 	// SHADED 14
 	[ vm_space, 1, (s)=>is_dept(s) ],
@@ -5435,6 +5497,9 @@ const CODE = [
 	// SHADED 16
 	[ vm_resources, GOVT, -10 ],
 	[ vm_endevent ],
+	// SHADED 17
+	[ vm_momentum ],
+	[ vm_endevent ],
 	// SHADED 18
 	[ vm_resources, GOVT, -6 ],
 	[ vm_roll ],
@@ -5445,6 +5510,9 @@ const CODE = [
 	[ vm_space, 1, (s)=>(is_city(s) || is_dept(s)) && can_place_base(s) ],
 	[ vm_place, FARC, BASE ],
 	[ vm_endspace ],
+	[ vm_endevent ],
+	// SHADED 22
+	[ vm_momentum ],
 	[ vm_endevent ],
 	// SHADED 23
 	[ vm_current, GOVT ],
@@ -5472,9 +5540,13 @@ const CODE = [
 	[ vm_endspace ],
 	[ vm_endevent ],
 	// SHADED 26
+	[ vm_prompt, "Transfer 6 Resources from Cartels to FARC for each space with CB and FG." ],
 	[ vm_space, 0, (s)=>has_cartels_base(s) && has_farc_guerrilla(s) ],
 	[ vm_transfer, CARTELS, FARC, 6 ],
 	[ vm_endspace ],
+	[ vm_endevent ],
+	// SHADED 27
+	[ vm_momentum ],
 	[ vm_endevent ],
 	// SHADED 28
 	[ vm_space, 1, (s)=>is_dept(s) && is_next_to_venezuela(s) && can_place_base(s) ],
@@ -5520,9 +5592,13 @@ const CODE = [
 	[ vm_endspace ],
 	[ vm_endevent ],
 	// SHADED 41
+	[ vm_prompt, "Select each space with AUC and Cartels pieces." ],
 	[ vm_space, 0, (s)=>has_auc_piece(s) && has_cartels_piece(s) ],
 	[ vm_resources, AUC, 3 ],
 	[ vm_endspace ],
+	[ vm_endevent ],
+	// SHADED 42
+	[ vm_momentum ],
 	[ vm_endevent ],
 	// SHADED 43
 	[ vm_space, 1, (s)=>is_dept(s) && has_troosps(s) ],
@@ -5538,6 +5614,7 @@ const CODE = [
 	[ vm_resources, GOVT, -3 ],
 	[ vm_endevent ],
 	// SHADED 45
+	[ vm_prompt, "Select each space with AUC pieces." ],
 	[ vm_space, 0, (s)=>has_auc_piece(s) ],
 	[ vm_aid, -1 ],
 	[ vm_endspace ],
@@ -5592,9 +5669,11 @@ const CODE = [
 	[ vm_endspace ],
 	[ vm_endevent ],
 	// SHADED 64
+	[ vm_prompt, "Select each Cartels Base in a City." ],
 	[ vm_piece, 0, (p,s)=>is_cartels_base(p) && is_city(s) ],
 	[ vm_resources, CARTELS, 2 ],
 	[ vm_endpiece ],
+	[ vm_prompt, "Select each Cartels Base in a Dept." ],
 	[ vm_piece, 0, (p,s)=>is_cartels_base(p) && is_dept(s) ],
 	[ vm_resources, CARTELS, 1 ],
 	[ vm_endpiece ],
@@ -5604,7 +5683,11 @@ const CODE = [
 	[ vm_place, CARTELS, BASE ],
 	[ vm_endspace ],
 	[ vm_endevent ],
+	// SHADED 67
+	[ vm_momentum ],
+	[ vm_endevent ],
 	// SHADED 68
+	[ vm_prompt, "Select each Cartels piece in coastal spaces." ],
 	[ vm_piece, 0, (p,s)=>is_cartels_piece(p) && is_coastal_space(s) ],
 	[ vm_resources, CARTELS, 2 ],
 	[ vm_endpiece ],
@@ -5616,5 +5699,5 @@ const CODE = [
 	[ vm_endspace ],
 	[ vm_endevent ],
 ]
-const SHADED_START = [-1,-1,-1,-1,174,178,-1,-1,183,-1,-1,-1,-1,-1,185,194,198,-1,200,-1,-1,204,-1,209,216,225,231,-1,235,-1,-1,242,246,248,253,260,-1,-1,265,-1,-1,271,-1,275,281,286,-1,-1,292,296,-1,301,305,-1,-1,312,316,-1,-1,-1,-1,323,327,-1,331,-1,338,-1,342,-1,-1,346]
-const UNSHADED_START = [-1,-1,-1,-1,0,-1,4,-1,-1,-1,-1,-1,8,-1,11,19,-1,22,25,-1,-1,28,33,37,46,51,-1,-1,57,-1,-1,64,71,75,82,-1,-1,-1,84,90,-1,94,101,106,114,119,-1,-1,-1,-1,123,-1,134,-1,-1,138,145,-1,147,-1,-1,152,159,-1,-1,-1,164,168,-1,-1,170,-1]
+const SHADED_START = [-1,193,196,198,200,204,-1,210,212,214,216,218,220,222,224,233,237,239,241,-1,-1,245,250,252,259,268,274,279,281,-1,-1,288,292,294,299,306,-1,-1,311,-1,-1,317,322,324,330,335,-1,-1,342,346,-1,351,355,-1,-1,362,366,-1,-1,-1,-1,373,377,-1,381,-1,390,394,396,-1,-1,401]
+const UNSHADED_START = [-1,0,3,5,7,-1,12,16,-1,18,20,22,24,27,29,37,-1,40,43,-1,-1,46,51,55,64,69,-1,-1,75,-1,-1,82,89,93,100,-1,-1,-1,102,108,-1,112,119,124,132,137,-1,-1,-1,-1,141,-1,152,-1,-1,156,163,-1,165,-1,-1,170,177,-1,-1,-1,182,186,-1,-1,188,-1]

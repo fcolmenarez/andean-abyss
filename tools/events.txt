@@ -1,4 +1,52 @@
+EVENT 1
+	log 1 Civic Action space each Support Phase requires Govt Control and any cube.
+	capability
+EVENT 2
+	capability
+EVENT 3
+	capability
+EVENT 7
+	capability
+EVENT 9
+	capability
+EVENT 10
+	capability
+EVENT 11
+	capability
+EVENT 13
+	capability
+SHADED 1
+	log Civic Action requires at least 2 Troops and 2 Police.
+	shaded_capability
+SHADED 2
+	shaded_capability
+SHADED 3
+	shaded_capability
+SHADED 7
+	shaded_capability
+SHADED 9
+	shaded_capability
+SHADED 10
+	shaded_capability
+SHADED 11
+	shaded_capability
+SHADED 13
+	shaded_capability
+SHADED 12
+	momentum
+SHADED 17
+	momentum
+SHADED 22
+	momentum
+SHADED 27
+	momentum
+SHADED 42
+	momentum
+SHADED 67
+	momentum
+
 SHADED 26
+	prompt Transfer 6 Resources from Cartels to FARC for each space with CB and FG.
 	space 0 has_cartels_base(s) && has_farc_guerrilla(s)
 		transfer CARTELS FARC 6
 	endspace
@@ -7,6 +55,7 @@ EVENT 56
 	transfer CARTELS GOVT 15
 
 EVENT 4
+	prompt Select unsabotaged pipelines.
 	space 3 is_unsabotaged_pipeline(s)
 		resources GOVT (2*data.spaces[game.vm.s].econ)
 	endspace
@@ -31,6 +80,7 @@ EVENT 67
 	resources CARTELS -20
 
 EVENT 70
+	prompt Select each Forest without Guerrillas.
 	space 0 is_forest(s) && !has_any_guerrilla(s)
 		resources GOVT 6
 	endspace
@@ -50,11 +100,13 @@ SHADED 32
 	resources FARC 12
 
 SHADED 41
+	prompt Select each space with AUC and Cartels pieces.
 	space 0 has_auc_piece(s) && has_cartels_piece(s)
 		resources AUC 3
 	endspace
 
 SHADED 45
+	prompt Select each space with AUC pieces.
 	space 0 has_auc_piece(s)
 		aid -1
 	endspace
@@ -62,19 +114,23 @@ SHADED 45
 	resources GOVT (-game.vm.die)
 
 SHADED 64
+	prompt Select each Cartels Base in a City.
 	piece 0 is_cartels_base(p) && is_city(s)
 		resources CARTELS 2
 	endpiece
+	prompt Select each Cartels Base in a Dept.
 	piece 0 is_cartels_base(p) && is_dept(s)
 		resources CARTELS 1
 	endpiece
 
 SHADED 68
+	prompt Select each Cartels piece in coastal spaces.
 	piece 0 is_cartels_piece(p) && is_coastal_space(s)
 		resources CARTELS 2
 	endpiece
 
 SHADED 5
+	prompt Shift space adjacent to a 3-Econ LoC by 2 levels toward Active Opposition.
 	space 1 is_adjacent_to_loc3(s)
 		shift_opposition
 		shift_opposition
@@ -295,7 +351,7 @@ EVENT 43
 	endspace
 
 SHADED 43
-	space 1 is_dept(s) && has_troosps(s)
+	space 1 is_dept(s) && has_troops(s)
 		terror
 		terror
 	endspace

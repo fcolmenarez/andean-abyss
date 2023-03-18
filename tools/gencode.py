@@ -56,6 +56,12 @@ for event in sorted(code.keys()):
 		elif line.startswith('each piece'):
 			line = line.split(' ', 2)
 			print('\t[ vm_piece, 0, (p,s)=>' + line[2] + ' ],')
+		elif line.startswith('prompt'):
+			line = line.split(' ', 1)
+			print('\t[ vm_prompt, "' + line[1] + '" ],')
+		elif line.startswith('log'):
+			line = line.split(' ', 1)
+			print('\t[ vm_log, "' + line[1] + '" ],')
 		else:
 			line = line.split(' ')
 			cmd = line[0]
@@ -68,5 +74,5 @@ for event in sorted(code.keys()):
 	print('\t[ vm_endevent ],')
 	pc = pc + 1
 print("]")
-print("const SHADED_START = [" + ",".join(shaded) + "]")
 print("const UNSHADED_START = [" + ",".join(unshaded) + "]")
+print("const SHADED_START = [" + ",".join(shaded) + "]")
