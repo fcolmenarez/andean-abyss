@@ -11,7 +11,7 @@ def flush_code():
 		buf = []
 
 event = 0
-for line in open("tools/events.txt").readlines():
+for line in open("events.txt").readlines():
 	line = line.strip()
 	if line == "EOF":
 		break
@@ -21,28 +21,28 @@ for line in open("tools/events.txt").readlines():
 		continue
 	elif line.startswith("EVENT"):
 		flush_code()
-		event = int(line.split()[1])
+		event = (int(line.split()[1]) << 1)
 	elif line.startswith("SHADED"):
 		flush_code()
-		event = int(line.split()[1]) + 100
+		event = (int(line.split()[1]) << 1) + 1
 	else:
 		buf.append(line)
 
 flush_code()
 
-shaded = ["-1"] * 72
-unshaded = ["-1"] * 72
+code_index = ["-1"] * (72 * 2)
 
 pc = 0
 print("const CODE = [")
-for event in sorted(code.keys()):
-	buf = code[event]
-	if event > 100:
-		print("\t// SHADED", event - 100)
-		shaded[event  - 100] = str(pc)
+for event in range(2,146):
+	if event & 1 == 1:
+		print("\t// SHADED", event >> 1)
 	else:
-		print("\t// EVENT", event)
-		unshaded[event] = str(pc)
+		print("\t// EVENT", event >> 1)
+	if not event in code:
+		print("\t// TODO")
+		continue
+	code_index[event-2] = str(pc)
 	for line in code[event]:
 		if line.startswith('space'):
 			line = line.split(' ', 2)
@@ -56,6 +56,9 @@ for event in sorted(code.keys()):
 		elif line.startswith('each piece'):
 			line = line.split(' ', 2)
 			print('\t[ vm_piece, 0, (p,s)=>' + line[2] + ' ],')
+		elif line.startswith('if'):
+			line = line.split(' ', 1)
+			print('\t[ vm_if, ()=>' + line[1] + ' ],')
 		elif line.startswith('prompt'):
 			line = line.split(' ', 1)
 			print('\t[ vm_prompt, "' + line[1] + '" ],')
@@ -71,8 +74,7 @@ for event in sorted(code.keys()):
 			else:
 				print('\t[ vm_' + cmd + ' ],')
 		pc = pc + 1
-	print('\t[ vm_endevent ],')
+	print('\t[ vm_return ],')
 	pc = pc + 1
 print("]")
-print("const UNSHADED_START = [" + ",".join(unshaded) + "]")
-print("const SHADED_START = [" + ",".join(shaded) + "]")
+print("const CODE_INDEX = [ " + ", ".join(code_index) + " ]")

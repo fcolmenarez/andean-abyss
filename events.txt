@@ -1,0 +1,959 @@
+EVENT 1
+	log 1 Civic Action space each Support Phase requires Govt Control and any cube.
+	capability
+
+SHADED 1
+	log Civic Action requires at least 2 Troops and 2 Police.
+	shaded_capability
+
+EVENT 2
+	log Sweep costs 1 Resource per space.
+	capability
+
+SHADED 2
+	log Sweep Operations may target only 1 space per card.
+	shaded_capability
+
+EVENT 3
+	log Assault costs 1 Resource per space.
+	capability
+
+SHADED 3
+	log Assault Operations may target only 1 space per card.
+	shaded_capability
+
+EVENT 4
+	prompt Select unsabotaged pipelines.
+	space 3 is_unsabotaged_pipeline(s)
+		resources GOVT (2*data.spaces[game.vm.s].econ)
+	endspace
+
+SHADED 4
+	prompt Sabotage the 3 pipelines with highest value and no cubes.
+	space 3 is_highest_value_pipeline_without_cubes(s)
+		sabotage
+	endspace
+
+EVENT 5
+	TODO
+	# piece 3 is_guerrilla(p) && is_underground(p) && in_or_adjac
+	# flip to active 3 guerillas there or adjacent
+
+SHADED 5
+	prompt Shift space adjacent to a 3-Econ LoC by 2 levels toward Active Opposition.
+	space 1 is_adjacent_to_loc3(s)
+		shift_opposition
+		shift_opposition
+	endspace
+
+EVENT 6
+	prompt Select Opposition or Neutral Departments adjacent to Sabotage.
+	space 2 (!is_support(s) && is_adjacent_to_support(s))
+		set_passive_support
+	endspace
+
+SHADED 6
+	prompt Sabotage a pipeline.
+	space 1 is_pipeline(s)
+		sabotage
+	endspace
+	prompt Shift an Adjacent Department.
+	space 1 is_pop(s) && is_dept(s) && is_adjacent(s, game.vm.s)
+		shift_opposition
+	endspace
+
+EVENT 7
+	log Each Sabotage phase, Govt may remove 1-3 Terror or Sabotage.
+	capability
+
+SHADED 7
+	log Sabotage phase - Sabotage LoCs with any Guerrillas equal to cubes.
+	shaded_capability
+
+EVENT 8
+	TODO
+	current GOVT
+	# free_air_strike
+	# free_air_strike
+	# free_air_strike
+
+SHADED 8
+	resources GOVT -9
+
+EVENT 9
+	log Assault treats Mountain as City.
+	capability
+
+SHADED 9
+	log Assault in Mountain removes only 1 piece for 4 Troops.
+	shaded_capability
+
+EVENT 10
+	log Air Lift moves any number of Troops.
+	capability
+
+SHADED 10
+	log Air Lift moves only 1 Troops cube.
+	shaded_capability
+
+EVENT 11
+	log 1 Police may enter each Sweep space.
+	capability
+
+SHADED 11
+	log Operation Activates Guerrillas via Troops or Police, not both.
+	shaded_capability
+
+EVENT 12
+	resources GOVT (Math.min(game.aid,20))
+	aid 10
+
+SHADED 12
+	log No Air Strike or Activation by Patrlo until next Propaganda.
+	momentum
+
+EVENT 13
+	log Patrol conducts a free Assault in each LoC.
+	capability
+
+SHADED 13
+	log Patrols do not conduct a free Assault.
+	shaded_capability
+
+EVENT 14
+	current GOVT
+	space 1 is_dept(s) && !is_farc_zone(s)
+		place GOVT BASE
+		place GOVT TROOPS
+		place GOVT TROOPS
+		place GOVT TROOPS
+	endspace
+
+SHADED 14
+	space 1 is_dept(s)
+		piece 1 is_piece_in_event_space(p) && is_govt_base(p)
+			remove
+		endpiece
+		piece 1 is_piece_in_event_space(p) && (is_troops(p) || is_police(p))
+			remove
+		endpiece
+	endspace
+
+EVENT 15
+	roll
+	resources GOVT (game.vm.die*4)
+
+SHADED 15
+	space 1 is_city() && (is_neutral(s) || is_passive_support(s))
+		set_passive_opposition
+	endspace
+
+EVENT 16
+	prompt Select each Mountain Department.
+	space 0 is_mountain(s)
+		resources (faction_with_most_pieces(game.vm.s)) 5
+	endspace
+
+SHADED 16
+	resources GOVT -10
+
+EVENT 17
+	resources GOVT (Math.min(game.aid,20))
+	aid 6
+
+SHADED 17
+	log No Sweep or Assault in Depts until next Propaganda.
+	momentum
+
+EVENT 18
+	resources GOVT (Math.min(game.aid,20))
+	aid 20
+
+SHADED 18
+	resources GOVT -6
+	roll
+	aid (-game.vm.die)
+
+EVENT 19
+	TODO
+	# in all spaces
+	# 	if GOVT
+	# 		free sweep (without movement)
+	# 		or
+	# 		free assault
+	# 	if insurgent
+	# 		free attack
+	# 		or
+	# 		free terror
+
+EVENT 20
+	piece 6 is_farc_guerrilla(p)
+		space 1 is_adjacent(s, game.pieces[game.vm.p])
+			move
+		endspace
+	endpiece
+
+EVENT 21
+	resources FARC -6
+	piece 1 is_farc_base(p)
+		remove
+	endpiece
+
+SHADED 21
+	resources FARC 6
+	space 1 (is_city(s) || is_dept(s)) && can_place_base(s)
+		place FARC BASE
+	endspace
+
+EVENT 22
+	space 1 is_opposition(s)
+		set_neutral
+	endspace
+
+SHADED 22
+	log May Agitate also in up to 3 spaces with FARC piece and no Govt Control.
+	momentum
+
+EVENT 23
+	space 1 is_dept(s)
+		piece 0 is_piece_in_event_space(p) && is_guerrilla(p) && is_underground(p)
+			activate
+		endpiece
+		piece 0 is_piece_in_event_space(p) && is_cartels_base(p)
+			remove
+		endpiece
+	endspace
+
+SHADED 23
+	current GOVT
+	piece 3 is_troops(p)
+		remove
+	endpiece
+	ineligible GOVT
+	ineligible FARC
+
+EVENT 24
+	space 1 is_city(s)
+		set_active_support
+	endspace
+	ineligible FARC
+
+SHADED 24
+	space 1 has_farc_piece(s)
+		piece 2 is_piece_in_event_space(p) && is_troops(p)
+			remove
+		endpiece
+	endspace
+	space 1 is_city(s) && is_support(s)
+		set_neutral
+	endspace
+
+EVENT 25
+	space 1 is_mountain(s)
+		piece 0 is_piece_in_event_space(p) && is_farc_piece(p)
+			remove
+		endpiece
+	endspace
+
+SHADED 25
+	space 1 s === ANTIOQUIA || (is_dept(s) && is_adjacent(ANTIOQUIA, s))
+		place_any FARC
+		place_any FARC
+		place_any FARC
+	endspace
+
+EVENT 26
+	TODO
+	# all spaces with cartels guerrillas
+	#	all cartels guerrillas free attack farc
+
+SHADED 26
+	prompt Transfer 6 Resources from Cartels to FARC for each space with CB and FG.
+	space 0 has_cartels_base(s) && has_farc_guerrilla(s)
+		transfer CARTELS FARC 6
+	endspace
+
+EVENT 27
+	TODO
+	# GOVT 3 free special activities
+
+SHADED 27
+	log Until next Propaganda, no Govt Special Activities where Guerrilla.
+	momentum
+
+EVENT 28
+	optional
+	space 1 is_next_to_venezuela(s)
+		piece 3 is_piece_in_event_space(p) && is_insurgent_piece(p)
+			remove
+		endpiece
+	endspace
+
+SHADED 28
+	space 1 is_dept(s) && is_next_to_venezuela(s) && can_place_base(s)
+		place FARC BASE
+	endspace
+	each space is_loc(s) && is_adjacent(CUCUTA, s) && is_empty(s)
+		sabotage
+	endspace
+
+EVENT 29
+	TODO
+	# in 1 space
+	# activate all farc
+	# GOVT free assault
+
+EVENT 30
+	space 1 is_farc_zone(s)
+		remove_farc_zone
+		piece 1 is_piece_in_event_space(p) && is_farc_base(p)
+			remove
+		endpiece
+	endspace
+
+SHADED 30
+	eligible (game.current)
+	current GOVT
+	prompt Place FARC Zone.
+	space 1 is_possible_farc_zone(s)
+		place_farc_zone
+		prompt Redeploy Troops.
+		piece 0 is_piece_in_event_space(p) && is_troops(p)
+			save_space
+			space 1 is_redeploy_troops_space(s)
+				move
+			endspace
+			restore_space
+		endpiece
+		prompt Redeploy Police.
+		piece 0 is_piece_in_event_space(p) && is_police(p)
+			save_space
+			space 1 is_redeploy_police_space(s)
+				move
+			endspace
+			restore_space
+		endpiece
+		prompt Remove Govt Bases.
+		piece 0 is_piece_in_event_space(p) && is_govt_base(p)
+			remove
+		endpiece
+		prompt Shift adjacent spaces toward Active Support.
+		save_space
+		space 2 is_pop(s) && !is_active_support(s) && is_adjacent(game.vm._s, s)
+			shift_support
+		endspace
+		restore_space
+	endspace
+
+EVENT 31
+	space 2 is_city(s)
+		shift_support
+	endspace
+	space 1 is_dept(s)
+		shift_support
+	endspace
+
+SHADED 31
+	space 3 is_passive_opposition(s)
+		set_active_opposition
+	endspace
+
+EVENT 32
+	space 2 is_neutral(s) || is_passive_opposition(s)
+		set_passive_support
+	endspace
+
+SHADED 32
+	resources FARC 12
+
+EVENT 33
+	optional
+	space 1 is_next_to_ecuador(s)
+		piece 3 is_piece_in_event_space(p) && is_insurgent_piece(p)
+			remove
+		endpiece
+	endspace
+
+SHADED 33
+	capability
+	space 1 s === ECUADOR
+		place_any (game.current)
+		place_any (game.current)
+	endspace
+
+EVENT 34
+	# -1 = all insurgent factions
+	resources -1 -5
+
+SHADED 34
+	select_insurgent
+	space 1 is_zero_pop_dept(s)
+		place (game.current) GUERRILLA
+		place (game.current) GUERRILLA
+		place (game.current) BASE
+	endspace
+
+EVENT 35
+	space 1 is_dept(s)
+		piece 0 is_piece_in_event_space(p) && is_cartels_base(p)
+			remove
+			place GOVT POLICE
+		endpiece
+	endspace
+	aid 3
+
+SHADED 35
+	space 1 is_dept(s) && has_cartels_base(s)
+		shift_opposition
+		shift_opposition
+	endspace
+
+EVENT 36
+	# COPY SHADED 30
+	eligible (game.current)
+	current GOVT
+	prompt Place FARC Zone.
+	space 1 is_possible_farc_zone(s)
+		place_farc_zone
+		prompt Redeploy Troops.
+		piece 0 is_piece_in_event_space(p) && is_troops(p)
+			save_space
+			space 1 is_redeploy_troops_space(s)
+				move
+			endspace
+			restore_space
+		endpiece
+		prompt Redeploy Police.
+		piece 0 is_piece_in_event_space(p) && is_police(p)
+			save_space
+			space 1 is_redeploy_police_space(s)
+				move
+			endspace
+			restore_space
+		endpiece
+		prompt Remove Govt Bases.
+		piece 0 is_piece_in_event_space(p) && is_govt_base(p)
+			remove
+		endpiece
+		prompt Shift adjacent spaces toward Active Support.
+		save_space
+		space 2 is_pop(s) && !is_active_support(s) && is_adjacent(game.vm._s, s)
+			shift_support
+		endspace
+		restore_space
+	endspace
+
+EVENT 37
+	TODO
+	# each space
+	# GOVT free sweep farc (no moves) (auc guerrillas act as troops)
+	# or
+	# GOVT free assault farc (auc guerrillas act as troops)
+
+EVENT 38
+	space 3 has_cubes(s) || is_support(s)
+		piece 0 is_piece_in_event_space(p) && is_auc_guerrilla(p) && is_active(p)
+			remove
+		endpiece
+	endspace
+
+SHADED 38
+	space 0 has_cubes(s) || is_support(s)
+		piece 0 is_piece_in_event_space(p) && is_auc_guerrilla(p) && is_active(p)
+			underground
+		endpiece
+	endspace
+
+EVENT 39
+	space 6 is_dept(s) && !is_farc_zone(s)
+		place GOVT POLICE
+	endspace
+
+SHADED 39
+	prompt Replace Police with AUC Guerrillas.
+	optional
+	# FIXME: space 3 is_dept(s)
+	space 3 is_dept(s) && has_police(s)
+		piece 1 is_piece_in_event_space(p) && is_police(p)
+			not_optional
+			remove
+			place AUC GUERRILLA
+		endpiece
+		optional
+	endspace
+
+EVENT 40
+	prompt Replace AUC Guerrillas with Police.
+	piece 3 is_auc_guerrilla(p)
+		set_piece_space
+		remove
+		place GOVT POLICE
+	endpiece
+
+SHADED 40
+	space 1 is_dept(s) && has_auc_piece(s) && has_cubes(s)
+		prompt Move all cubes to any Cities.
+		piece 0 is_piece_in_event_space(p) && (is_troops(p) || is_police(p))
+			save_space
+			space 1 is_city(s)
+				move
+			endspace
+			restore_space
+		endpiece
+	endspace
+	prompt Place AUC pieces in Cities.
+	space 2 is_city(s)
+		place_any AUC
+	endspace
+
+EVENT 41
+	resources AUC -6
+	# FIXME
+	# space 1 has_auc_piece(s)
+	space 1 true
+		piece 0 is_piece_in_event_space(p) && is_auc_piece(p)
+			remove
+		endpiece
+	endspace
+
+SHADED 41
+	prompt Select each space with AUC and Cartels pieces.
+	space 0 has_auc_piece(s) && has_cartels_piece(s)
+		resources AUC 3
+	endspace
+
+EVENT 42
+	space 2 is_neutral(s)
+		set_passive_support
+	endspace
+	resources GOVT 3
+
+SHADED 42
+	log ()=>`No Sweep or Assault against ${faction_name[game.current]} until next Propaganda.`
+	senado
+	momentum
+
+EVENT 43
+	space 1 is_dept(s) && has_troops(s)
+		terror
+		terror
+		piece 0 is_piece_in_event_space(p) && is_farc_base(p)
+			remove
+		endpiece
+	endspace
+
+SHADED 43
+	space 1 is_dept(s) && has_troops(s)
+		terror
+		terror
+	endspace
+	aid -9
+
+EVENT 44
+	space 1 is_city(s) && !is_opposition(s)
+		set_active_support
+	endspace
+	resources GOVT 3
+
+SHADED 44
+	space 1 is_city(s) && is_support(s)
+		set_neutral
+	endspace
+	resources GOVT -3
+
+EVENT 45
+	space 0 has_cubes(s) && has_terror(s)
+		shift_support
+	endspace
+
+SHADED 45
+	prompt Select each space with AUC pieces.
+	space 0 has_auc_piece(s)
+		aid -1
+	endspace
+	roll
+	resources GOVT (-game.vm.die)
+
+
+
+
+SHADED 48
+	space 2 s !== BOGOTA && is_city(s)
+		shift_opposition
+	endspace
+
+SHADED 49
+	space 1 is_dept(s)
+		place AUC GUERRILLA
+		place AUC BASE
+	endspace
+
+EVENT 50
+	current GOVT
+	space 1 is_dept(s) && !is_farc_zone(s)
+		place GOVT POLICE
+	endspace
+	space 1 is_dept(s) && !is_farc_zone(s)
+		place GOVT POLICE
+	endspace
+	space 1 is_dept(s) && !is_farc_zone(s)
+		place GOVT POLICE
+	endspace
+
+EVENT 51
+	if is_any_pipeline_sabotaged()
+		prompt Remove all Pipeline Sabotage.
+		space 0 is_pipeline(s) && has_sabotage(s)
+			remove_sabotage
+		endspace
+		return
+	endif
+	resources GOVT 12
+
+SHADED 51
+	prompt Sabotage Pipelines with or adjacent to FARC Guerrillas.
+	space 3 is_pipeline(s) && (has_farc_guerrilla(s) || adjacent_has_farc_guerrilla(s))
+		sabotage
+	endspace
+
+EVENT 52
+	space 2 is_city(s) || is_mountain(s)
+		shift_support
+	endspace
+
+SHADED 52
+	space 1 has_auc_piece(s) && can_place_base(s)
+		place AUC BASE
+	endspace
+	piece 0 is_auc_base(p)
+		resources AUC 1
+	endpiece
+
+EVENT 55
+	remove_shipment
+	remove_shipment
+	piece 5 is_cartels_guerrilla(p)
+		remove
+	endpiece
+	aid 3
+
+SHADED 55
+	space 3 has_cartel_piece(s)
+		shift_opposition
+	endspace
+
+EVENT 56
+	transfer CARTELS GOVT 15
+
+SHADED 56
+	piece 0 is_cartels_piece(p) && is_city(s)
+		resources CARTELS 2
+	endpiece
+	space 2 is_city(s) && can_place_base(s)
+		place CARTELS BASE
+	endspace
+
+EVENT 57
+	prompt Replace Cartels pieces with Police.
+	optional
+	piece 3 is_cartels_piece(p)
+		set_piece_space
+		remove
+		not_optional
+		place GOVT POLICE
+		optional
+	endpiece
+
+SHADED 57
+	prompt Replace Police with any Cartels pieces.
+	space 2 has_police(s)
+		piece 1 is_piece_in_event_space(p) && is_police(p)
+			remove
+			place_any CARTELS
+		endpiece
+	endspace
+
+EVENT 58
+	resources CARTELS -6
+	piece 0 is_cartels_guerrilla(p)
+		remove
+	endpiece
+
+SHADED 58
+	current CARTELS
+	optional
+	prompt Relocate Police to any spaces.
+	piece 4 is_police(p)
+		space 1 is_space(s)
+			move
+		endspace
+	endpiece
+
+SHADED 59
+	current CARTELS
+	prompt Flip all Cartels Guerrillas underground.
+	piece 0 is_cartels_guerrilla(p) && is_active(p)
+		underground
+	endpiece
+	optional
+	prompt Relocate Cartels Guerrillas anywhere.
+	piece 3 is_cartels_guerrilla(p)
+		space 1 is_space(s)
+			move
+		endspace
+	endpiece
+
+EVENT 60
+	space 2 has_cartels_piece(s) && ((is_city(s) && (game.vm.ss.length === 0 || is_city(game.vm.ss[0]))) || (is_dept(s) && game.vm.ss.length === 0))
+		piece 0 is_piece_in_event_space(p) && is_cartels_piece(p)
+			remove
+		endpiece
+	endspace
+	resources GOVT 6
+
+EVENT 61
+	space 1 is_city(s)
+		piece 0 is_piece_in_event_space(p) && is_cartels_piece(p)
+			remove
+		endpiece
+	endspace
+	resources CARTELS -6
+
+SHADED 61
+	space 3 !has_cartels_piece(s) && can_place_base(s)
+		place CARTELS BASE
+	endspace
+
+EVENT 62
+	optional
+	piece 3 is_insurgent_piece(p) && is_zero_pop_forest(s)
+		remove
+	endpiece
+
+SHADED 62
+	space 3 s === GUAINIA || s === VAUPES || s === AMAZONAS
+		place CARTELS BASE
+	endspace
+
+EVENT 64
+	prompt Place Shipments with FARC Guerrillas.
+	piece 2 is_farc_guerrilla(p) && has_cartels_base(s) && has_available_shipment()
+		place_shipment
+	endpiece
+
+SHADED 64
+	prompt Select each Cartels Base in a City.
+	piece 0 is_cartels_base(p) && is_city(s)
+		resources CARTELS 2
+	endpiece
+	prompt Select each Cartels Base in a Dept.
+	piece 0 is_cartels_base(p) && is_dept(s)
+		resources CARTELS 1
+	endpiece
+
+EVENT 66
+	piece 3 is_cartels_base(p) && is_forest(s)
+		remove
+	endpiece
+
+SHADED 66
+	space 0 is_forest(s) && has_cartels_base(s) && can_place_base(s)
+		place CARTELS BASE
+	endspace
+
+EVENT 67
+	resources CARTELS -20
+
+SHADED 67
+	log This Resources phase, Cartels add Resources equal to 4 x Bases.
+	momentum
+
+SHADED 68
+	prompt Select each Cartels piece in coastal spaces.
+	piece 0 is_cartels_piece(p) && is_coastal_space(s)
+		resources CARTELS 2
+	endpiece
+
+EVENT 70
+	prompt Select each Forest without Guerrillas.
+	space 0 is_forest(s) && !has_any_guerrilla(s)
+		resources GOVT 6
+	endspace
+
+EVENT 71
+	prompt Remove a Guerrilla from Chocó.
+	piece 1 is_guerrilla(p) && game.pieces[p] === CHOCO
+		remove
+		resources (piece_faction(game.vm.p)) -5
+	endpiece
+
+SHADED 71
+	capability
+	space 1 s === PANAMA
+		place (game.current) BASE
+		place (game.current) BASE
+	endspace
+
+EVENT 72
+	space 2 has_cartels_guerrilla(s)
+		pieces 0 is_piece_in_event_space(p) && is_cartels_guerrilla(p)
+			remove
+			place [FARC,AUC] GUERRILLA
+		endpiece
+	endspace
+
+# --- --- --- --- ---
+
+
+EOF
+
+
+
+
+
+EVENT 53
+	select insurgent faction
+		select 2 depts
+			move 1 or 2 guerrillas between depts
+			flip them underground
+
+
+SELECT A OR B
+
+EVENT 68
+	remove 2 cartels pieces from coastal spaces
+	OR
+	remove 2 shipments from coastal spaces
+
+EVENT 54
+	remove up to 2 guerrillas
+	or
+	replace up to 2 guerrillas with any other factions' available guerrillas
+
+EVENT 65
+	in one mountain dept:
+		place or remove 1 shipment
+		place or remove 1 insurgent base
+
+SHADED 50
+	remove 2 police
+	OR
+	replace 2 police with available auc guerrilla
+
+FREE ACTIVITIES / OPS
+
+EVENT 47
+	all/ auc guerrillas active
+	all police free assault auc as if troops
+
+EVENT 59
+	all cartels guerrillas to active
+	free assault cartels in each space
+
+SHADED 20
+	TODO
+	# farc free marches
+	# farc flip 3 farc guerrillas underground
+
+SHADED 29
+	TODO
+	# select farc or auc
+	# execute 2 free ambushes with any of its guerrillas without activating
+
+SHADED 47
+	# select auc
+	# place 2 guerrillas in cucuta
+	# free terror in cucuta
+	# flip any 2 auc guerrillas underground
+
+SHADED 60
+	# select cartels
+	# in 2 cities
+	# place available cartels base
+	# in 1 space
+	# free bribe
+
+SHADED 37
+	# select auc
+	# free march any guerrillas
+	# at 1 destination free ambush
+
+SHADED 70
+	# select insurgent faction
+	# in each forest
+	# free terror with any 1 guerrilla
+	# resources 3 per terror (marker or op?)
+
+COMPLICATED
+
+EVENT 46
+	select insurgent faction
+		select space for terror
+			free terror with any guerrilla
+			remove any 2 enemy pieces in space
+			if pop
+				set_to_passive_support_or_opposition
+			the terror places 2 markers
+
+EVENT 69
+	select source space
+	select destination space through chain of up to 3 adjacent depts
+	move any cubes/guerrillas from source to destination
+	any free op (except patrol or march) in destination
+
+EVENT 49
+	# permanently remove 3 available AUC guerrillas
+	set_space UNAVAILABLE
+	place AUC GUERRILLA
+	place AUC GUERRILLA
+	place AUC GUERRILLA
+
+EVENT 63
+	in each space with cartels guerrillas
+		remove all but 1
+		cartels free terror with that 1
+	ineligible CARTELS
+
+
+
+EVENT 5
+	space 1 is_pipeline(s)
+		place GOVT POLICE
+		mark_space
+	endspace
+	space 1 is_pipeline(s)
+		place GOVT POLICE
+		mark_space
+	endspace
+	space 1 is_pipeline(s)
+		place GOVT POLICE
+		mark_space
+	endspace
+	space 1 is_pipeline(s)
+		place GOVT POLICE
+		mark_space
+	endspace
+	space 1 is_pipeline(s)
+		place GOVT POLICE
+		mark_space
+	endspace
+	space 1 is_pipeline(s)
+		place GOVT POLICE
+		mark_space
+	endspace
+
+SHADED 72
+	# place all available guerrillas into spaces with cartels bases
+	space 0 has_cartels_base(s) && has_piece(AVAILABLE, CARTELS, GUERRILLA)
+		place CARTELS GUERRILLA
+	endspace
+
+EVENT 48
+	space 1 is_adjacent_to_3econ_pipeline(s)
+	in 1 space adjacent to 3-econ pipeline
+		remove FARC base
+		OR
+		"remove 1 opposition"
+		if opposition
+			shift_neutral
+
