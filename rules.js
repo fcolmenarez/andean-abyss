@@ -287,7 +287,7 @@ exports.setup = function (seed, scenario, options) {
 			setup_deck(4, 0, 15)
 	}
 
-	//game.deck[0] = 34
+	game.deck[0] = 5
 	log("DECK " + game.deck.join(", "))
 
 	update_control()
@@ -1231,6 +1231,13 @@ function is_any_pipeline_sabotaged() {
 function adjacent_has_farc_guerrilla(s) {
 	for (let x of data.spaces[s].adjacent)
 		if (has_farc_guerrilla(x))
+			return true
+	return false
+}
+
+function is_there_or_adjacent(s, list) {
+	for (let x of list)
+		if (x === s || is_adjacent(x, s))
 			return true
 	return false
 }
@@ -4374,6 +4381,7 @@ function goto_vm(start) {
 		s: -1,
 		pp: [],
 		p: -1,
+		m: 0,
 		die: 0,
 		opt: 0,
 		prompt: 0,
@@ -4475,8 +4483,29 @@ states.vm_return = {
 	end_event,
 }
 
+function vm_set_space() {
+	game.vm.s = vm_operand(1)
+	vm_next()
+}
+
 function vm_set_piece_space() {
 	game.vm.s = game.pieces[game.vm.p]
+	vm_next()
+}
+
+function vm_mark_space() {
+	if (game.vm.m)
+		set_add(game.vm.m, game.vm.s)
+	else
+		game.vm.m = [ game.vm.s ]
+	vm_next()
+}
+
+function vm_mark_piece() {
+	if (game.vm.m)
+		set_add(game.vm.m, game.vm.p)
+	else
+		game.vm.m = [ game.vm.p ]
 	vm_next()
 }
 
@@ -4705,11 +4734,11 @@ states.vm_aid = {
 	},
 }
 
-function vm_select_insurgent() {
-	game.state = "vm_select_insurgent"
+function vm_current_insurgent() {
+	game.state = "vm_current_insurgent"
 }
 
-states.vm_select_insurgent = {
+states.vm_current_insurgent = {
 	prompt() {
 		event_prompt("Select an Insurgent Faction.")
 		view.actions.farc = 1
@@ -4772,6 +4801,7 @@ states.vm_place = {
 	prompt() {
 		let faction = vm_operand(1)
 		let type = vm_operand(2)
+		let where = space_name[game.vm.s]
 		view.where = game.vm.s
 		if (typeof faction === "object" && typeof type === "object") {
 			event_prompt(`Place piece in ${space_name[game.vm.s]}.`)
@@ -4793,6 +4823,29 @@ states.vm_place = {
 	},
 	piece(p) {
 		place_piece(p, game.vm.s)
+		update_control()
+		vm_next()
+	},
+}
+
+function vm_remove_permanently() {
+	let faction = vm_operand(1)
+	let type = vm_operand(2)
+	if (has_piece(AVAILABLE, faction, type))
+		game.state = "vm_remove_permanently"
+	else
+		vm_next()
+}
+
+states.vm_remove_permanently = {
+	prompt() {
+		let faction = vm_operand(1)
+		let type = vm_operand(2)
+		event_prompt(`Remove ${piece_name[faction][type]} permanently.`)
+		gen_place_piece(OUT_OF_PLAY, faction, type)
+	},
+	piece(p) {
+		place_piece(p, OUT_OF_PLAY)
 		update_control()
 		vm_next()
 	},
@@ -5466,7 +5519,35 @@ const CODE = [
 	[ vm_endspace ],
 	[ vm_return ],
 	// EVENT 5
-	[ vm_TODO ],
+	[ vm_prompt, "Place Police onto Pipelines." ],
+	[ vm_space, 1, (s)=>is_pipeline(s) ],
+	[ vm_place, GOVT, POLICE ],
+	[ vm_mark_space ],
+	[ vm_endspace ],
+	[ vm_space, 1, (s)=>is_pipeline(s) ],
+	[ vm_place, GOVT, POLICE ],
+	[ vm_mark_space ],
+	[ vm_endspace ],
+	[ vm_space, 1, (s)=>is_pipeline(s) ],
+	[ vm_place, GOVT, POLICE ],
+	[ vm_mark_space ],
+	[ vm_endspace ],
+	[ vm_space, 1, (s)=>is_pipeline(s) ],
+	[ vm_place, GOVT, POLICE ],
+	[ vm_mark_space ],
+	[ vm_endspace ],
+	[ vm_space, 1, (s)=>is_pipeline(s) ],
+	[ vm_place, GOVT, POLICE ],
+	[ vm_mark_space ],
+	[ vm_endspace ],
+	[ vm_space, 1, (s)=>is_pipeline(s) ],
+	[ vm_place, GOVT, POLICE ],
+	[ vm_mark_space ],
+	[ vm_endspace ],
+	[ vm_prompt, "Flip 3 Guerrillas there or adjacent to Active." ],
+	[ vm_piece, 3, (p,s)=>is_guerrilla(p) && is_underground(p) && is_there_or_adjacent(s, game.vm.m) ],
+	[ vm_activate ],
+	[ vm_endpiece ],
 	[ vm_return ],
 	// SHADED 5
 	[ vm_prompt, "Shift space adjacent to a 3-Econ LoC by 2 levels toward Active Opposition." ],
@@ -5802,7 +5883,7 @@ const CODE = [
 	[ vm_resources, -1, -5 ],
 	[ vm_return ],
 	// SHADED 34
-	[ vm_select_insurgent ],
+	[ vm_current_insurgent ],
 	[ vm_space, 1, (s)=>is_zero_pop_dept(s) ],
 	[ vm_place, ()=>(game.current), GUERRILLA ],
 	[ vm_place, ()=>(game.current), GUERRILLA ],
@@ -6002,7 +6083,10 @@ const CODE = [
 	[ vm_endspace ],
 	[ vm_return ],
 	// EVENT 49
-	// TODO
+	[ vm_remove_permanently, AUC, GUERRILLA ],
+	[ vm_remove_permanently, AUC, GUERRILLA ],
+	[ vm_remove_permanently, AUC, GUERRILLA ],
+	[ vm_return ],
 	// SHADED 49
 	[ vm_space, 1, (s)=>is_dept(s) ],
 	[ vm_place, AUC, GUERRILLA ],
@@ -6053,7 +6137,23 @@ const CODE = [
 	[ vm_endpiece ],
 	[ vm_return ],
 	// EVENT 53
-	// TODO
+	[ vm_current_insurgent ],
+	[ vm_prompt, "Select Departments to move Guerrillas between." ],
+	[ vm_space, 2, (s)=>is_dept(s) ],
+	[ vm_mark_space ],
+	[ vm_endspace ],
+	[ vm_prompt, "Move Guerrillas between Departments." ],
+	[ vm_piece, 2, (p,s)=>is_guerrilla(p) && (game.pieces[p] === game.vm.m[0] || game.pieces[p] === game.vm.m[1]) ],
+	[ vm_if, ()=>game.pieces[game.vm.p] === game.vm.m[0] ],
+	[ vm_set_space, ()=>(game.vm.m[1]) ],
+	[ vm_endif ],
+	[ vm_if, ()=>game.pieces[game.vm.p] === game.vm.m[1] ],
+	[ vm_set_space, ()=>(game.vm.m[0]) ],
+	[ vm_endif ],
+	[ vm_move ],
+	[ vm_underground ],
+	[ vm_endpiece ],
+	[ vm_return ],
 	// SHADED 53
 	// TODO
 	// EVENT 54
@@ -6256,4 +6356,4 @@ const CODE = [
 	// SHADED 72
 	// TODO
 ]
-const CODE_INDEX = [ 0, 3, 6, 9, 12, 15, 18, 23, 28, 30, 36, 41, 50, 53, 56, 59, 61, 64, 67, 70, 73, 76, 79, 82, 85, 88, 91, 99, 108, 111, 115, 120, 122, 125, 128, 131, 135, -1, 137, -1, 143, 148, 153, 157, 160, 169, 176, 181, 190, 196, 202, 204, 209, 211, 214, 221, 228, -1, 230, 237, 270, 277, 281, 285, 287, 294, 300, 302, 309, 317, 322, -1, 355, -1, 357, 363, 369, 373, 384, 391, 406, 413, 418, 423, 427, 435, 441, 446, 451, 455, -1, -1, -1, -1, -1, 462, -1, 466, 471, -1, 482, 491, 496, 500, -1, -1, -1, -1, 507, 514, 518, 520, 527, 537, 545, 550, -1, 559, 572, -1, 579, 586, 590, 595, -1, -1, 599, 604, -1, -1, 613, 617, 621, 623, -1, 626, -1, -1, 631, -1, 636, 642, 648, -1 ]
+const CODE_INDEX = [ 0, 3, 6, 9, 12, 15, 18, 23, 28, 58, 64, 69, 78, 81, 84, 87, 89, 92, 95, 98, 101, 104, 107, 110, 113, 116, 119, 127, 136, 139, 143, 148, 150, 153, 156, 159, 163, -1, 165, -1, 171, 176, 181, 185, 188, 197, 204, 209, 218, 224, 230, 232, 237, 239, 242, 249, 256, -1, 258, 265, 298, 305, 309, 313, 315, 322, 328, 330, 337, 345, 350, -1, 383, -1, 385, 391, 397, 401, 412, 419, 434, 441, 446, 451, 455, 463, 469, 474, 479, 483, -1, -1, -1, -1, -1, 490, 494, 498, 503, -1, 514, 523, 528, 532, 539, -1, -1, -1, 556, 563, 567, 569, 576, 586, 594, 599, -1, 608, 621, -1, 628, 635, 639, 644, -1, -1, 648, 653, -1, -1, 662, 666, 670, 672, -1, 675, -1, -1, 680, -1, 685, 691, 697, -1 ]

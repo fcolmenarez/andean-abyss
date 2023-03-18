@@ -35,9 +35,35 @@ SHADED 4
 	endspace
 
 EVENT 5
-	TODO
-	# piece 3 is_guerrilla(p) && is_underground(p) && in_or_adjac
-	# flip to active 3 guerillas there or adjacent
+	prompt Place Police onto Pipelines.
+	space 1 is_pipeline(s)
+		place GOVT POLICE
+		mark_space
+	endspace
+	space 1 is_pipeline(s)
+		place GOVT POLICE
+		mark_space
+	endspace
+	space 1 is_pipeline(s)
+		place GOVT POLICE
+		mark_space
+	endspace
+	space 1 is_pipeline(s)
+		place GOVT POLICE
+		mark_space
+	endspace
+	space 1 is_pipeline(s)
+		place GOVT POLICE
+		mark_space
+	endspace
+	space 1 is_pipeline(s)
+		place GOVT POLICE
+		mark_space
+	endspace
+	prompt Flip 3 Guerrillas there or adjacent to Active.
+	piece 3 is_guerrilla(p) && is_underground(p) && is_there_or_adjacent(s, game.vm.m)
+		activate
+	endpiece
 
 SHADED 5
 	prompt Shift space adjacent to a 3-Econ LoC by 2 levels toward Active Opposition.
@@ -386,7 +412,7 @@ EVENT 34
 	resources -1 -5
 
 SHADED 34
-	select_insurgent
+	current_insurgent
 	space 1 is_zero_pop_dept(s)
 		place (game.current) GUERRILLA
 		place (game.current) GUERRILLA
@@ -574,13 +600,15 @@ SHADED 45
 	roll
 	resources GOVT (-game.vm.die)
 
-
-
-
 SHADED 48
 	space 2 s !== BOGOTA && is_city(s)
 		shift_opposition
 	endspace
+
+EVENT 49
+	remove_permanently AUC GUERRILLA
+	remove_permanently AUC GUERRILLA
+	remove_permanently AUC GUERRILLA
 
 SHADED 49
 	space 1 is_dept(s)
@@ -627,6 +655,24 @@ SHADED 52
 	endspace
 	piece 0 is_auc_base(p)
 		resources AUC 1
+	endpiece
+
+EVENT 53
+	current_insurgent
+	prompt Select Departments to move Guerrillas between.
+	space 2 is_dept(s)
+		mark_space
+	endspace
+	prompt Move Guerrillas between Departments.
+	piece 2 is_guerrilla(p) && (game.pieces[p] === game.vm.m[0] || game.pieces[p] === game.vm.m[1])
+		if game.pieces[game.vm.p] === game.vm.m[0]
+			set_space (game.vm.m[1])
+		endif
+		if game.pieces[game.vm.p] === game.vm.m[1]
+			set_space (game.vm.m[0])
+		endif
+		move
+		underground
 	endpiece
 
 EVENT 55
@@ -808,38 +854,6 @@ EVENT 72
 EOF
 
 
-
-
-
-EVENT 53
-	select insurgent faction
-		select 2 depts
-			move 1 or 2 guerrillas between depts
-			flip them underground
-
-
-SELECT A OR B
-
-EVENT 68
-	remove 2 cartels pieces from coastal spaces
-	OR
-	remove 2 shipments from coastal spaces
-
-EVENT 54
-	remove up to 2 guerrillas
-	or
-	replace up to 2 guerrillas with any other factions' available guerrillas
-
-EVENT 65
-	in one mountain dept:
-		place or remove 1 shipment
-		place or remove 1 insurgent base
-
-SHADED 50
-	remove 2 police
-	OR
-	replace 2 police with available auc guerrilla
-
 FREE ACTIVITIES / OPS
 
 EVENT 47
@@ -901,13 +915,6 @@ EVENT 69
 	move any cubes/guerrillas from source to destination
 	any free op (except patrol or march) in destination
 
-EVENT 49
-	# permanently remove 3 available AUC guerrillas
-	set_space UNAVAILABLE
-	place AUC GUERRILLA
-	place AUC GUERRILLA
-	place AUC GUERRILLA
-
 EVENT 63
 	in each space with cartels guerrillas
 		remove all but 1
@@ -915,32 +922,6 @@ EVENT 63
 	ineligible CARTELS
 
 
-
-EVENT 5
-	space 1 is_pipeline(s)
-		place GOVT POLICE
-		mark_space
-	endspace
-	space 1 is_pipeline(s)
-		place GOVT POLICE
-		mark_space
-	endspace
-	space 1 is_pipeline(s)
-		place GOVT POLICE
-		mark_space
-	endspace
-	space 1 is_pipeline(s)
-		place GOVT POLICE
-		mark_space
-	endspace
-	space 1 is_pipeline(s)
-		place GOVT POLICE
-		mark_space
-	endspace
-	space 1 is_pipeline(s)
-		place GOVT POLICE
-		mark_space
-	endspace
 
 SHADED 72
 	# place all available guerrillas into spaces with cartels bases
@@ -956,4 +937,25 @@ EVENT 48
 		"remove 1 opposition"
 		if opposition
 			shift_neutral
+
+
+EVENT 68
+	remove 2 cartels pieces from coastal spaces
+	OR
+	remove 2 shipments from coastal spaces
+
+EVENT 54
+	remove up to 2 guerrillas
+	or
+	replace up to 2 guerrillas with any other factions' available guerrillas
+
+EVENT 65
+	in one mountain dept:
+		place or remove 1 shipment
+		place or remove 1 insurgent base
+
+SHADED 50
+	remove 2 police
+	OR
+	replace 2 police with available auc guerrilla
 
