@@ -285,7 +285,7 @@ exports.setup = function (seed, scenario, options) {
 			setup_deck(4, 0, 15)
 	}
 
-	game.deck[0] = 46
+	game.deck[0] = 19
 	log("DECK " + game.deck.join(", "))
 
 	update_control()
@@ -1581,6 +1581,11 @@ function goto_operation(free, limited, special, ship) {
 	game.sa = special
 }
 
+function init_free_operation(state) {
+	goto_operation(1, 0, 0, 0)
+	game.state = state
+}
+
 function can_ship() {
 	return game.op.ship && is_any_shipment_held(game.current)
 }
@@ -1670,7 +1675,6 @@ states.ask_resources = {
 	disable_negotiation: true,
 	prompt() {
 		view.prompt = "Negotiate: Ask another faction for resources?"
-		console.log("game.current", game.current)
 		if (!is_player_govt() && game.resources[GOVT] > 0)
 			gen_action_resources(GOVT)
 		if (!is_player_farc() && game.resources[FARC] > 0)
@@ -2679,6 +2683,19 @@ states.patrol_done = {
 
 // OPERATION: SWEEP
 
+function vm_free_sweep() {
+	init_free_operation("sweep_activate")
+	game.op.where = game.vm.s
+	do_sweep_activate()
+}
+
+function vm_free_sweep_farc() {
+	init_free_operation("sweep_activate")
+	game.op.faction = FARC
+	game.op.where = game.vm.s
+	do_sweep_activate()
+}
+
 function can_sweep_move(here) {
 	if (has_piece(here, GOVT, TROOPS) || has_piece(here, GOVT, POLICE))
 		return true
@@ -2786,24 +2803,35 @@ states.sweep_move = {
 	},
 	next() {
 		push_undo()
-		game.state = "sweep_activate"
-
-		let n_troops = count_pieces(game.op.where, GOVT, TROOPS)
-		let n_police = count_pieces(game.op.where, GOVT, POLICE)
-		game.op.count = n_troops + n_police
-
-		if (has_shaded_capability(CAP_NDSC))
-			game.op.count = Math.max(n_troops, n_police)
-
-		if (is_forest(game.op.where))
-			game.op.count >>= 1
-
-		if (game.op.count === 0 || !can_sweep_activate(game.op.where))
-			game.state = "sweep"
+		do_sweep_activate()
 	},
 }
 
+
+function do_sweep_activate() {
+	game.state = "sweep_activate"
+
+	let n_troops = count_pieces(game.op.where, GOVT, TROOPS)
+	let n_police = count_pieces(game.op.where, GOVT, POLICE)
+
+	// Event 37: AUC Guerillas act as Troops
+	if (game.op.faction === FARC)
+		n_troops += count_pieces(game.op.where, AUC, GUERRILLA)
+
+	game.op.count = n_troops + n_police
+	if (has_shaded_capability(CAP_NDSC))
+		game.op.count = Math.max(n_troops, n_police)
+
+	if (is_forest(game.op.where))
+		game.op.count >>= 1
+
+	if (game.op.count === 0 || !can_sweep_activate(game.op.where))
+		do_sweep_next()
+}
+
 function can_sweep_activate(s) {
+	if (game.op.faction === FARC)
+		return has_underground_guerrilla(s, FARC)
 	return (
 		(game.senado !== FARC && has_underground_guerrilla(s, FARC)) ||
 		(game.senado !== AUC && has_underground_guerrilla(s, AUC)) ||
@@ -2818,12 +2846,16 @@ states.sweep_activate = {
 
 		gen_any_govt_special()
 
-		if (game.senado !== FARC)
+		if (game.op.faction === FARC) {
 			gen_underground_guerrillas(game.op.where, FARC)
-		if (game.senado !== AUC)
-			gen_underground_guerrillas(game.op.where, AUC)
-		if (game.senado !== CARTELS)
-			gen_underground_guerrillas(game.op.where, CARTELS)
+		} else {
+			if (game.senado !== FARC)
+				gen_underground_guerrillas(game.op.where, FARC)
+			if (game.senado !== AUC)
+				gen_underground_guerrillas(game.op.where, AUC)
+			if (game.senado !== CARTELS)
+				gen_underground_guerrillas(game.op.where, CARTELS)
+		}
 
 		if (did_maximum_damage(game.op.targeted))
 			view.actions.next = 1
@@ -2835,19 +2867,61 @@ states.sweep_activate = {
 		game.op.targeted |= target_faction(p)
 		set_active(p)
 		if (--game.op.count === 0 || !can_sweep_activate(game.op.where))
-			game.state = "sweep"
+			this.next()
 	},
 	next() {
 		push_undo()
-		game.state = "sweep"
+		do_sweep_next()
 	},
+}
+
+function do_sweep_next() {
+	if (game.vm)
+		end_operation()
+	else
+		game.state = "sweep"
 }
 
 // OPERATION: ASSAULT
 
-function can_assault_space(s) {
+function vm_free_assault() {
+	init_free_operation("assault_space")
+	game.op.where = game.vm.s
+	game.op.count = assault_kill_count(game.vm.s)
+}
+
+function vm_free_assault_auc() {
+	init_free_operation("assault_space")
+	game.op.faction = AUC
+	game.op.where = game.vm.s
+	game.op.count = assault_kill_count(game.vm.s)
+}
+
+function vm_free_assault_farc() {
+	init_free_operation("assault_space")
+	game.op.faction = FARC
+	game.op.where = game.vm.s
+	game.op.count = assault_kill_count(game.vm.s)
+}
+
+function can_assault_space(s, target) {
+	// Card 37
+	if (target === FARC) {
+		if (has_piece(s, FARC, GUERRILLA))
+			return has_active_guerrilla(s, FARC)
+		return has_piece(s, FARC, BASE)
+	}
+
+	// Card 47
+	if (target === AUC) {
+		if (has_piece(s, AUC, GUERRILLA))
+			return has_active_guerrilla(s, AUC)
+		return has_piece(s, AUC, BASE)
+	}
+
 	if (is_dept(s) && has_momentum(MOM_MADRID_DONORS))
 		return false
+
 	for (let faction = 1; faction < 4; ++faction) {
 		if (game.senado === faction)
 			continue
@@ -2871,6 +2945,24 @@ function gen_exposed_piece(s, faction) {
 
 function assault_kill_count(s) {
 	let n = count_pieces(s, GOVT, TROOPS)
+
+	// Card 47: All Police free Assault AUC as if Troops.
+	if (game.op.faction === AUC) {
+		n = count_pieces(s, GOVT, POLICE)
+		if (is_mountain(s)) {
+			if (has_capability(CAP_MTN_BNS))
+				return n
+			if (has_shaded_capability(CAP_MTN_BNS))
+				return n >> 2
+			return n >> 1
+		}
+		return n
+	}
+
+	// Event 37: AUC Guerillas act as Troops
+	if (game.op.faction === FARC)
+		n += count_pieces(s, AUC, GUERRILLA)
+
 	if (is_city_or_loc(s))
 		return n + count_pieces(s, GOVT, POLICE)
 	if (is_mountain(s)) {
@@ -2897,7 +2989,7 @@ states.assault = {
 			for (let s = first_space; s <= last_dept; ++s) {
 				if (is_selected_op_space(s))
 					continue
-				if (can_assault_space(s) && assault_kill_count(s) > 0)
+				if (can_assault_space(s, game.op.faction) && assault_kill_count(s) > 0)
 					gen_action_space(s)
 			}
 		}
@@ -2928,12 +3020,18 @@ states.assault_space = {
 
 		gen_any_govt_special()
 
-		if (game.senado !== FARC)
+		if (game.faction === FARC) {
 			gen_exposed_piece(game.op.where, FARC)
-		if (game.senado !== AUC)
+		} else if (game.faction === AUC) {
 			gen_exposed_piece(game.op.where, AUC)
-		if (game.senado !== CARTELS)
-			gen_exposed_piece(game.op.where, CARTELS)
+		} else {
+			if (game.senado !== FARC)
+				gen_exposed_piece(game.op.where, FARC)
+			if (game.senado !== AUC)
+				gen_exposed_piece(game.op.where, AUC)
+			if (game.senado !== CARTELS)
+				gen_exposed_piece(game.op.where, CARTELS)
+		}
 
 		if (did_maximum_damage(game.op.targeted))
 			view.actions.next = 1
@@ -2946,12 +3044,15 @@ states.assault_space = {
 		remove_piece(p)
 		update_control()
 
-		if (--game.op.count === 0 || !can_assault_space(game.op.where)) {
-			game.state = "assault"
-			transfer_or_drug_bust_shipments()
-		}
+		if (--game.op.count === 0 || !can_assault_space(game.op.where, game.op.faction))
+			this.next()
 	},
 	next() {
+		if (game.vm) {
+			end_operation()
+			transfer_or_drug_bust_shipments()
+			return
+		}
 		push_undo()
 		game.state = "assault"
 		transfer_or_drug_bust_shipments()
@@ -3125,6 +3226,14 @@ states.rally_move = {
 
 // OPERATION: MARCH
 
+function vm_free_march() {
+	init_free_operation("march")
+	game.op.pieces = []
+	// remember destinations
+	if (game.vm)
+		game.vm.m = []
+}
+
 function can_march_to(to) {
 	for (let from of data.spaces[to].adjacent)
 		if (has_piece(from, game.current, GUERRILLA))
@@ -3171,6 +3280,10 @@ states.march = {
 		push_undo()
 
 		logi(`S${s}.`)
+
+		// remember destinations
+		if (game.vm)
+			set_add(game.vm.m, s)
 
 		if (is_loc(s))
 			select_op_space(s, 0)
@@ -3253,6 +3366,11 @@ states.march_move = {
 
 // OPERATION: ATTACK
 
+function vm_free_attack() {
+	init_free_operation("attack")
+	do_attack_space(game.vm.s)
+}
+
 function has_any_piece(s, faction) {
 	if (faction === GOVT)
 		return has_piece(s, GOVT, BASE) || has_piece(s, GOVT, TROOPS) || has_piece(s, GOVT, POLICE)
@@ -3266,26 +3384,14 @@ function has_exposed_piece(s, faction) {
 		return has_piece(s, faction, BASE)
 }
 
-function has_enemy_piece(s, faction) {
-	if (faction !== GOVT && has_any_piece(s, GOVT))
+function has_enemy_piece(s) {
+	if (game.current !== GOVT && has_any_piece(s, GOVT))
 		return true
-	if (faction !== FARC && has_any_piece(s, FARC))
+	if (game.current !== FARC && has_any_piece(s, FARC))
 		return true
-	if (faction !== AUC && has_any_piece(s, AUC))
+	if (game.current !== AUC && has_any_piece(s, AUC))
 		return true
-	if (faction !== CARTELS && has_any_piece(s, CARTELS))
-		return true
-	return false
-}
-
-function has_exposed_enemy_piece(s, faction) {
-	if (faction !== GOVT && has_any_piece(s, GOVT))
-		return true
-	if (faction !== FARC && has_exposed_piece(s, FARC))
-		return true
-	if (faction !== AUC && has_exposed_piece(s, AUC))
-		return true
-	if (faction !== CARTELS && has_exposed_piece(s, CARTELS))
+	if (game.current !== CARTELS && has_any_piece(s, CARTELS))
 		return true
 	return false
 }
@@ -3316,15 +3422,18 @@ states.attack = {
 	},
 	space(s) {
 		push_undo()
-
-		logi(`S${s}.`)
-
-		select_op_space(s, 1)
-
-		game.state = "attack_space"
-		game.op.where = s
+		do_attack_space()
 	},
 	end_operation,
+}
+
+function do_attack_space(s) {
+	logi(`Attack in S${s}.`)
+
+	select_op_space(s, 1)
+
+	game.state = "attack_space"
+	game.op.where = s
 }
 
 states.attack_space = {
@@ -3360,10 +3469,17 @@ states.attack_space = {
 			game.state = "attack_remove"
 			game.op.count = 2
 		} else {
-			game.state = "attack"
+			do_attack_next()
 		}
 	},
 	ambush: goto_ambush,
+}
+
+function do_attack_next() {
+	if (game.vm)
+		vm_next()
+	else
+		game.state = "attack"
 }
 
 states.attack_place = {
@@ -3407,19 +3523,31 @@ states.attack_remove = {
 
 		// TODO: Captured Goods
 
-		if (--game.op.count === 0 || !has_exposed_enemy_piece(game.op.where, game.current)) {
-			game.state = "attack"
+		if (--game.op.count === 0 || !has_enemy_piece(game.op.where)) {
+			do_attack_next()
 			transfer_or_remove_shipments()
 		}
 	},
 	next() {
-		game.state = "attack"
+		do_attack_next()
 		game.op.count = 0
 		transfer_or_remove_shipments()
 	}
 }
 
 // OPERATION: TERROR
+
+function vm_free_terror() {
+	init_free_operation("terror")
+	do_terror_space(game.vm.s)
+	do_terror_piece(game.vm.p)
+	do_terror_aid()
+}
+
+function vm_free_terror_space() {
+	init_free_operation("terror")
+	do_terror_space(game.vm.s)
+}
 
 states.terror = {
 	prompt() {
@@ -3517,6 +3645,8 @@ function do_terror_piece(p) {
 
 	if (game.sa && game.sa.kidnap)
 		resume_kidnap_2()
+	else if (game.vm)
+		do_terror_aid()
 	else
 		game.state = "terror"
 }
@@ -4086,7 +4216,7 @@ function can_assassinate(s) {
 	if (set_has(game.op.spaces, s))
 		// AUC Guerrillas outnumber Police
 		if (count_pieces(s, AUC, GUERRILLA) > count_pieces(s, GOVT, POLICE))
-			if (has_enemy_piece(s, game.current))
+			if (has_enemy_piece(s))
 				return true
 	return false
 }
@@ -4480,7 +4610,8 @@ function execute_event(shaded) {
 		logi(data.card_flavor_shaded[c] + ".")
 	} else {
 		log(`C${c}`)
-		logi(data.card_flavor[c] + ".")
+		if (data.card_flavor[c])
+			logi(data.card_flavor[c] + ".")
 	}
 
 	let ix = (c << 1) + shaded - 2
@@ -4537,10 +4668,8 @@ function vm_next() {
 
 function vm_goto(op, nop, dir, step) {
 	let balance = 1
-	console.log("vm_goto", op.name, nop.name, dir, step)
 	while (balance > 0) {
 		game.vm.pc += dir
-		console.log(" =>", game.vm.pc, balance)
 		if (CODE[game.vm.pc][0] === op)
 			--balance
 		if (CODE[game.vm.pc][0] === nop)
@@ -4811,7 +4940,7 @@ states.vm_transfer = {
 	},
 }
 
-function vm_autoresources() {
+function vm_auto_resources() {
 	let f = vm_operand(1)
 	let n = vm_operand(2)
 	add_resources(f, n)
@@ -5207,33 +5336,57 @@ function vm_remove_shipment() {
 	game.state = "vm_remove_shipment"
 }
 
-function vm_free_bribe() {
-	goto_free_bribe(game.vm.s)
+// VM: FREE OPERATIONS
+
+function vm_free_sweep_or_assault() {
+	game.state = "vm_free_sweep_or_assault"
 }
 
-function vm_free_ambush() {
-	goto_free_ambush(game.vm.s, game.vm.p)
+states.vm_free_sweep_or_assault = {
+	prompt() {
+		event_prompt(`Free Sweep or Assault in ${space_name[game.vm.s]}.`)
+		view.actions.sweep = 1
+		view.actions.assault = 1
+	},
+	sweep: vm_free_sweep,
+	assault: vm_free_assault,
 }
 
-function vm_free_march() {
-	goto_free_march()
+function vm_free_sweep_or_assault_farc() {
+	game.state = "vm_free_sweep_or_assault_farc"
 }
 
-function vm_free_terror() {
-	goto_free_terror(game.vm.s, game.vm.p)
+states.vm_free_sweep_or_assault_farc = {
+	prompt() {
+		event_prompt(`Free Sweep or Assault FARC in ${space_name[game.vm.s]}.`)
+		view.actions.sweep = 1
+		if (can_assault_space(game.vm.s, FARC))
+			view.actions.assault = 1
+		else
+			view.actions.assault = 0
+	},
+	sweep: vm_free_sweep_farc,
+	assault: vm_free_assault_farc,
 }
 
-function vm_free_assault() {
-	goto_free_assault(game.vm.s)
+function vm_free_attack_or_terror() {
+	game.state = "vm_free_attack_or_terror"
 }
 
-function vm_free_attack() {
-	goto_free_attack(game.vm.s)
+states.vm_free_attack_or_terror = {
+	prompt() {
+		event_prompt(`Free Attack or Terror in ${space_name[game.vm.s]}.`)
+		if (has_enemy_piece(game.vm.s))
+			view.actions.attack = 1
+		else
+			view.actions.attack = 0
+		view.actions.terror = 1
+	},
+	attack: vm_free_attack,
+	terror: vm_free_terror_space,
 }
 
-function vm_free_assault_auc() {
-	goto_free_assault_auc(game.vm.s)
-}
+// VM: FREE ACTIVITIES
 
 function vm_free_govt_activity() {
 	game.state = "vm_free_govt_activity"
@@ -5255,59 +5408,14 @@ function vm_free_air_strike() {
 	goto_free_air_strike()
 }
 
-function vm_free_attack_or_terror() {
-	game.state = "vm_free_attack_or_terror"
+function vm_free_bribe() {
+	goto_free_bribe(game.vm.s)
 }
 
-states.vm_free_attack_or_terror = {
-	prompt() {
-		event_prompt(`Free Attack or Terror in ${space_name[game.vm.s]}.`)
-		view.actions.attack = 1
-		view.actions.terror = 1
-	},
-	attack() {
-		goto_free_attack(game.vm.s)
-	},
-	terror() {
-		goto_free_terror_space(game.vm.s)
-	},
+function vm_free_ambush() {
+	goto_free_ambush(game.vm.s, game.vm.p)
 }
 
-function vm_free_sweep_or_assault() {
-	game.state = "vm_free_sweep_or_assault"
-}
-
-states.vm_free_sweep_or_assault = {
-	prompt() {
-		event_prompt(`Free Sweep or Assault in ${space_name[game.vm.s]}.`)
-		view.actions.sweep = 1
-		view.actions.assault = 1
-	},
-	sweep() {
-		goto_free_sweep(game.vm.s)
-	},
-	assault() {
-		goto_free_assault(game.vm.s)
-	},
-}
-
-function vm_free_sweep_or_assault_farc() {
-	game.state = "vm_free_sweep_or_assault_farc"
-}
-
-states.vm_free_sweep_or_assault_farc = {
-	prompt() {
-		event_prompt(`Free Sweep or Assault FARC in ${space_name[game.vm.s]}.`)
-		view.actions.sweep = 1
-		view.actions.assault = 1
-	},
-	sweep() {
-		goto_free_sweep_farc(game.vm.s)
-	},
-	assault() {
-		goto_free_assault_farc(game.vm.s)
-	},
-}
 
 // === GAME OVER ===
 
@@ -5983,7 +6091,7 @@ const CODE = [
 	[ vm_endspace ],
 	[ vm_endif ],
 	[ vm_if, ()=>game.current !== GOVT ],
-	[ vm_space, 0, (s)=>has_piece(s, game.current, GUERRILLA) && has_enemy_piece(s) ],
+	[ vm_space, 0, (s)=>has_piece(s, game.current, GUERRILLA) ],
 	[ vm_free_attack_or_terror ],
 	[ vm_endspace ],
 	[ vm_endif ],
@@ -6268,8 +6376,8 @@ const CODE = [
 	// TODO
 	// EVENT 37
 	[ vm_current, GOVT ],
-	[ vm_space, 0, (s)=>has_cubes(s) ],
-	[ vm_TODO ],
+	[ vm_space, 0, (s)=>has_cubes(s) && has_farc_piece(s) ],
+	[ vm_free_sweep_or_assault_farc ],
 	[ vm_endspace ],
 	[ vm_return ],
 	// SHADED 37
@@ -6406,12 +6514,12 @@ const CODE = [
 	[ vm_current, [FARC,AUC,CARTELS] ],
 	[ vm_prompt, "Execute free Terror with any Guerrilla." ],
 	[ vm_space, 1, (s)=>has_piece(s, game.current, GUERRILLA) ],
-	[ vm_piece, 1, (p,s)=>is_piece_in_event_space(s) && is_piece(s, game.current, GUERRILLA) ],
+	[ vm_piece, 1, (p,s)=>is_piece_in_event_space(p) && is_piece(p, game.current, GUERRILLA) ],
 	[ vm_free_terror ],
 	[ vm_terror ],
 	[ vm_endpiece ],
 	[ vm_prompt, "Remove enemy pieces." ],
-	[ vm_piece, 2, (p,s)=>is_piece_in_event_space(s) && is_enemy_piece(p) ],
+	[ vm_piece, 2, (p,s)=>is_piece_in_event_space(p) && is_enemy_piece(p) ],
 	[ vm_remove ],
 	[ vm_endpiece ],
 	[ vm_if, ()=>is_pop(game.vm.s) ],
@@ -6425,7 +6533,7 @@ const CODE = [
 	[ vm_piece, 0, (p,s)=>is_auc_guerrilla(p) && is_underground(p) ],
 	[ vm_activate ],
 	[ vm_endpiece ],
-	[ vm_space, 0, (s)=>has_police(s) ],
+	[ vm_space, 0, (s)=>has_police(s) && has_auc_piece(s) ],
 	[ vm_free_assault_auc ],
 	[ vm_endpiece ],
 	[ vm_return ],
@@ -6435,7 +6543,7 @@ const CODE = [
 	[ vm_place, AUC, GUERRILLA ],
 	[ vm_place, AUC, GUERRILLA ],
 	[ vm_prompt, "Execute free Terror in Cúcuta." ],
-	[ vm_piece, 1, (p,s)=>is_piece_in_event_space(p) && is_auc_guerrilla(p) ],
+	[ vm_piece, 1, (p,s)=>is_piece_in_event_space(p) && is_auc_guerrilla(p) && is_underground(p) ],
 	[ vm_free_terror ],
 	[ vm_endpiece ],
 	[ vm_prompt, "Flip any AUC Guerrillas Underground." ],

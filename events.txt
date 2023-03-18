@@ -206,7 +206,7 @@ EVENT 19
 		endspace
 	endif
 	if game.current !== GOVT
-		space 0 has_piece(s, game.current, GUERRILLA) && has_enemy_piece(s)
+		space 0 has_piece(s, game.current, GUERRILLA)
 			free_attack_or_terror
 		endspace
 	endif
@@ -489,10 +489,8 @@ EVENT 36
 
 EVENT 37
 	current GOVT
-	space 0 has_cubes(s)
+	space 0 has_cubes(s) && has_farc_piece(s)
 		free_sweep_or_assault_farc
-		# free sweep farc (no moves) (auc guerrillas act as troops)
-		# free assault farc (auc guerrillas act as troops)
 	endspace
 
 SHADED 37
@@ -632,12 +630,12 @@ EVENT 46
 	current [FARC,AUC,CARTELS]
 	prompt Execute free Terror with any Guerrilla.
 	space 1 has_piece(s, game.current, GUERRILLA)
-		piece 1 is_piece_in_event_space(s) && is_piece(s, game.current, GUERRILLA)
+		piece 1 is_piece_in_event_space(p) && is_piece(p, game.current, GUERRILLA)
 			free_terror
 			terror
 		endpiece
 		prompt Remove enemy pieces.
-		piece 2 is_piece_in_event_space(s) && is_enemy_piece(p)
+		piece 2 is_piece_in_event_space(p) && is_enemy_piece(p)
 			remove
 		endpiece
 		if is_pop(game.vm.s)
@@ -649,7 +647,7 @@ EVENT 47
 	piece 0 is_auc_guerrilla(p) && is_underground(p)
 		activate
 	endpiece
-	space 0 has_police(s)
+	space 0 has_police(s) && has_auc_piece(s)
 		free_assault_auc
 	endpiece
 
@@ -661,7 +659,7 @@ SHADED 47
 		place AUC GUERRILLA
 		place AUC GUERRILLA
 		prompt Execute free Terror in Cúcuta.
-		piece 1 is_piece_in_event_space(p) && is_auc_guerrilla(p)
+		piece 1 is_piece_in_event_space(p) && is_auc_guerrilla(p) && is_underground(p)
 			free_terror
 		endpiece
 	# endspace
