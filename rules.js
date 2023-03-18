@@ -8,8 +8,6 @@
 // TODO: for (s = ... last_space) to for_each_space (including/excluding foreign countries depending on events)
 // TODO: how granular undo (one at start of each space, each step, or each piece?)
 
-// TODO: event can_place_base - allow window for removing own base to make space?
-
 let states = {}
 let game = null
 let view = null
@@ -703,6 +701,11 @@ function count_bases(s) {
 
 function can_place_base(s) {
 	return count_bases(s) < 2
+}
+
+function can_place_piece(s) {
+	// TODO: check stacking limit in Ecuador
+	return true
 }
 
 function count_cubes(s) {
@@ -1588,7 +1591,10 @@ function end_operation() {
 		game.state = "ship"
 	} else {
 		game.op = null
-		resume_event_card()
+		if (game.vm)
+			vm_next()
+		else
+			resume_event_card()
 	}
 }
 
@@ -3448,29 +3454,54 @@ states.terror = {
 		if (!view.actions.space)
 			view.prompt = "Terror: All done."
 
-		gen_operation_common()
+		if (game.current === AUC) {
+			if (game.op.spaces.length > 0)
+				view.actions.next = 1
+			else
+				view.actions.next = 0
+		} else {
+			gen_operation_common()
+		}
 	},
 	space(s) {
 		push_undo()
-		do_terror(s)
+		do_terror_space(s)
 	},
+	next: do_terror_aid,
 	end_operation,
 }
 
-function do_terror(s) {
-	let p = find_underground_guerrilla(s, game.current)
+function do_terror_space(s) {
+	log(`Terror in S${s}.`)
+	if (is_loc(s)) {
+		select_op_space(s, 0)
+	} else {
+		select_op_space(s, 1)
+	}
+	game.state = "terror_space"
+	game.op.where = s
+}
+
+states.terror_space = {
+	prompt() {
+		view.prompt = "Terror: Activate an Underground Guerrilla."
+		view.where = game.op.where
+		gen_underground_guerrillas(game.op.where, game.current)
+	},
+	piece(p) {
+		do_terror_piece(p)
+	},
+}
+
+function do_terror_piece(p) {
+	let s = game.op.where
 
 	set_active(p)
 
-	log(`Terror in S${s}.`)
-
 	if (is_loc(s)) {
-		select_op_space(s, 0)
 		place_sabotage(s)
 	} else {
-		select_op_space(s, 1)
 		place_terror(s)
-
 		if (is_pop(s)) {
 			if (game.current === FARC) {
 				if (game.support[s] !== 0)
@@ -3484,17 +3515,30 @@ function do_terror(s) {
 		}
 	}
 
-	if (game.current === AUC) {
-		// if one space, drop aid by 3
-		if (game.op.spaces.length === 1) {
-			logi("Aid Cut by 3.")
-			add_aid(-3)
-		// if two or more spaces, drop aid by 5
-		} else if (game.op.spaces.length === 2) {
-			logi("Aid Cut by 2.")
-			add_aid(-2)
-		}
-	}
+	if (game.sa && game.sa.kidnap)
+		resume_kidnap_2()
+	else
+		game.state = "terror"
+}
+
+function do_terror_aid() {
+	if (game.current === AUC)
+		game.state = "terror_aid"
+	else
+		end_operation()
+}
+
+states.terror_aid = {
+	prompt() {
+		let n = (game.op.spaces.length >= 2) ? -5 : -3
+		view.prompt = `Terror: Aid Cut by ${n}.`
+		view.actions.aid = 1
+	},
+	aid() {
+		let n = (game.op.spaces.length >= 2) ? -5 : -3
+		add_aid(n)
+		end_operation()
+	},
 }
 
 // === SPECIAL ACTIVITIES ===
@@ -3537,6 +3581,10 @@ function end_special_activity() {
 }
 
 // SPECIAL ACTIVITY: AIR LIFT
+
+function goto_free_air_lift() {
+	throw "TODO"
+}
 
 // TODO: from or to first?
 
@@ -3612,6 +3660,10 @@ states.air_lift_move = {
 
 // SPECIAL ACTIVITY: AIR STRIKE
 
+function goto_free_air_strike() {
+	throw "TODO"
+}
+
 function goto_air_strike() {
 	push_undo()
 	log_h3("Air Strike")
@@ -3643,6 +3695,10 @@ states.air_strike = {
 }
 
 // SPECIAL ACTIVITY: ERADICATE
+
+function goto_free_eradicate() {
+	throw "TODO"
+}
 
 function goto_eradicate() {
 	push_undo()
@@ -3858,6 +3914,7 @@ function goto_kidnap() {
 	push_undo()
 	log_h3("Kidnap")
 	game.sa = {
+		kidnap: 1,
 		save: game.state,
 		spaces: [],
 		where: -1,
@@ -3929,6 +3986,14 @@ function transfer_resources(from, to, n) {
 	add_resources(to, n)
 }
 
+function can_place_auc_piece(s) {
+	if (can_place_base(s) && has_piece(AVAILABLE, AUC, BASE))
+		return true
+	if (can_place_piece(s) && has_piece(AVAILABLE, AUC, GUERRILLA))
+		return true
+	return false
+}
+
 states.kidnap_space = {
 	prompt() {
 		view.prompt = `Kidnap in ${space_name[game.sa.where]}.`
@@ -3962,16 +4027,45 @@ states.kidnap_space = {
 		log("Rolled " + die + ".")
 		transfer_resources(faction, game.current, die)
 
-		// ... will be selected for Terror - by Terroring immediately!
-		if (!is_selected_op_space(game.sa.where))
-			do_terror(game.sa.where)
-
-		// TODO: manually end
-		if (game.sa.spaces.length === 3)
-			end_special_activity()
-		else
-			game.state = "kidnap"
+		if (die === 6 && can_place_auc_piece(game.sa.where)) {
+			game.current = AUC
+			game.state = "kidnap_place"
+		} else {
+			resume_kidnap_1()
+		}
 	},
+}
+
+states.kidnap_place = {
+	prompt() {
+		view.prompt = `Kidnap in ${space_name[game.sa.where]}: Place an AUC piece.`
+		if (can_place_base(game.sa.where))
+			gen_piece_in_space(AVAILABLE, AUC, BASE)
+		if (can_place_piece(game.sa.where))
+			gen_piece_in_space(AVAILABLE, AUC, GUERRILLA)
+	},
+	piece(p) {
+		place_piece(p, game.sa.where)
+		update_control()
+		game.current = FARC
+		resume_kidnap_1()
+	}
+}
+
+function resume_kidnap_1() {
+	// ... will be selected for Terror - by Terroring immediately!
+	if (!is_selected_op_space(game.sa.where))
+		do_terror_space(game.sa.where)
+	else
+		resume_kidnap_2()
+}
+
+function resume_kidnap_2() {
+	// TODO: manually end
+	if (game.sa.spaces.length === 3)
+		end_special_activity()
+	else
+		game.state = "kidnap"
 }
 
 // SPECIAL ACTIVITY: ASSASSINATE
