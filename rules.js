@@ -285,7 +285,7 @@ exports.setup = function (seed, scenario, options) {
 			setup_deck(4, 0, 15)
 	}
 
-	game.deck[0] = 59
+	game.deck[0] = 50
 	log("DECK " + game.deck.join(", "))
 
 	update_control()
@@ -3559,7 +3559,6 @@ function vm_free_terror() {
 	init_free_operation("terror")
 	do_terror_space(game.vm.s)
 	do_terror_piece(game.vm.p)
-	do_terror_aid()
 }
 
 function vm_free_terror_space() {
@@ -3661,19 +3660,18 @@ function do_terror_piece(p) {
 		}
 	}
 
-	if (game.sa && game.sa.kidnap)
+	if (game.sa && game.sa.kidnap) {
 		resume_kidnap_2()
-	else if (game.vm)
-		do_terror_aid()
-	else
+	} else if (game.vm) {
+		game.vm.ac++
+		end_operation()
+	} else {
 		game.state = "terror"
+	}
 }
 
 function do_terror_aid() {
-	if (game.current === AUC)
-		game.state = "terror_aid"
-	else
-		end_operation()
+	game.state = "terror_aid"
 }
 
 states.terror_aid = {
@@ -3686,6 +3684,26 @@ states.terror_aid = {
 		let n = (game.op.spaces.length >= 2) ? -5 : -3
 		add_aid(n)
 		end_operation()
+	},
+}
+
+function vm_terror_aid_cut() {
+	if (game.vm.ac > 0)
+		game.state = "vm_terror_aid_cut"
+	else
+		vm_next()
+}
+
+states.vm_terror_aid_cut = {
+	prompt() {
+		let n = (game.vm.ac >= 2) ? -5 : -3
+		view.prompt = `Terror: Aid Cut by ${n}.`
+		view.actions.aid = 1
+	},
+	aid() {
+		let n = (game.vm.ac >= 2) ? -5 : -3
+		add_aid(n)
+		vm_next()
 	},
 }
 
@@ -3724,6 +3742,10 @@ function gen_any_govt_special() {
 }
 
 function end_special_activity() {
+	if (game.vm) {
+		vm_next()
+		return
+	}
 	game.state = game.sa.save
 	game.sa = 0
 }
@@ -3731,7 +3753,7 @@ function end_special_activity() {
 // SPECIAL ACTIVITY: AIR LIFT
 
 function vm_free_air_lift() {
-	throw "TODO"
+	goto_air_lift()
 }
 
 // TODO: from or to first?
@@ -3809,7 +3831,7 @@ states.air_lift_move = {
 // SPECIAL ACTIVITY: AIR STRIKE
 
 function vm_free_air_strike() {
-	throw "TODO"
+	goto_air_strike()
 }
 
 function goto_air_strike() {
@@ -3845,7 +3867,7 @@ states.air_strike = {
 // SPECIAL ACTIVITY: ERADICATE
 
 function vm_free_eradicate() {
-	throw "TODO"
+	goto_eradicate()
 }
 
 function goto_eradicate() {
@@ -3855,7 +3877,19 @@ function goto_eradicate() {
 		save: game.state,
 		where: -1,
 	}
-	game.state = "eradicate"
+	game.state = "eradicate_aid"
+}
+
+states.eradicate_aid = {
+	prompt() {
+		view.prompt = "Eradicate: Aid +4."
+		view.actions.aid = 1
+	},
+	aid() {
+		logi("+4 Aid.")
+		add_aid(4)
+		game.state = "eradicate"
+	}
 }
 
 states.eradicate = {
@@ -3870,10 +3904,6 @@ states.eradicate = {
 	space(s) {
 		push_undo()
 		log(`Eradicate in S${s}.`)
-
-		logi("+4 Aid.")
-		add_aid(4)
-
 		game.sa.where = s
 		if (has_piece(s, CARTELS, BASE))
 			game.state = "eradicate_base"
@@ -4454,7 +4484,10 @@ states.process_space = {
 // SPECIAL ACTIVITY: BRIBE
 
 function vm_free_bribe() {
-	throw "TODO"
+	goto_bribe()
+	game.sa.where = game.vm.s
+	game.sa.targeted = 0
+	game.state = "bribe_space"
 }
 
 function goto_bribe() {
@@ -4472,6 +4505,10 @@ function goto_bribe() {
 }
 
 function resume_bribe() {
+	if (game.vm) {
+		end_special_activity()
+		return
+	}
 	if (game.sa.spaces.length === 3)
 		end_special_activity()
 	else
@@ -4665,6 +4702,7 @@ function goto_vm(start) {
 		pp: [],
 		p: -1,
 		m: 0,
+		ac: 0,
 		die: 0,
 		opt: 0,
 		prompt: 0,
@@ -5120,7 +5158,7 @@ states.vm_place = {
 		let type = vm_operand(2)
 		let where = space_name[game.vm.s]
 		view.where = game.vm.s
-		let skip = 0
+		let skip = game.vm.opt
 		if (typeof faction === "object" && typeof type === "object") {
 			event_prompt(`Place piece in ${space_name[game.vm.s]}.`)
 			for (let f of faction)
@@ -6204,6 +6242,7 @@ const CODE = [
 	[ vm_endspace ],
 	[ vm_return ],
 	// EVENT 27
+	[ vm_current, GOVT ],
 	[ vm_free_govt_activity ],
 	[ vm_free_govt_activity ],
 	[ vm_free_govt_activity ],
@@ -6527,6 +6566,7 @@ const CODE = [
 	[ vm_piece, 1, (p,s)=>is_piece_in_event_space(p) && is_piece(p, game.current, GUERRILLA) ],
 	[ vm_free_terror ],
 	[ vm_terror ],
+	[ vm_terror_aid_cut ],
 	[ vm_endpiece ],
 	[ vm_prompt, "Remove enemy pieces." ],
 	[ vm_piece, 2, (p,s)=>is_piece_in_event_space(p) && is_enemy_piece(p) ],
@@ -6555,6 +6595,7 @@ const CODE = [
 	[ vm_prompt, "Execute free Terror in Cúcuta." ],
 	[ vm_piece, 1, (p,s)=>is_piece_in_event_space(p) && is_auc_guerrilla(p) && is_underground(p) ],
 	[ vm_free_terror ],
+	[ vm_terror_aid_cut ],
 	[ vm_endpiece ],
 	[ vm_prompt, "Flip any AUC Guerrillas Underground." ],
 	[ vm_piece, 2, (p,s)=>is_auc_guerrilla(p) && is_active(p) ],
@@ -6592,7 +6633,14 @@ const CODE = [
 	[ vm_endspace ],
 	[ vm_return ],
 	// SHADED 50
-	// TODO
+	[ vm_piece, 2, (p,s)=>is_police(p) ],
+	[ vm_set_piece_space ],
+	[ vm_remove ],
+	[ vm_optional ],
+	[ vm_place, AUC, GUERRILLA ],
+	[ vm_not_optional ],
+	[ vm_endpiece ],
+	[ vm_return ],
 	// EVENT 51
 	[ vm_if, ()=>is_any_pipeline_sabotaged() ],
 	[ vm_prompt, "Remove all Pipeline Sabotage." ],
@@ -6643,7 +6691,22 @@ const CODE = [
 	// SHADED 53
 	// TODO
 	// EVENT 54
-	// TODO
+	[ vm_piece, 2, (p,s)=>is_guerrilla(p) ],
+	[ vm_set_piece_space ],
+	[ vm_remove ],
+	[ vm_optional ],
+	[ vm_if, ()=>piece_faction(game.vm.p) === FARC ],
+	[ vm_place, [AUC,CARTELS], GUERRILLA ],
+	[ vm_endif ],
+	[ vm_if, ()=>piece_faction(game.vm.p) === AUC ],
+	[ vm_place, [FARC,CARTELS], GUERRILLA ],
+	[ vm_endif ],
+	[ vm_if, ()=>piece_faction(game.vm.p) === CARTELS ],
+	[ vm_place, [FARC,AUC], GUERRILLA ],
+	[ vm_endif ],
+	[ vm_not_optional ],
+	[ vm_endpiece ],
+	[ vm_return ],
 	// SHADED 54
 	// TODO
 	// EVENT 55
@@ -6676,7 +6739,9 @@ const CODE = [
 	[ vm_piece, 3, (p,s)=>is_cartels_piece(p) ],
 	[ vm_set_piece_space ],
 	[ vm_remove ],
+	[ vm_not_optional ],
 	[ vm_place, GOVT, POLICE ],
+	[ vm_optional ],
 	[ vm_endpiece ],
 	[ vm_return ],
 	// SHADED 57
@@ -6778,6 +6843,7 @@ const CODE = [
 	[ vm_free_terror ],
 	[ vm_endpiece ],
 	[ vm_endspace ],
+	[ vm_terror_aid_cut ],
 	[ vm_ineligible, CARTELS ],
 	[ vm_return ],
 	// SHADED 63
@@ -6845,6 +6911,7 @@ const CODE = [
 	[ vm_resources, ()=>(game.current), 3 ],
 	[ vm_endpiece ],
 	[ vm_endspace ],
+	[ vm_terror_aid_cut ],
 	[ vm_return ],
 	// EVENT 71
 	[ vm_prompt, "Remove a Guerrilla from Chocó." ],
@@ -6877,4 +6944,4 @@ const CODE = [
 	[ vm_endwhile ],
 	[ vm_return ],
 ]
-const CODE_INDEX = [ 0, 3, 6, 9, 12, 15, 18, 23, 28, 58, 64, 69, 78, 81, 84, 89, 91, 94, 97, 100, 103, 106, 109, 112, 115, 118, 121, 129, 138, 141, 145, 150, 152, 155, 158, 161, 165, -1, 176, 182, 188, 193, 198, 202, 205, 214, 221, 226, 235, 241, 247, 252, 257, 261, 264, 271, 278, 286, 292, 299, 332, 339, 343, 347, 349, 356, 362, 364, 371, 379, 384, -1, 417, 422, 430, 436, 442, 446, 457, 464, 479, 486, 491, 496, 500, 508, 514, 519, 524, 528, 535, -1, 551, 558, -1, 571, 575, 579, 584, -1, 595, 604, 609, 613, 620, -1, -1, -1, 637, 644, 648, 650, 657, 665, 673, 678, 687, 695, 708, 715, 723, 730, 734, 739, 743, -1, 754, 759, -1, -1, 768, 772, 776, 778, -1, 781, -1, -1, 786, 791, 799, 805, 811, 818 ]
+const CODE_INDEX = [ 0, 3, 6, 9, 12, 15, 18, 23, 28, 58, 64, 69, 78, 81, 84, 89, 91, 94, 97, 100, 103, 106, 109, 112, 115, 118, 121, 129, 138, 141, 145, 150, 152, 155, 158, 161, 165, -1, 176, 182, 188, 193, 198, 202, 205, 214, 221, 226, 235, 241, 247, 252, 257, 262, 265, 272, 279, 287, 293, 300, 333, 340, 344, 348, 350, 357, 363, 365, 372, 380, 385, -1, 418, 423, 431, 437, 443, 447, 458, 465, 480, 487, 492, 497, 501, 509, 515, 520, 525, 529, 536, -1, 553, 560, -1, 574, 578, 582, 587, 598, 606, 615, 620, 624, 631, -1, 648, -1, 664, 671, 675, 677, 684, 694, 702, 707, 716, 724, 737, 744, 752, 759, 763, 768, 772, -1, 784, 789, -1, -1, 798, 802, 806, 808, -1, 811, -1, -1, 816, 821, 830, 836, 842, 849 ]

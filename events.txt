@@ -1,3 +1,5 @@
+# TODO: optional/not_optional -> space_opt, piece_opt, place_opt instead
+
 EVENT 1
 	log 1 Civic Action space each Support Phase requires Govt Control and any cube.
 	capability
@@ -307,6 +309,7 @@ SHADED 26
 	endspace
 
 EVENT 27
+	current GOVT
 	free_govt_activity
 	free_govt_activity
 	free_govt_activity
@@ -633,6 +636,7 @@ EVENT 46
 		piece 1 is_piece_in_event_space(p) && is_piece(p, game.current, GUERRILLA)
 			free_terror
 			terror
+			terror_aid_cut
 		endpiece
 		prompt Remove enemy pieces.
 		piece 2 is_piece_in_event_space(p) && is_enemy_piece(p)
@@ -661,6 +665,7 @@ SHADED 47
 		prompt Execute free Terror in Cúcuta.
 		piece 1 is_piece_in_event_space(p) && is_auc_guerrilla(p) && is_underground(p)
 			free_terror
+			terror_aid_cut
 		endpiece
 	# endspace
 	prompt Flip any AUC Guerrillas Underground.
@@ -695,6 +700,16 @@ EVENT 50
 	space 1 is_dept(s) && !is_farc_zone(s)
 		place GOVT POLICE
 	endspace
+
+SHADED 50
+	# TODO: remove 2 / replace 2 / remove 1 + replace 1 ?
+	piece 2 is_police(p)
+		set_piece_space
+		remove
+		optional
+		place AUC GUERRILLA
+		not_optional
+	endpiece
 
 EVENT 51
 	if is_any_pipeline_sabotaged()
@@ -743,6 +758,23 @@ EVENT 53
 		underground
 	endpiece
 
+EVENT 54
+	piece 2 is_guerrilla(p)
+		set_piece_space
+		remove
+		optional
+		if piece_faction(game.vm.p) === FARC
+			place [AUC,CARTELS] GUERRILLA
+		endif
+		if piece_faction(game.vm.p) === AUC
+			place [FARC,CARTELS] GUERRILLA
+		endif
+		if piece_faction(game.vm.p) === CARTELS
+			place [FARC,AUC] GUERRILLA
+		endif
+		not_optional
+	endpiece
+
 EVENT 55
 	remove_shipment
 	remove_shipment
@@ -773,7 +805,9 @@ EVENT 57
 	piece 3 is_cartels_piece(p)
 		set_piece_space
 		remove
+		not_optional
 		place GOVT POLICE
+		optional
 	endpiece
 
 SHADED 57
@@ -875,6 +909,7 @@ EVENT 63
 			free_terror
 		endpiece
 	endspace
+	terror_aid_cut
 	ineligible CARTELS
 
 EVENT 64
@@ -930,6 +965,7 @@ SHADED 70
 			resources (game.current) 3
 		endpiece
 	endspace
+	terror_aid_cut
 
 EVENT 71
 	prompt Remove a Guerrilla from Chocó.
@@ -972,18 +1008,6 @@ EVENT 69
 	move any cubes/guerrillas from source to destination
 	any free op (except patrol or march) in destination
 
-EVENT 48
-	space 1 is_adjacent_to_3econ_pipeline(s)
-		piece 1 is_piece_in_event_space(p) && is_farc_base(p)
-			remove
-		endpiece
-		TODO: OR
-		if has_opposition(game.vm.s)
-			shift_neutral
-		endif
-	endspace
-
-
 EVENT 68
 	remove 2 cartels pieces from coastal spaces
 	OR
@@ -994,13 +1018,13 @@ EVENT 65
 		place or remove 1 shipment
 		place or remove 1 insurgent base
 
-EVENT 54
-	remove up to 2 guerrillas
-	or
-	replace up to 2 guerrillas with any other factions' available guerrillas
-
-SHADED 50
-	remove 2 police
-	OR
-	replace 2 police with available auc guerrilla
-
+EVENT 48
+	space 1 is_adjacent_to_3econ_pipeline(s)
+		piece 1 is_piece_in_event_space(p) && is_farc_base(p)
+			remove
+		endpiece
+		TODO: OR
+		if has_opposition(game.vm.s)
+			shift_neutral
+		endif
+	endspace
