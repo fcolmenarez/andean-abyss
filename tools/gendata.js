@@ -473,8 +473,6 @@ adjacent("Vaupés", "Guaviare")
 adjacent("Amazonas", "Vaupés")
 adjacent("Amazonas", "Putumayo")
 
-data.coastal_spaces = [ "Cesar", "Atlántico", "Chocó", "Nariño" ].map(n=>space_name.indexOf(n)).sort((a,b)=>a-b)
-
 for (let i = 0; i < spaces.length; ++i) {
 	spaces[i].adjacent.sort((a,b)=>a-b)
 }

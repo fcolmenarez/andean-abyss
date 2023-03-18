@@ -90,6 +90,7 @@ path.tip { stroke: yellow; }
 	gap: 4px;
 }
 #insurgent_momentum {
+	pointer-events: none;
 	display: flex;
 	flex-wrap: wrap;
 	gap: 17px;

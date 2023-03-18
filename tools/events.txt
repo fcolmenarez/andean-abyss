@@ -194,15 +194,17 @@ EVENT 25
 		endpiece
 	endspace
 EVENT 28
+	optional
 	space 1 is_next_to_venezuela(s)
 		piece 3 is_piece_in_event_space(p) && is_insurgent_piece(p)
-			remove_or_end
+			remove
 		endpiece
 	endspace
 EVENT 33
+	optional
 	space 1 is_next_to_ecuador(s)
 		piece 3 is_piece_in_event_space(p) && is_insurgent_piece(p)
-			remove_or_end
+			remove
 		endpiece
 	endspace
 
@@ -222,6 +224,8 @@ SHADED 38
 
 EVENT 41
 	resources AUC -6
+	# TODO
+	# space 1 has_auc_piece(s)
 	space 1 true
 		piece 0 is_piece_in_event_space(p) && is_auc_piece(p)
 			remove
@@ -243,8 +247,9 @@ EVENT 61
 	resources CARTELS -6
 
 EVENT 62
+	optional
 	piece 3 is_insurgent_piece(p) && is_zero_pop_forest(s)
-		remove_or_end
+		remove
 	endpiece
 
 EVENT 66
@@ -268,7 +273,7 @@ SHADED 24
 			remove
 		endpiece
 	endspace
-	space 1 is_support(s)
+	space 1 is_city(s) && is_support(s)
 		set_neutral
 	endspace
 
@@ -343,7 +348,7 @@ SHADED 49
 	endspace
 
 SHADED 25
-	space 1 s === ANTIOQUIA || set_has(data.spaces[ANTIOQUIA].adjacent, s)
+	space 1 s === ANTIOQUIA || (is_dept(s) && set_has(data.spaces[ANTIOQUIA].adjacent, s))
 		place_any FARC
 		place_any FARC
 		place_any FARC
@@ -399,6 +404,9 @@ SHADED 28
 	each space is_loc(s) && set_has(data.spaces[CUCUTA].adjacent, s) && is_empty(s)
 		sabotage
 	endspace
+
+EVENT 34
+	resources -1 -5
 
 SHADED 34
 	select_insurgent
@@ -639,6 +647,4 @@ EVENT 16
 		select faction with most pieces (ties GOVT)
 		resources faction 5
 
-EVENT 34
-	select_insurgent
-	resources (game.current) -5
+
