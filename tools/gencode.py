@@ -56,6 +56,9 @@ for event in range(2,146):
 		elif line.startswith('each piece'):
 			line = line.split(' ', 2)
 			print('\t[ vm_piece, 0, (p,s)=>' + line[2] + ' ],')
+		elif line.startswith('while'):
+			line = line.split(' ', 1)
+			print('\t[ vm_while, ()=>' + line[1] + ' ],')
 		elif line.startswith('if'):
 			line = line.split(' ', 1)
 			print('\t[ vm_if, ()=>' + line[1] + ' ],')

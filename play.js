@@ -1054,14 +1054,19 @@ function on_update() {
 	action_button("event", "Event")
 	action_button("limop", "LimOp")
 
+	action_button("govt", "Government")
 	action_button("farc", "FARC")
 	action_button("auc", "AUC")
 	action_button("cartels", "Cartels")
+
+	action_button("support", "Support")
+	action_button("opposition", "Opposition")
 
 	action_button("end_activity", "End Activity")
 	action_button("end_operation", "End Op")
 	action_button("end_event", "End Event")
 
+	action_button("skip", "Skip")
 	action_button("next", "Next")
 	action_button("deny", "Deny")
 	action_button("done", "Done")
