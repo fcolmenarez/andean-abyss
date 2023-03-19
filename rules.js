@@ -10,7 +10,6 @@
 // OP in a space -> next handler to cope with events/elite backing
 
 // TODO: All - Ecuador and Panama stacking for place/move
-// TODO: Agitation - Alfonso Cano
 // TODO: Kidnap - Drug Ransom
 
 let states = {}
@@ -4822,7 +4821,19 @@ function can_civic_action(s) {
 }
 
 function can_agitate(s) {
-	return game.support[s] > -2 && has_farc_control(s)
+	if (game.support[s] > -2) {
+		if (has_farc_control(s))
+			return true
+		if (!has_govt_control(s)) {
+			if (game.alfonso) {
+				if (game.alfonso.length < 3)
+					return true
+				if (set_has(game.alfonso, s))
+					return true
+			}
+		}
+	}
+	return false
 }
 
 function goto_support_phase() {
@@ -4831,6 +4842,9 @@ function goto_support_phase() {
 	log_h3("Civic Action")
 	game.current = GOVT
 	game.state = "civic_action"
+	game.alfonso = 0
+	if (has_momentum(MOM_ALFONSO_CANO))
+		game.alfonso = []
 }
 
 states.civic_action = {
@@ -4871,6 +4885,8 @@ states.agitation = {
 	},
 	space(s) {
 		push_undo()
+		if (!has_farc_control(s))
+			set_add(game.alfonso, s)
 		add_resources(FARC, -1)
 		if (has_terror(s))
 			remove_terror(s)
@@ -4879,6 +4895,7 @@ states.agitation = {
 	},
 	next() {
 		clear_undo()
+		delete game.alfonso
 		goto_election()
 	},
 }
