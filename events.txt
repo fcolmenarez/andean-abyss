@@ -214,6 +214,7 @@ EVENT 19
 	endif
 
 EVENT 20
+	current GOVT
 	piece 6 is_farc_guerrilla(p)
 		space 1 is_adjacent(s, game.pieces[game.vm.p])
 			move
@@ -359,36 +360,7 @@ EVENT 30
 
 SHADED 30
 	current GOVT
-	prompt Place FARC Zone.
-	space 1 is_possible_farc_zone(s)
-		place_farc_zone
-		prompt Redeploy Troops.
-		piece 0 is_piece_in_event_space(p) && is_troops(p)
-			save_space
-			space 1 is_redeploy_troops_space(s)
-				move
-			endspace
-			restore_space
-		endpiece
-		prompt Redeploy Police.
-		piece 0 is_piece_in_event_space(p) && is_police(p)
-			save_space
-			space 1 is_redeploy_police_space(s)
-				move
-			endspace
-			restore_space
-		endpiece
-		prompt Remove Govt Bases.
-		piece 0 is_piece_in_event_space(p) && is_govt_base(p)
-			remove
-		endpiece
-		prompt Shift adjacent spaces toward Active Support.
-		save_space
-		space 2 is_pop(s) && !is_active_support(s) && is_adjacent(game.vm._s, s)
-			shift_support
-		endspace
-		restore_space
-	endspace
+	place_farc_zone
 
 EVENT 31
 	space 2 is_city(s)
@@ -453,38 +425,13 @@ SHADED 35
 	endspace
 
 EVENT 36
-	# SEE SHADED 30
 	eligible (game.current)
 	current GOVT
-	prompt Place FARC Zone.
-	space 1 is_possible_farc_zone(s)
-		place_farc_zone
-		prompt Redeploy Troops.
-		piece 0 is_piece_in_event_space(p) && is_troops(p)
-			save_space
-			space 1 is_redeploy_troops_space(s)
-				move
-			endspace
-			restore_space
-		endpiece
-		prompt Redeploy Police.
-		piece 0 is_piece_in_event_space(p) && is_police(p)
-			save_space
-			space 1 is_redeploy_police_space(s)
-				move
-			endspace
-			restore_space
-		endpiece
-		prompt Remove Govt Bases.
-		piece 0 is_piece_in_event_space(p) && is_govt_base(p)
-			remove
-		endpiece
-		prompt Shift adjacent spaces toward Active Support.
-		save_space
-		space 2 is_pop(s) && !is_active_support(s) && is_adjacent(game.vm._s, s)
-			shift_support
-		endspace
-		restore_space
+	place_farc_zone
+	# TODO: current (executing_faction())
+	prompt Shift adjacent spaces toward Active Support.
+	space 2 is_pop(s) && !is_active_support(s) && is_adjacent(game.vm.farc_zone, s)
+		shift_support
 	endspace
 
 EVENT 37

@@ -283,8 +283,9 @@ exports.setup = function (seed, scenario, options) {
 			setup_deck(4, 0, 15)
 	}
 
-	game.deck[0] = 23
-	game.deck[1] = PROPAGANDA
+	game.deck[0] = 20
+	game.deck[1] = 36
+	game.deck[2] = PROPAGANDA
 	log("DECK " + game.deck.join(", "))
 
 	update_control()
@@ -4888,7 +4889,7 @@ function goto_election() {
 		log_h3("Election")
 		log("Pastrana is El Presidente!")
 		game.president = PASTRANA
-		game.state = "place_farc_zone"
+		game.state = "farc_zone_place"
 		return
 	}
 	if (game.president === PASTRANA && calc_support() <= 60 ) {
@@ -4903,13 +4904,6 @@ function goto_election() {
 	goto_elite_backing()
 }
 
-states.place_farc_zone = {
-	prompt() {
-		view.prompt = "Election: Place FARC Zone."
-		// TODO (Card 30 / 36)
-	},
-}
-
 states.remove_farc_zones = {
 	prompt() {
 		view.prompt = "Election: Remove all FARC Zones."
@@ -4917,7 +4911,7 @@ states.remove_farc_zones = {
 			gen_action_space(s)
 	},
 	space(s) {
-		log("Removed Farc Zone S" + s)
+		log(`Removed Farc Zone from S${s}.`)
 		set_delete(game.farc_zones, s)
 		if (game.farc_zones.length === 0)
 			goto_elite_backing()
@@ -4993,6 +4987,7 @@ states.redeploy = {
 
 		else {
 			let p = game.redeploy
+			view.who = p
 			done = false
 			if (is_troops(p)) {
 				for (let s = first_space; s <= last_space; ++s)
@@ -5058,6 +5053,97 @@ function goto_reset_phase() {
 
 	array_remove(game.deck, 0)
 	goto_card()
+}
+
+// === FARC ZONE ===
+
+function vm_place_farc_zone() {
+	game.state = "farc_zone_place"
+}
+
+function has_govt_in_farc_zone() {
+	for (let s of game.farc_zones)
+		if (has_govt_piece(s))
+			return true
+	return false
+}
+
+states.farc_zone_place = {
+	prompt() {
+		view.prompt = "Place FARC Zone."
+		for (let s = first_dept; s <= last_dept; ++s)
+			if (is_possible_farc_zone(s))
+				gen_action_space(s)
+	},
+	space(s) {
+		push_undo()
+		log(`Placed FARC Zone in S${s}.`)
+		set_add(game.farc_zones, s)
+
+		if (game.vm)
+			game.vm.farc_zone = s
+
+		if (has_govt_piece(s)) {
+			game.state = "farc_zone_redeploy"
+			game.redeploy = -1
+		} else {
+			end_farc_zone_place()
+		}
+	},
+}
+
+states.farc_zone_redeploy = {
+	prompt() {
+		view.prompt = "Redeploy Government from FARC Zone."
+		if (game.redeploy < 0) {
+			for (let s of game.farc_zones) {
+				gen_piece_in_space(s, GOVT, TROOPS)
+				gen_piece_in_space(s, GOVT, POLICE)
+				gen_piece_in_space(s, GOVT, BASE)
+			}
+		} else {
+			let p = game.redeploy
+			view.who = p
+			if (is_troops(p)) {
+				for (let s = first_space; s <= last_space; ++s)
+					if (is_redeploy_troops_space(s))
+						gen_action_space(s)
+			}
+			if (is_police(p)) {
+				for (let s = first_space; s <= last_space; ++s)
+					if (is_redeploy_police_space(s))
+						gen_action_space(s)
+			}
+		}
+	},
+	piece(p) {
+		if (is_govt_base(p)) {
+			remove_piece(p)
+			update_control()
+		} else {
+			if (game.redeploy === p)
+				game.redeploy = -1
+			else
+				game.redeploy = p
+		}
+	},
+	space(s) {
+		let p = game.redeploy
+		game.redeploy = -1
+		push_undo()
+		place_piece(p, s)
+		update_control()
+		if (!has_govt_in_farc_zone())
+			end_farc_zone_place()
+	},
+}
+
+function end_farc_zone_place() {
+	delete game.redeploy
+	if (game.vm)
+		vm_next()
+	else
+		goto_elite_backing()
 }
 
 // === EVENTS ===
@@ -5683,11 +5769,6 @@ function vm_remove() {
 
 function vm_remove_farc_zone() {
 	set_delete(game.farc_zones, game.vm.s)
-	vm_next()
-}
-
-function vm_place_farc_zone() {
-	set_add(game.farc_zones, game.vm.s)
 	vm_next()
 }
 
@@ -6565,6 +6646,7 @@ const CODE = [
 	// SHADED 19
 	// TODO
 	// EVENT 20
+	[ vm_current, GOVT ],
 	[ vm_piece, 6, (p,s)=>is_farc_guerrilla(p) ],
 	[ vm_space, 1, (s)=>is_adjacent(s, game.pieces[game.vm.p]) ],
 	[ vm_move ],
@@ -6709,38 +6791,8 @@ const CODE = [
 	[ vm_endspace ],
 	[ vm_return ],
 	// SHADED 30
-	[ vm_eligible, ()=>(game.current) ],
 	[ vm_current, GOVT ],
-	[ vm_prompt, "Place FARC Zone." ],
-	[ vm_space, 1, (s)=>is_possible_farc_zone(s) ],
 	[ vm_place_farc_zone ],
-	[ vm_prompt, "Redeploy Troops." ],
-	[ vm_piece, 0, (p,s)=>is_piece_in_event_space(p) && is_troops(p) ],
-	[ vm_save_space ],
-	[ vm_space, 1, (s)=>is_redeploy_troops_space(s) ],
-	[ vm_move ],
-	[ vm_endspace ],
-	[ vm_restore_space ],
-	[ vm_endpiece ],
-	[ vm_prompt, "Redeploy Police." ],
-	[ vm_piece, 0, (p,s)=>is_piece_in_event_space(p) && is_police(p) ],
-	[ vm_save_space ],
-	[ vm_space, 1, (s)=>is_redeploy_police_space(s) ],
-	[ vm_move ],
-	[ vm_endspace ],
-	[ vm_restore_space ],
-	[ vm_endpiece ],
-	[ vm_prompt, "Remove Govt Bases." ],
-	[ vm_piece, 0, (p,s)=>is_piece_in_event_space(p) && is_govt_base(p) ],
-	[ vm_remove ],
-	[ vm_endpiece ],
-	[ vm_prompt, "Shift adjacent spaces toward Active Support." ],
-	[ vm_save_space ],
-	[ vm_space, 2, (s)=>is_pop(s) && !is_active_support(s) && is_adjacent(game.vm._s, s) ],
-	[ vm_shift_support ],
-	[ vm_endspace ],
-	[ vm_restore_space ],
-	[ vm_endspace ],
 	[ vm_return ],
 	// EVENT 31
 	[ vm_space, 2, (s)=>is_city(s) ],
@@ -6806,35 +6858,10 @@ const CODE = [
 	// EVENT 36
 	[ vm_eligible, ()=>(game.current) ],
 	[ vm_current, GOVT ],
-	[ vm_prompt, "Place FARC Zone." ],
-	[ vm_space, 1, (s)=>is_possible_farc_zone(s) ],
 	[ vm_place_farc_zone ],
-	[ vm_prompt, "Redeploy Troops." ],
-	[ vm_piece, 0, (p,s)=>is_piece_in_event_space(p) && is_troops(p) ],
-	[ vm_save_space ],
-	[ vm_space, 1, (s)=>is_redeploy_troops_space(s) ],
-	[ vm_move ],
-	[ vm_endspace ],
-	[ vm_restore_space ],
-	[ vm_endpiece ],
-	[ vm_prompt, "Redeploy Police." ],
-	[ vm_piece, 0, (p,s)=>is_piece_in_event_space(p) && is_police(p) ],
-	[ vm_save_space ],
-	[ vm_space, 1, (s)=>is_redeploy_police_space(s) ],
-	[ vm_move ],
-	[ vm_endspace ],
-	[ vm_restore_space ],
-	[ vm_endpiece ],
-	[ vm_prompt, "Remove Govt Bases." ],
-	[ vm_piece, 0, (p,s)=>is_piece_in_event_space(p) && is_govt_base(p) ],
-	[ vm_remove ],
-	[ vm_endpiece ],
 	[ vm_prompt, "Shift adjacent spaces toward Active Support." ],
-	[ vm_save_space ],
-	[ vm_space, 2, (s)=>is_pop(s) && !is_active_support(s) && is_adjacent(game.vm._s, s) ],
+	[ vm_space, 2, (s)=>is_pop(s) && !is_active_support(s) && is_adjacent(game.vm.farc_zone, s) ],
 	[ vm_shift_support ],
-	[ vm_endspace ],
-	[ vm_restore_space ],
 	[ vm_endspace ],
 	[ vm_return ],
 	// SHADED 36
@@ -7349,4 +7376,4 @@ const CODE = [
 	[ vm_endwhile ],
 	[ vm_return ],
 ]
-const CODE_INDEX = [ 0, 3, 6, 9, 12, 15, 18, 23, 28, 58, 64, 69, 78, 81, 84, 89, 91, 94, 97, 100, 103, 106, 109, 112, 115, 118, 121, 129, 138, 141, 145, 150, 152, 155, 158, 161, 165, -1, 176, 182, 188, 193, 198, 202, 205, 214, 221, 226, 235, 241, 247, 252, 257, 262, 265, 271, 278, 286, 292, 299, 332, 339, 343, 347, 349, 355, 361, 363, 370, 378, 383, -1, 416, 421, 429, 435, 441, 445, 453, 460, 475, 482, 487, 492, 496, 504, 510, 515, 520, 524, 531, -1, 548, 555, -1, 569, 573, 577, 582, 593, 599, 608, 613, 617, 624, -1, 641, -1, 655, 663, 668, 670, 677, 684, 692, 697, 705, 713, 725, 732, 740, 747, 751, 755, 759, -1, 771, 776, -1, -1, 785, 789, 793, 795, -1, 798, -1, -1, 803, 808, 817, 823, 829, 836 ]
+const CODE_INDEX = [ 0, 3, 6, 9, 12, 15, 18, 23, 28, 58, 64, 69, 78, 81, 84, 89, 91, 94, 97, 100, 103, 106, 109, 112, 115, 118, 121, 129, 138, 141, 145, 150, 152, 155, 158, 161, 165, -1, 176, 183, 189, 194, 199, 203, 206, 215, 222, 227, 236, 242, 248, 253, 258, 263, 266, 272, 279, 287, 293, 300, 303, 310, 314, 318, 320, 326, 332, 334, 341, 349, 354, -1, 362, 367, 375, 381, 387, 391, 399, 406, 421, 428, 433, 438, 442, 450, 456, 461, 466, 470, 477, -1, 494, 501, -1, 515, 519, 523, 528, 539, 545, 554, 559, 563, 570, -1, 587, -1, 601, 609, 614, 616, 623, 630, 638, 643, 651, 659, 671, 678, 686, 693, 697, 701, 705, -1, 717, 722, -1, -1, 731, 735, 739, 741, -1, 744, -1, -1, 749, 754, 763, 769, 775, 782 ]
