@@ -1,5 +1,7 @@
 "use strict"
 
+// TODO: rules material - reference 6.3.3 Drug Profits to 5.2.2 should be 4.5.3
+
 // TODO: Automatic "All done" message. (limited / no more resources / no more available options).
 // TODO: auto-next at end of Special Activity / operation space ?
 // TODO: clean up init_free_operation and transitions
@@ -7,9 +9,11 @@
 
 // TODO: mark faction ineligible/eligible
 
-// TODO: check stacking of ecuador on move/place
-
 // OP in a space -> next handler to cope with events/elite backing
+
+// TODO: All - Ecuador and Panama stacking for place/move
+// TODO: Agitation - Alfonso Cano
+// TODO: Kidnap - Drug Ransom
 
 let states = {}
 let game = null
@@ -25,10 +29,6 @@ const NAME_CARTELS = "Cartels"
 const NAME_GOVT_AUC = "Government + AUC"
 const NAME_FARC_CARTELS = "FARC + Cartels"
 const NAME_AUC_CARTELS = "AUC + Cartels"
-
-// TODO: 7th SF - sabotage phase
-// TODO: Alfonso Cane - agitation phase
-// TODO: Mexican Traffickres - resources phase
 
 const CAP_1ST_DIV = 1
 const CAP_OSPINA = 2
@@ -231,12 +231,13 @@ exports.setup = function (seed, scenario, options) {
 
 		op: null,
 		sa: null,
-		transfer: 0,
+		vm: null,
 
 		deck: [],
 		president: 0,
 		senado: 0,
 		aid: 0,
+		marked: 0,
 		cylinder: [ ELIGIBLE, ELIGIBLE, ELIGIBLE, ELIGIBLE ],
 		resources: [ 0, 0, 0, 0 ],
 		shipments: [ 0, 0, 0, 0 ],
@@ -250,6 +251,11 @@ exports.setup = function (seed, scenario, options) {
 		farc_zones: [],
 		terror: [],
 		sabotage: [],
+
+		// Dynamically added when needed:
+		// transfer: null,
+		// propaganda: 0,
+		// redeploy: -1,
 	}
 
 	if (scenario.startsWith("3P"))
@@ -279,7 +285,6 @@ exports.setup = function (seed, scenario, options) {
 			setup_deck(4, 0, 15)
 	}
 
-	game.deck[0] = PROPAGANDA
 	game.deck[1] = PROPAGANDA
 	log("DECK " + game.deck.join(", "))
 
@@ -620,6 +625,7 @@ function has_any_guerrilla(s) {
 	)
 }
 
+function has_govt_base(s) { return has_piece(s, GOVT, BASE) }
 function has_troops(s) { return has_piece(s, GOVT, TROOPS) }
 function has_police(s) { return has_piece(s, GOVT, POLICE) }
 function has_cube(s) { return has_piece(s, GOVT, TROOPS) || has_piece(s, GOVT, POLICE) }
@@ -936,7 +942,7 @@ function is_adjacent_to_support(s) {
 }
 
 function is_redeploy_troops_space(s) {
-	if (is_city(s) && has_govt_control(s))
+	if (has_govt_control(s) && (is_city(s) || has_govt_base(s)))
 		return true
 	if (s === BOGOTA) {
 		for (let x = first_city; x <= last_city; ++x)
@@ -948,11 +954,7 @@ function is_redeploy_troops_space(s) {
 }
 
 function is_redeploy_police_space(s) {
-	if (is_loc(s))
-		return true
-	if (has_govt_control(s))
-		return true
-	return false
+	return is_loc(s) || has_govt_control(s)
 }
 
 // === MISC STATE COMMANDS ==
@@ -1231,12 +1233,12 @@ function for_each_piece(faction, type, f) {
 	let p0 = first_piece[faction][type]
 	let p1 = last_piece[faction][type]
 	for (let p = p0; p <= p1; ++p)
-		f(p)
+		f(p, game.pieces[p])
 }
 
 function gen_piece_in_space(space, faction, type) {
-	for_each_piece(faction, type, p => {
-		if (game.pieces[p] === space)
+	for_each_piece(faction, type, (p, s) => {
+		if (s === space)
 			gen_action_piece(p)
 	})
 }
@@ -1327,7 +1329,7 @@ states.remove_pieces = {
 	},
 	done() {
 		game.state = game.transfer
-		game.transfer = null
+		delete game.transfer
 		transfer_or_remove_shipments()
 	},
 }
@@ -1591,8 +1593,8 @@ states.transfer_shipment = {
 		} else {
 			let p = get_held_shipment_piece(game.transfer.shipment)
 			let s = game.pieces[p]
-			for_each_piece(game.current, GUERRILLA, pp => {
-				if (pp !== p && game.pieces[pp] === s)
+			for_each_piece(game.current, GUERRILLA, (pp,ss) => {
+				if (pp !== p && ss === s)
 					gen_action_piece(pp)
 			})
 			if (!is_player_farc())
@@ -1622,7 +1624,7 @@ states.transfer_shipment = {
 function end_negotiation() {
 	game.current = game.transfer.current
 	game.state = game.transfer.state
-	game.transfer = null
+	delete game.transfer
 }
 
 // === SHIP FOR EXTRA LIMOP ===
@@ -1750,7 +1752,7 @@ function resume_drug_bust() {
 		game.state = "drug_bust"
 	} else {
 		game.state = game.transfer
-		game.transfer = null
+		delete game.transfer
 	}
 }
 
@@ -1821,6 +1823,11 @@ function adjust_eligibility(faction) {
 		game.cylinder[faction] = ELIGIBLE
 	else if (game.cylinder[faction] !== ELIGIBLE)
 		game.cylinder[faction] = INELIGIBLE
+	
+	if (game.marked & (1 << faction))
+		game.cylinder[faction] = INELIGIBLE
+	if (game.marked & (16 << faction))
+		game.cylinder[faction] = ELIGIBLE
 }
 
 function end_card() {
@@ -1828,6 +1835,7 @@ function end_card() {
 	adjust_eligibility(FARC)
 	adjust_eligibility(AUC)
 	adjust_eligibility(CARTELS)
+	game.marked = 0
 
 	clear_undo()
 	array_remove(game.deck, 0)
@@ -1892,7 +1900,8 @@ states.eligible1 = {
 	prompt() {
 		view.prompt = `${data.card_title[this_card()]}: Choose a Sequence of Play option.`
 		gen_action("sop", SOP_1ST_OP_ONLY)
-		gen_action("sop", SOP_1ST_OP_AND_SA)
+		if (!is_final_event_card())
+			gen_action("sop", SOP_1ST_OP_AND_SA)
 		gen_action("sop", SOP_1ST_EVENT)
 		gen_action("sop", SOP_PASS)
 	},
@@ -1910,10 +1919,7 @@ states.eligible1 = {
 					goto_op_only()
 				break
 			case SOP_1ST_OP_AND_SA:
-				if (is_final_event_card())
-					goto_limop()
-				else
-					goto_op_and_sa()
+				goto_op_and_sa()
 				break
 			case SOP_1ST_EVENT:
 				goto_event()
@@ -3119,12 +3125,13 @@ states.rally_space = {
 
 		view.actions.next = 1
 
-		gen_place_piece(game.op.where, game.current, GUERRILLA)
+		if (game.op.count > 0)
+			gen_place_piece(game.op.where, game.current, GUERRILLA)
 	},
 	piece(p) {
 		place_piece(p, game.op.where)
-		if (--game.op.count === 0)
-			game.state = "rally"
+		if (--game.op.count === 0 && !game.op.elite_backing)
+			resume_rally()
 		update_control()
 	},
 	base() {
@@ -3140,13 +3147,15 @@ states.rally_space = {
 		game.op.count = 0
 	},
 	next() {
-		if (game.op.elite_backing) {
-			end_elite_backing()
-			return
-		}
-		push_undo()
-		game.state = "rally"
+		resume_rally()
 	},
+}
+
+function resume_rally() {
+	if (game.op.elite_backing)
+		end_elite_backing()
+	else
+		game.state = "rally"
 }
 
 states.rally_base = {
@@ -3165,7 +3174,7 @@ states.rally_base = {
 			--game.op.count
 		} else {
 			place_piece(p, game.op.where)
-			game.state = "rally"
+			resume_rally()
 			transfer_or_remove_shipments()
 		}
 		update_control()
@@ -3198,7 +3207,7 @@ states.rally_move = {
 			if (game.pieces[p] === game.op.where)
 				set_underground(p)
 		})
-		game.state = "rally"
+		resume_rally()
 	}
 }
 
@@ -3469,8 +3478,6 @@ states.attack_remove = {
 		game.op.targeted |= target_faction(p)
 		remove_piece(p)
 		update_control()
-
-		// TODO: Captured Goods
 
 		if (--game.op.count === 0 || !has_enemy_piece(game.op.where)) {
 			do_attack_next()
@@ -4214,7 +4221,6 @@ states.assassinate_space = {
 		else
 			game.state = "assassinate"
 
-		// TODO: Commandeer
 		transfer_or_remove_shipments()
 	},
 }
@@ -4473,7 +4479,6 @@ states.bribe_space = {
 			game.sa.targeted |= target_faction(p)
 		}
 
-		// TODO: Contraband
 		transfer_or_remove_shipments()
 	},
 	flip() {
@@ -4493,14 +4498,14 @@ states.bribe_flip = {
 
 		gen_piece_in_space(game.sa.where, FARC, GUERRILLA)
 		gen_piece_in_space(game.sa.where, AUC, GUERRILLA)
-		gen_piece_in_space(game.sa.where, CARTELS, GUERRILLA) // TODO: can flip own?
+		gen_piece_in_space(game.sa.where, CARTELS, GUERRILLA)
 
 		// Don't flip same piece twice...
 		if (game.sa.piece >= 0 && view.actions.piece)
 			set_delete(view.actions.piece, game.sa.piece)
 
 		// No need to do maximum damage...
-		view.actions.next = 1 // TODO skip?
+		view.actions.skip = 1
 	},
 	piece(p) {
 		if (is_underground(p))
@@ -4510,11 +4515,11 @@ states.bribe_flip = {
 		game.sa.piece = p
 		let n = count_pieces(game.sa.where, FARC, GUERRILLA) +
 			count_pieces(game.sa.where, AUC, GUERRILLA) +
-			count_pieces(game.sa.where, CARTELS, GUERRILLA) // TODO: can flip own?
+			count_pieces(game.sa.where, CARTELS, GUERRILLA)
 		if (--game.sa.count === 0 || n === 1)
 			resume_bribe()
 	},
-	next() {
+	skip() {
 		resume_bribe()
 	},
 }
@@ -4522,6 +4527,7 @@ states.bribe_flip = {
 // === PROPAGANDA ===
 
 function goto_propaganda_card() {
+	game.propaganda = 1
 	log_h1("C73")
 	goto_victory_phase()
 }
@@ -4618,6 +4624,7 @@ function goto_final_victory() {
 // PROPAGANDA: SABOTAGE
 
 function goto_sabotage_phase() {
+	game.propaganda = 2
 	game.current = GOVT
 	if (can_sabotage_phase())
 		game.state = "sabotage"
@@ -4634,10 +4641,11 @@ function is_adjacent_to_city_farc_control(s) {
 
 function can_sabotage_phase_space(s) {
 	if (!has_sabotage(s)) {
-		if (count_guerrillas(s) > count_cubes(s))
-			return true
 		if (is_adjacent_to_city_farc_control(s))
 			return true
+		if (has_shaded_capability(CAP_7TH_SF))
+			return count_guerrillas(s) >= count_cubes(s)
+		return count_guerrillas(s) > count_cubes(s)
 	}
 	return false
 }
@@ -4649,13 +4657,8 @@ function can_sabotage_phase() {
 }
 
 states.sabotage = {
-	get inactive() {
-		view.prompt = "Sabotage LoCs"
-		view.propaganda = 2
-	},
 	prompt() {
 		view.prompt = "Sabotage LoCs."
-		view.propaganda = 2
 		for (let s = first_loc; s <= last_loc; ++s)
 			if (can_sabotage_phase_space(s))
 				gen_action_space(s)
@@ -4687,24 +4690,21 @@ function calc_auc_earnings() {
 }
 
 function calc_cartels_earnings() {
-console.log("calc_cartels_earnings", calc_bases(CARTELS))
+	if (has_momentum(MOM_MEXICAN_TRAFFICKERS))
+		return calc_bases(CARTELS) * 4
 	return calc_bases(CARTELS) * 3
 }
 
 function goto_resources_phase() {
+	game.propaganda = 3
 	log_h2("Resources Phase")
 	game.current = GOVT
 	game.state = "govt_earnings"
 }
 
 states.govt_earnings = {
-	get inactive() {
-		view.propaganda = 3
-		return "Earnings"
-	},
 	prompt() {
 		view.prompt = `Earnings: Government +${calc_govt_earnings()} Resources.`
-		view.propaganda = 3
 		gen_action_resources(GOVT)
 	},
 	resources(f) {
@@ -4715,30 +4715,19 @@ states.govt_earnings = {
 }
 
 states.farc_earnings = {
-	get inactive() {
-		view.propaganda = 3
-		return "Earnings"
-	},
 	prompt() {
-		view.propaganda = 3
 		view.prompt = `Earnings: FARC +${calc_farc_earnings()} Resources.`
 		gen_action_resources(FARC)
 	},
 	resources(_) {
 		log("FARC +" + calc_farc_earnings() + " Resources")
 		add_resources(FARC, calc_farc_earnings())
-		goto_auc_earnings()
 		game.state = "auc_earnings"
 	},
 }
 
 states.auc_earnings = {
-	get inactive() {
-		view.propaganda = 3
-		return "Earnings"
-	},
 	prompt() {
-		view.propaganda = 3
 		view.prompt = `Earnings: AUC +${calc_auc_earnings()} Resources.`
 		gen_action_resources(AUC)
 	},
@@ -4750,12 +4739,7 @@ states.auc_earnings = {
 }
 
 states.cartels_earnings = {
-	get inactive() {
-		view.propaganda = 3
-		return "Earnings"
-	},
 	prompt() {
-		view.propaganda = 3
 		view.prompt = `Earnings: Cartels +${calc_cartels_earnings()} Resources.`
 		gen_action_resources(CARTELS)
 	},
@@ -4784,12 +4768,45 @@ function goto_drug_profits() {
 }
 
 states.drug_profits = {
-	get inactive() {
-		view.propaganda = 3
-		return "Drug Profits"
-	},
 	prompt() {
-		throw "TODO"
+		view.prompt = "Drug Profits: Remove Shipments for Base or Resources."
+		for (let sh = 0; sh < 4; ++sh)
+			if (is_shipment_held_by_faction(sh, game.current))
+				gen_action_shipment(sh)
+		if (!view.actions.shipment)
+			view.actions.done = 1
+	},
+	shipment(sh) {
+		push_undo()
+		let p = get_held_shipment_piece(sh)
+		let s = game.pieces[p]
+		game.transfer = s
+		remove_shipment(sh)
+		game.state = "drug_profits_space"
+	},
+	done() {
+		clear_undo()
+		goto_drug_profits()
+	}
+}
+
+states.drug_profits_space = {
+	prompt() {
+		if (can_stack_base(game.transfer) && has_piece(AVAILABLE, game.current, BASE)) {
+			view.prompt = "Drug Profits: Place Base or +6 Resources."
+			gen_place_piece(game.transfer, game.current, BASE)
+		} else {
+			view.prompt = `Drug Profits: ${faction_name[game.current]} +6 Resources.`
+		}
+		gen_action_resources(game.current)
+	},
+	resources(s) {
+		add_resources(game.current, 6)
+		game.state = "drug_profits"
+	},
+	piece(p) {
+		place_piece(p, game.transfer)
+		game.state = "drug_profits"
 	},
 }
 
@@ -4809,6 +4826,7 @@ function can_agitate(s) {
 }
 
 function goto_support_phase() {
+	game.propaganda = 4
 	log_h2("Support Phase")
 	log_h3("Civic Action")
 	game.current = GOVT
@@ -4816,12 +4834,7 @@ function goto_support_phase() {
 }
 
 states.civic_action = {
-	get inactive() {
-		view.propaganda = 4
-		return "Civic Action"
-	},
 	prompt() {
-		view.propaganda = 4
 		view.prompt = "Civic Action: Build Support in Cities and Departments."
 		if (game.resources[GOVT] >= 3) {
 			for (let s = first_pop; s <= last_pop; ++s)
@@ -4847,12 +4860,7 @@ states.civic_action = {
 }
 
 states.agitation = {
-	get inactive() {
-		view.propaganda = 4
-		return "Agitate"
-	},
 	prompt() {
-		view.propaganda = 4
 		view.prompt = "Agitation: Encourage Opposition in Cities and Departments."
 		if (game.resources[FARC] >= 1) {
 			for (let s = first_pop; s <= last_pop; ++s)
@@ -4897,24 +4905,14 @@ function goto_election() {
 }
 
 states.place_farc_zone = {
-	get inactive() {
-		view.propaganda = 4
-		return "Election"
-	},
 	prompt() {
-		view.propaganda = 4
 		view.prompt = "Election: Place FARC Zone."
 		// TODO (Card 30 / 36)
 	},
 }
 
 states.remove_farc_zones = {
-	get inactive() {
-		view.propaganda = 4
-		return "Election"
-	},
 	prompt() {
-		view.propaganda = 4
 		view.prompt = "Election: Remove all FARC Zones."
 		for (let s of game.farc_zones)
 			gen_action_space(s)
@@ -4939,12 +4937,7 @@ function end_elite_backing() {
 }
 
 states.elite_backing = {
-	get inactive() {
-		view.propaganda = 4
-		return "Elite Backing"
-	},
 	prompt() {
-		view.propaganda = 4
 		view.prompt = "Elite Backing: Free Rally in one space."
 		view.actions.next = 1
 		for (let s = first_space; s <= last_dept; ++s)
@@ -4953,7 +4946,7 @@ states.elite_backing = {
 	},
 	space(s) {
 		push_undo()
-		free_rally_elite_backing()
+		free_rally_elite_backing(s)
 	},
 	next() {
 		end_elite_backing()
@@ -4963,8 +4956,108 @@ states.elite_backing = {
 // PROPAGANDA: REDEPLOY PHASE
 
 function goto_redeploy_phase() {
+	game.propaganda = 5
+	game.redeploy = -1
 	log_h2("Redeploy Phase")
 	game.current = GOVT
+	game.state = "redeploy"
+}
+
+states.redeploy = {
+	prompt() {
+		view.prompt = "Redeploy"
+
+		let done = true
+
+		if (game.redeploy < 0) {
+			for_each_piece(GOVT, TROOPS, (p,s) => {
+				if (is_loc(s)) {
+					done = false
+					gen_action_piece(p)
+				}
+				if (is_dept(s) && !has_govt_base(s)) {
+					done = false
+					gen_action_piece(p)
+				}
+			})
+			if (done) {
+				for_each_piece(GOVT, TROOPS, (p,s) => {
+					if (s !== AVAILABLE)
+						gen_action_piece(p)
+				})
+				for_each_piece(GOVT, POLICE, (p,s) => {
+					if (s !== AVAILABLE)
+						gen_action_piece(p)
+				})
+			}
+		}
+
+		else {
+			let p = game.redeploy
+			done = false
+			if (is_troops(p)) {
+				for (let s = first_space; s <= last_space; ++s)
+					if (is_redeploy_troops_space(s))
+						gen_action_space(s)
+			}
+			if (is_police(p)) {
+				for (let s = first_space; s <= last_space; ++s)
+					if (is_redeploy_police_space(s))
+						gen_action_space(s)
+			}
+		}
+
+		if (done)
+			view.actions.next = 1
+		else
+			view.actions.next = 0
+	},
+	piece(p) {
+		if (game.redeploy === p)
+			game.redeploy = -1
+		else
+			game.redeploy = p
+	},
+	space(s) {
+		let p = game.redeploy
+		game.redeploy = -1
+		push_undo()
+		place_piece(p, s)
+		// NOTE: do not update control yet!
+	},
+	next() {
+		delete game.redeploy
+		update_control()
+		goto_reset_phase()
+	},
+}
+
+// PROPAGANDA: RESET PHASE
+
+function goto_reset_phase() {
+	game.propaganda = 6
+	game.state = "reset"
+
+	log_h2("Reset Phase")
+
+	game.terror = []
+	game.sabotage = []
+
+	game.momentum = []
+
+	game.cylinder[GOVT] = ELIGIBLE
+	game.cylinder[FARC] = ELIGIBLE
+	game.cylinder[AUC] = ELIGIBLE
+	game.cylinder[CARTELS] = ELIGIBLE
+
+	for_each_piece(FARC, GUERRILLA, set_underground)
+	for_each_piece(AUC, GUERRILLA, set_underground)
+	for_each_piece(CARTELS, GUERRILLA, set_underground)
+
+	delete game.propaganda
+
+	array_remove(game.deck, 0)
+	goto_card()
 }
 
 // === EVENTS ===
@@ -5694,13 +5787,15 @@ function vm_remove_sabotage() {
 
 function vm_ineligible() {
 	let faction = vm_operand(1)
-	log("TODO: ineligible " + faction_name[faction])
+	log("Marked " + faction_name[faction] + " Ineligible.")
+	game.marked |= (1 << faction)
 	vm_next()
 }
 
 function vm_eligible() {
 	let faction = vm_operand(1)
-	log("TODO: remain eligible " + faction_name[faction])
+	log("Marked " + faction_name[faction] + " Eligible.")
+	game.marked |= (16 << faction)
 	vm_next()
 }
 
@@ -5800,12 +5895,10 @@ function goto_game_over(faction, victory) {
 
 states.game_over = {
 	get inactive() {
-		view.propaganda = 1
 		return game.victory
 	},
 	prompt() {
 		view.prompt = game.victory
-		view.propaganda = 1
 	},
 }
 
@@ -5921,6 +6014,9 @@ exports.view = function (state, role) {
 		sabotage: game.sabotage,
 	}
 
+	if (game.propaganda)
+		view.propaganda = game.propaganda
+
 	if (game.state === "game_over") {
 		view.prompt = game.victory
 	} else if (!is_current_role(role)) {
@@ -5928,7 +6024,6 @@ exports.view = function (state, role) {
 		view.prompt = `Waiting for ${faction_name[game.current]} \u2014 ${inactive}.`
 	} else {
 		view.actions = {}
-		view.who = game.who
 
 		if (states[game.state])
 			states[game.state].prompt()
@@ -5936,7 +6031,7 @@ exports.view = function (state, role) {
 			view.prompt = "Unknown state: " + game.state
 
 		if (states[game.state])
-		if (!states[game.state].disable_negotiation) {
+		if (!states[game.state].disable_negotiation && !game.propaganda) {
 			view.actions.remove_pieces = 1
 			view.actions.ask_resources = 1
 			if (game.resources[game.current] > 0)
