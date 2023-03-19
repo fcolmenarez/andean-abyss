@@ -10,7 +10,6 @@
 // OP in a space -> next handler to cope with events/elite backing
 
 // TODO: All - Ecuador and Panama stacking for place/move
-// TODO: Kidnap - Drug Ransom
 
 let states = {}
 let game = null
@@ -282,9 +281,6 @@ exports.setup = function (seed, scenario, options) {
 			setup_deck(4, 0, 15)
 	}
 
-	game.deck[0] = 20
-	game.deck[1] = 36
-	game.deck[2] = PROPAGANDA
 	log("DECK " + game.deck.join(", "))
 
 	update_control()
@@ -1104,6 +1100,17 @@ function is_shipment_held_by_piece(sh, p) {
 
 function is_shipment_held_by_faction(sh, f) {
 	return is_shipment_held(sh) && get_held_shipment_faction(sh) === f
+}
+
+function is_shipment_held_by_faction_in_space(sh, f, s) {
+	return is_shipment_held(sh) && get_held_shipment_faction(sh) === f && game.pieces[get_held_shipment_piece(sh)] == s
+}
+
+function is_any_shipment_held_by_faction_in_space(f, s) {
+	for (let sh = 0; sh < 4; ++sh)
+		if (is_shipment_held_by_faction_in_space(sh, f, s))
+			return true
+	return false
 }
 
 function is_any_shipment_held_by_faction(f) {
@@ -4027,8 +4034,9 @@ function can_kidnap(s) {
 
 				// or Kidnap could steal resources from Cartels
 				if (has_piece(s, CARTELS, BASE) && game.resources[CARTELS] > 0)
-					// TODO: NOT if DRUG RANSOM
-					return true
+					// Except when Drug Ransom (where you take Shipment instead of resources)
+					if (!is_any_shipment_held_by_faction_in_space(CARTELS, s))
+						return true
 			}
 		}
 	}
@@ -4080,21 +4088,34 @@ states.kidnap_space = {
 		let g = is_city_or_loc(s) && game.resources[GOVT] > 0
 		let c = has_piece(s, CARTELS, BASE) && game.resources[CARTELS] > 0
 
-		// TODO: Drug Ransom if targeting Cartels with Shipment
 
 		if (g)
 			gen_action_resources(GOVT)
-		if (c)
-			gen_action_resources(CARTELS)
+		if (c) {
+			// Drug Ransom if targeting Cartels with Shipment
+			if (is_any_shipment_held_by_faction_in_space(CARTELS, s)) {
+				console.log("kidnap_space", is_any_shipment_held_by_faction_in_space(CARTELS, s))
+				for (let sh = 0; sh < 4; ++sh)
+					if (is_shipment_held_by_faction_in_space(sh, CARTELS, s))
+						gen_action_shipment(sh)
+			} else {
+				gen_action_resources(CARTELS)
+			}
+		}
 
 		if (g && c)
-			view.prompt += " Take resources from Government or Cartels!"
+			view.prompt += " Take from Government or Cartels!"
 		else if (g)
-			view.prompt += " Take resources from Government!"
+			view.prompt += " Take from Government!"
 		else if (c)
-			view.prompt += " Take resources from Cartels!"
+			view.prompt += " Take from Cartels!"
 		else
 			view.prompt += " IMPOSSIBLE!"
+	},
+	shipment(sh) {
+		push_undo()
+		game.sa.shipment = sh
+		game.state = "kidnap_drug_ransom"
 	},
 	resources(faction) {
 		clear_undo()
@@ -4110,6 +4131,18 @@ states.kidnap_space = {
 			resume_kidnap_1()
 		}
 	},
+}
+
+states.kidnap_drug_ransom = {
+	prompt() {
+		view.prompt = `Kidnap in ${space_name[game.sa.where]}: Place Shipment with a FARC Guerrilla.`
+		view.selected_shipment = game.sa.shipment
+		gen_piece_in_space(game.sa.where, FARC, GUERRILLA)
+	},
+	piece(p) {
+		place_shipment(game.sa.shipment, p)
+		resume_kidnap_1()
+	}
 }
 
 states.kidnap_place = {
