@@ -63,7 +63,7 @@ EVENT 5
 		mark_space
 	endspace
 	prompt Flip 3 Guerrillas there or adjacent to Active.
-	piece 3 is_guerrilla(p) && is_underground(p) && is_there_or_adjacent(s, game.vm.m)
+	piece 3 is_guerrilla(p) && is_underground(p) && is_with_or_adjacent_to_mark(s, game.vm.m)
 		activate
 	endpiece
 
@@ -203,7 +203,7 @@ SHADED 18
 
 EVENT 19
 	if game.current === GOVT
-		space 0 has_cubes(s) && has_enemy_piece(s)
+		space 0 has_cube(s) && has_enemy_piece(s)
 			free_sweep_or_assault
 		endspace
 	endif
@@ -235,7 +235,7 @@ EVENT 21
 
 SHADED 21
 	resources FARC 6
-	space 1 (is_city(s) || is_dept(s)) && can_place_base(s)
+	space 1 (is_city(s) || is_dept(s)) && can_stack_base(s)
 		place FARC BASE
 	endspace
 
@@ -326,7 +326,7 @@ EVENT 28
 	endspace
 
 SHADED 28
-	space 1 is_dept(s) && is_next_to_venezuela(s) && can_place_base(s)
+	space 1 is_dept(s) && is_next_to_venezuela(s) && can_stack_base(s)
 		place FARC BASE
 	endspace
 	each space is_loc(s) && is_adjacent(CUCUTA, s) && is_empty(s)
@@ -490,7 +490,7 @@ EVENT 36
 
 EVENT 37
 	current GOVT
-	space 0 has_cubes(s) && has_farc_piece(s)
+	space 0 has_cube(s) && has_farc_piece(s)
 		free_sweep_or_assault_farc
 	endspace
 
@@ -504,14 +504,14 @@ SHADED 37
 	endspace
 
 EVENT 38
-	space 3 has_cubes(s) || is_support(s)
+	space 3 has_cube(s) || is_support(s)
 		piece 0 is_piece_in_event_space(p) && is_auc_guerrilla(p) && is_active(p)
 			remove
 		endpiece
 	endspace
 
 SHADED 38
-	space 0 has_cubes(s) || is_support(s)
+	space 0 has_cube(s) || is_support(s)
 		piece 0 is_piece_in_event_space(p) && is_auc_guerrilla(p) && is_active(p)
 			underground
 		endpiece
@@ -541,7 +541,7 @@ EVENT 40
 	endpiece
 
 SHADED 40
-	space 1 is_dept(s) && has_auc_piece(s) && has_cubes(s)
+	space 1 is_dept(s) && has_auc_piece(s) && has_cube(s)
 		prompt Move all cubes to any Cities.
 		piece 0 is_piece_in_event_space(p) && (is_troops(p) || is_police(p))
 			save_space
@@ -611,7 +611,7 @@ SHADED 44
 	resources GOVT -3
 
 EVENT 45
-	space 0 has_cubes(s) && has_terror(s)
+	space 0 has_cube(s) && has_terror(s)
 		shift_support
 	endspace
 
@@ -715,7 +715,7 @@ EVENT 51
 
 SHADED 51
 	prompt Sabotage Pipelines with or adjacent to FARC Guerrillas.
-	space 3 is_pipeline(s) && (has_farc_guerrilla(s) || adjacent_has_farc_guerrilla(s))
+	space 3 is_pipeline(s) && is_with_or_adjacent_to_farc_guerrilla(s)
 		sabotage
 	endspace
 
@@ -725,7 +725,7 @@ EVENT 52
 	endspace
 
 SHADED 52
-	space 1 has_auc_piece(s) && can_place_base(s)
+	space 1 has_auc_piece(s) && can_stack_base(s)
 		place AUC BASE
 	endspace
 	piece 0 is_auc_base(p)
@@ -787,7 +787,7 @@ SHADED 56
 	piece 0 is_cartels_piece(p) && is_city(s)
 		resources CARTELS 2
 	endpiece
-	space 2 is_city(s) && can_place_base(s)
+	space 2 is_city(s) && can_stack_base(s)
 		place CARTELS BASE
 	endspace
 
@@ -855,7 +855,7 @@ EVENT 60
 
 SHADED 60
 	current CARTELS
-	space 2 is_city(s) && can_place_base(s)
+	space 2 is_city(s) && can_stack_base(s)
 		place CARTELS BASE
 	endspace
 	space 1 is_space(s)
@@ -871,7 +871,7 @@ EVENT 61
 	resources CARTELS -6
 
 SHADED 61
-	space 3 !has_cartels_piece(s) && can_place_base(s)
+	space 3 !has_cartels_piece(s) && can_stack_base(s)
 		place CARTELS BASE
 	endspace
 
@@ -920,7 +920,7 @@ EVENT 66
 	endpiece
 
 SHADED 66
-	space 0 is_forest(s) && has_cartels_base(s) && can_place_base(s)
+	space 0 is_forest(s) && has_cartels_base(s) && can_stack_base(s)
 		place CARTELS BASE
 	endspace
 

@@ -1,5 +1,7 @@
 // TODO: show selected op spaces with highlight / pawn ?
 
+/* global view, data, player, send_action, action_button */
+
 // Factions
 const GOVT = 0
 const FARC = 1
@@ -19,14 +21,9 @@ const POLICE = 3
 const first_piece = data.first_piece
 const last_piece = data.last_piece
 
-const first_pop = data.first_pop
-const first_city = data.first_city
 const last_city = data.last_city
-const first_dept = data.first_dept
 const last_pop = data.last_pop
 const last_dept = data.last_dept
-const first_foreign = data.first_foreign
-const last_foreign = data.last_foreign
 const first_loc = data.first_loc
 const last_loc = data.last_loc
 
@@ -386,7 +383,7 @@ function init_ui() {
 	}
 
 	for (let i = 0; i < 40; ++i) {
-		ui.terror[i] = e = create("div", { className: "hide" })
+		let e = ui.terror[i] = create("div", { className: "hide" })
 		document.getElementById("tokens").appendChild(e)
 	}
 
@@ -467,27 +464,27 @@ function layout_available(faction, type, xorig, yorig) {
 function layout_pieces(list, xorig, yorig) {
 	const dx = 17
 	const dy = 11
+	function layout_piece(nrow, ncol, row, col, e, z) {
+		// basic piece size = 29x36
+		let x = xorig - (row * dx - col * dx) - 15 + (nrow-ncol) * 6
+		let y = yorig - (row * dy + col * dy) - 24 + (nrow-1) * 8
+		let xo = e.my_x_offset
+		let yo = e.my_y_offset
+		e.style.left = (xo + x) + "px"
+		e.style.top = (yo + y) + "px"
+		e.style.zIndex = z
+		e.my_x = x + 15
+		e.my_y = y + 24
+		e.my_z = z
+	}
 	if (list.length > 0) {
 		let ncol = Math.round(Math.sqrt(list.length))
 		let nrow = Math.ceil(list.length / ncol)
-		function layout_piece(row, col, e, z) {
-			// basic piece size = 29x36
-			let x = xorig - (row * dx - col * dx) - 15 + (nrow-ncol) * 6
-			let y = yorig - (row * dy + col * dy) - 24 + (nrow-1) * 8
-			let xo = e.my_x_offset
-			let yo = e.my_y_offset
-			e.style.left = (xo + x) + "px"
-			e.style.top = (yo + y) + "px"
-			e.style.zIndex = z
-			e.my_x = x + 15
-			e.my_y = y + 24
-			e.my_z = z
-		}
 		let z = 50
 		let i = 0
 		for (let row = 0; row < nrow; ++row)
 			for (let col = 0; col < ncol && i < list.length; ++col)
-				layout_piece(row, col, list[list.length-(++i)], z--)
+				layout_piece(nrow, ncol, row, col, list[list.length-(++i)], z--)
 	}
 }
 
@@ -499,12 +496,6 @@ function place_piece(p, x, y, z) {
 	p.my_x = x
 	p.my_y = y
 	p.my_z = z
-}
-
-function place_piece_under(p, other) {
-	p.style.left = (other.my_x - 26) + "px"
-	p.style.top = (other.my_y - 22) + "px"
-	p.style.zIndex = (other.my_z - 1)
 }
 
 function layout_space_bases(list, xc, yc, r) {
@@ -549,7 +540,7 @@ const sop_xy = [
 ]
 
 function layout_sop() {
-	let x, y, z
+	let i, x, y, z
 
 	// Eligible
 	x = 1164 - 22
@@ -693,18 +684,6 @@ function update_guerrillas_underground(faction, type, underground) {
 	}
 }
 
-function action_piece_list(list, action) {
-	if (view.actions && view.actions[action]) {
-		for (let i = 0; i < list.length; ++i) {
-			if (set_has(view.actions[action], i)) {
-				list[i].classList.add("action")
-			} else {
-				list[i].classList.remove("action")
-			}
-		}
-	}
-}
-
 function layout_terror(tix, s, n) {
 	let [ tx, ty ] = get_center_xy(s)
 	tx -= 20
@@ -808,10 +787,10 @@ function layout_shipments(s, list, xc, yc) {
 
 function on_update() {
 	switch (player) {
-	case "Government": favicon.href = "images/icon_govt.png"; break
-	case "AUC": favicon.href = "images/icon_auc.png"; break
-	case "Cartels": favicon.href = "images/icon_cartels.png"; break
-	case "FARC": favicon.href = "images/icon_farc.png"; break
+	case "Government": ui.favicon.href = "images/icon_govt.png"; break
+	case "AUC": ui.favicon.href = "images/icon_auc.png"; break
+	case "Cartels": ui.favicon.href = "images/icon_cartels.png"; break
+	case "FARC": ui.favicon.href = "images/icon_farc.png"; break
 	}
 
 	ui.header.classList.toggle("govt", view.current === GOVT)
@@ -1083,7 +1062,7 @@ function on_focus_card_tip(c) {
 	document.getElementById("card_tip").className = "card card_" + c
 }
 
-function on_blur_card_tip(c) {
+function on_blur_card_tip() {
 	document.getElementById("card_tip").className = "hide"
 }
 
@@ -1102,7 +1081,7 @@ function on_click_space_tip(s) {
 function sub_card(match, p1) {
 	let x = p1 | 0
 	let n = data.card_title[x]
-	return `<span class="tip" onmouseenter="on_focus_card_tip(${x})" onmouseleave="on_blur_card_tip(${x})" onclick="on_click_card_tip(${x})">${n}</span>`
+	return `<span class="tip" onmouseenter="on_focus_card_tip(${x})" onmouseleave="on_blur_card_tip()" onclick="on_click_card_tip(${x})">${n}</span>`
 }
 
 function sub_space(match, p1) {

@@ -4,8 +4,9 @@
 // TODO: auto-next at end of Special Activity / operation space ?
 // TODO: resume_...activity - end automatically when no more possible
 
-// TODO: for (s = ... last_space) to for_each_space (including/excluding foreign countries depending on events)
-// TODO: how granular undo (one at start of each space, each step, or each piece?)
+// TODO: mark faction ineligible/eligible
+
+// TODO: check stacking of ecuador on move/place
 
 let states = {}
 let game = null
@@ -438,113 +439,7 @@ function setup_remove_piece(faction, type, count, where) {
 	}
 }
 
-function count_pieces(s, faction, type) {
-	let first = first_piece[faction][type]
-	let last = last_piece[faction][type]
-	let n = 0
-	for (let p = first; p <= last; ++p)
-		if (game.pieces[p] === s)
-			++n
-	return n
-}
-
-function add_resources(faction, n) {
-	game.resources[faction] = Math.max(0, Math.min(99, game.resources[faction] + n))
-}
-
-function add_aid(n) {
-	game.aid = Math.max(0, Math.min(29, game.aid + n))
-}
-
-function is_enemy_piece(p) {
-	return piece_faction(p) !== game.current
-}
-
-function is_govt_base(p) {
-	return p >= first_piece[GOVT][BASE] && p <= last_piece[GOVT][BASE]
-}
-
-function is_police(p) {
-	return p >= first_piece[GOVT][POLICE] && p <= last_piece[GOVT][POLICE]
-}
-
-function is_troops(p) {
-	return p >= first_piece[GOVT][TROOPS] && p <= last_piece[GOVT][TROOPS]
-}
-
-function is_faction_guerrilla(p, faction) {
-	return p >= first_piece[faction][GUERRILLA] && p <= last_piece[faction][GUERRILLA]
-}
-
-function is_farc_base(p) {
-	return p >= first_piece[FARC][BASE] && p <= last_piece[FARC][BASE]
-}
-
-function is_farc_guerrilla(p) {
-	return p >= first_piece[FARC][GUERRILLA] && p <= last_piece[FARC][GUERRILLA]
-}
-
-function is_farc_piece(p) {
-	return is_farc_base(p) || is_farc_guerrilla(p)
-}
-
-function is_auc_base(p) {
-	return p >= first_piece[AUC][BASE] && p <= last_piece[AUC][BASE]
-}
-
-function is_auc_guerrilla(p) {
-	return p >= first_piece[AUC][GUERRILLA] && p <= last_piece[AUC][GUERRILLA]
-}
-
-function is_auc_piece(p) {
-	return is_auc_base(p) || is_auc_guerrilla(p)
-}
-
-function is_cartels_base(p) {
-	return p >= first_piece[CARTELS][BASE] && p <= last_piece[CARTELS][BASE]
-}
-
-function is_cartels_guerrilla(p) {
-	return p >= first_piece[CARTELS][GUERRILLA] && p <= last_piece[CARTELS][GUERRILLA]
-}
-
-function is_cartels_piece(p) {
-	return is_cartels_base(p) || is_cartels_guerrilla(p)
-}
-
-function is_base(p) {
-	if (p >= first_piece[GOVT][BASE] && p <= last_piece[GOVT][BASE])
-		return true
-	if (p >= first_piece[FARC][BASE] && p <= last_piece[FARC][BASE])
-		return true
-	if (p >= first_piece[AUC][BASE] && p <= last_piece[AUC][BASE])
-		return true
-	if (p >= first_piece[CARTELS][BASE] && p <= last_piece[CARTELS][BASE])
-		return true
-	return false
-}
-
-function target_faction(p) {
-	if (p >= first_piece[GOVT][TROOPS] && p <= last_piece[GOVT][TROOPS])
-		return 1 << GOVT
-	if (p >= first_piece[GOVT][POLICE] && p <= last_piece[GOVT][POLICE])
-		return 1 << GOVT
-	if (p >= first_piece[GOVT][BASE] && p <= last_piece[GOVT][BASE])
-		return 1 << GOVT
-	if (p >= first_piece[FARC][GUERRILLA] && p <= last_piece[FARC][GUERRILLA])
-		return 1 << FARC
-	if (p >= first_piece[FARC][BASE] && p <= last_piece[FARC][BASE])
-		return 1 << FARC
-	if (p >= first_piece[AUC][GUERRILLA] && p <= last_piece[AUC][GUERRILLA])
-		return 1 << AUC
-	if (p >= first_piece[AUC][BASE] && p <= last_piece[AUC][BASE])
-		return 1 << AUC
-	if (p >= first_piece[CARTELS][GUERRILLA] && p <= last_piece[CARTELS][GUERRILLA])
-		return 1 << CARTELS
-	if (p >= first_piece[CARTELS][BASE] && p <= last_piece[CARTELS][BASE])
-		return 1 << CARTELS
-	return 0
-}
+// === MISC PIECE QUERIES ===
 
 function piece_faction(p) {
 	if (p >= first_piece[GOVT][TROOPS] && p <= last_piece[GOVT][TROOPS])
@@ -565,33 +460,118 @@ function piece_faction(p) {
 		return CARTELS
 	if (p >= first_piece[CARTELS][BASE] && p <= last_piece[CARTELS][BASE])
 		return CARTELS
-	return 0
+	throw "IMPOSSIBLE"
 }
 
-function did_maximum_damage(targeted) {
-	if (view.actions.piece)
-		for (let p of view.actions.piece)
-			if (targeted & target_faction(p))
-				return false
-	return true
+function target_faction(p) {
+	return 1 << piece_faction(p)
 }
 
-function has_momentum(c) {
-	return set_has(game.momentum, c)
-}
-
-function has_capability(c) {
-	return set_has(game.capabilities, c)
-}
-
-function has_shaded_capability(c) {
-	return set_has(game.capabilities, -c)
+function is_enemy_piece(p) {
+	return piece_faction(p) !== game.current
 }
 
 function is_piece(p, faction, type) {
+	return p >= first_piece[faction][type] && p <= last_piece[faction][type]
+}
+
+function is_govt_base(p) { return is_piece(p, GOVT, BASE) }
+function is_troops(p) { return is_piece(p, GOVT, TROOPS) }
+function is_police(p) { return is_piece(p, GOVT, POLICE) }
+function is_cube(p) { return is_troops(p) || is_police(p) }
+function is_govt_piece(p) { return is_govt_base(p) || is_cube(p) }
+
+function is_farc_base(p) { return is_piece(p, FARC, BASE) }
+function is_farc_guerrilla(p) { return is_piece(p, FARC, GUERRILLA) }
+function is_farc_piece(p) { return is_farc_base(p) || is_farc_guerrilla(p) }
+
+function is_auc_base(p) { is_piece(p, AUC, BASE) }
+function is_auc_guerrilla(p) { is_piece(p, AUC, GUERRILLA) }
+function is_auc_piece(p) { return is_auc_base(p) || is_auc_guerrilla(p) }
+
+function is_cartels_base(p) { is_piece(p, CARTELS, BASE) }
+function is_cartels_guerrilla(p) { is_piece(p, CARTELS, GUERRILLA) }
+function is_cartels_piece(p) { return is_cartels_base(p) || is_cartels_guerrilla(p) }
+
+function is_faction_guerrilla(p, faction) {
+	return is_piece(p, faction, GUERRILLA)
+}
+
+function is_base(p) {
+	return is_govt_base(p) || is_farc_base(p) || is_auc_base(p) || is_cartels_base(p)
+}
+
+function is_guerrilla(p) {
+	return is_farc_guerrilla(p) || is_auc_guerrilla(p) || is_cartels_guerrilla(p)
+}
+
+function is_insurgent_piece(p) {
+	return is_farc_piece(p) || is_auc_piece(p) || is_cartels_piece(p)
+}
+
+// === MISC SPACE + PIECE QUERIES ===
+
+function count_pieces(s, faction, type) {
 	let first = first_piece[faction][type]
 	let last = last_piece[faction][type]
-	return p >= first && p <= last
+	let n = 0
+	for (let p = first; p <= last; ++p)
+		if (game.pieces[p] === s)
+			++n
+	return n
+}
+
+function count_faction_pieces(s, faction) {
+	switch (faction) {
+		case GOVT:
+			return count_pieces(s, GOVT, BASE) + count_pieces(s, GOVT, TROOPS) + count_pieces(s, GOVT, POLICE)
+		case FARC:
+			return count_pieces(s, FARC, BASE) + count_pieces(s, FARC, GUERRILLA)
+		case AUC:
+			return count_pieces(s, AUC, BASE) + count_pieces(s, AUC, GUERRILLA)
+		case CARTELS:
+			return count_pieces(s, CARTELS, BASE) + count_pieces(s, CARTELS, GUERRILLA)
+	}
+}
+
+function count_bases(s) {
+	return (
+		count_pieces(s, GOVT, BASE) +
+		count_pieces(s, FARC, BASE) +
+		count_pieces(s, AUC, BASE) +
+		count_pieces(s, CARTELS, BASE)
+	)
+}
+
+function count_cubes(s) {
+	return count_pieces(s, GOVT, TROOPS) + count_pieces(s, GOVT, POLICE)
+}
+
+function count_faction_underground_guerrillas(s, faction) {
+	let first = first_piece[faction][GUERRILLA]
+	let last = last_piece[faction][GUERRILLA]
+	let n = 0
+	for (let p = first; p <= last; ++p)
+		if (game.pieces[p] === s && is_underground(p))
+			++n
+	return n
+}
+
+function count_any_underground_guerrillas(s) {
+	return (
+		count_faction_underground_guerrillas(s, FARC) +
+		count_faction_underground_guerrillas(s, AUC) +
+		count_faction_underground_guerrillas(s, CARTELS)
+	)
+}
+
+function find_piece(s, faction, type) {
+	let first = first_piece[faction][type]
+	let last = last_piece[faction][type]
+	for (let p = first; p <= last; ++p)
+		if (game.pieces[p] === s)
+			return p
+	return -1
 }
 
 function has_piece(s, faction, type) {
@@ -621,34 +601,6 @@ function has_underground_guerrilla(s, faction) {
 	return false
 }
 
-function count_underground_guerrillas(s, faction) {
-	let first = first_piece[faction][GUERRILLA]
-	let last = last_piece[faction][GUERRILLA]
-	let n = 0
-	for (let p = first; p <= last; ++p)
-		if (game.pieces[p] === s && is_underground(p))
-			++n
-	return n
-}
-
-function find_underground_guerrilla(s, faction) {
-	let first = first_piece[faction][GUERRILLA]
-	let last = last_piece[faction][GUERRILLA]
-	for (let p = first; p <= last; ++p)
-		if (game.pieces[p] === s && is_underground(p))
-			return p
-	return -1
-}
-
-function find_guerrilla(s, faction) {
-	let first = first_piece[faction][GUERRILLA]
-	let last = last_piece[faction][GUERRILLA]
-	for (let p = first; p <= last; ++p)
-		if (game.pieces[p] === s)
-			return p
-	return -1
-}
-
 function has_any_guerrilla(s) {
 	return (
 		has_piece(s, FARC, GUERRILLA) ||
@@ -657,92 +609,92 @@ function has_any_guerrilla(s) {
 	)
 }
 
-function count_bases(s) {
-	return (
-		count_pieces(s, GOVT, BASE) +
-		count_pieces(s, FARC, BASE) +
-		count_pieces(s, AUC, BASE) +
-		count_pieces(s, CARTELS, BASE)
-	)
-}
+function has_troops(s) { return has_piece(s, GOVT, TROOPS) }
+function has_police(s) { return has_piece(s, GOVT, POLICE) }
+function has_cube(s) { return has_piece(s, GOVT, TROOPS) || has_piece(s, GOVT, POLICE) }
+function has_govt_piece(s) { return has_piece(s, GOVT, BASE) || has_piece(s, GOVT, TROOPS) || has_piece(s, GOVT, POLICE) }
 
-// TODO: faction for ECUADOR check
-function can_stack_base(s) {
-	return count_bases(s) < 2
-}
+function has_farc_guerrilla(s) { return has_piece(s, FARC, GUERRILLA) }
+function has_farc_piece(s) { return has_piece(s, FARC, BASE) || has_piece(s, FARC, GUERRILLA) }
 
-function can_stack_piece(faction, type, s) {
+function has_auc_piece(s) { return has_piece(s, AUC, BASE) || has_piece(s, AUC, GUERRILLA) }
+
+function has_cartels_base(s) { return has_piece(s, CARTELS, BASE) }
+function has_cartels_guerrilla(s) { return has_piece(s, CARTELS, GUERRILLA) }
+function has_cartels_piece(s) { return has_piece(s, CARTELS, BASE) || has_piece(s, CARTELS, GUERRILLA) }
+
+function has_faction_piece(s, faction) {
 	if (faction === GOVT)
-		if (is_farc_zone(s))
-			return false
-	if (type === BASE)
-		if (!can_stack_base(s))
-			return false
-	if (s === PANAMA)
-		return set_has(game.capabilities, EVT_DARIEN)
-	if (s === ECUADOR) {
-		if (set_has(game.capabilities, EVT_SUCUMBIOS))
-			return count_faction_pieces(s, faction) < 2
-		else
-			return false
-	}
-	return true
+		return has_piece(s, GOVT, BASE) || has_piece(s, GOVT, TROOPS) || has_piece(s, GOVT, POLICE)
+	return has_piece(s, faction, BASE) || has_piece(s, faction, GUERRILLA)
 }
 
-function count_faction_pieces(s, faction) {
-	switch (faction) {
-		case GOVT:
-			return count_pieces(s, GOVT, BASE) + count_pieces(s, GOVT, TROOPS) + count_pieces(s, GOVT, POLICE)
-		case FARC:
-			return count_pieces(s, FARC, BASE) + count_pieces(s, FARC, GUERRILLA)
-		case AUC:
-			return count_pieces(s, AUC, BASE) + count_pieces(s, AUC, GUERRILLA)
-		case CARTELS:
-			return count_pieces(s, CARTELS, BASE) + count_pieces(s, CARTELS, GUERRILLA)
-	}
-}
-
-function count_cubes(s) {
-	return (
-		count_pieces(s, GOVT, TROOPS) +
-		count_pieces(s, GOVT, POLICE)
+function is_empty(s) {
+	return !(
+		has_faction_piece(s, GOVT) ||
+		has_faction_piece(s, FARC) ||
+		has_faction_piece(s, AUC) ||
+		has_faction_piece(s, CARTELS)
 	)
 }
 
-function count_any_underground_guerrillas(s) {
+function has_enemy_piece(s) {
+	if (game.current !== GOVT && has_faction_piece(s, GOVT))
+		return true
+	if (game.current !== FARC && has_faction_piece(s, FARC))
+		return true
+	if (game.current !== AUC && has_faction_piece(s, AUC))
+		return true
+	if (game.current !== CARTELS && has_faction_piece(s, CARTELS))
+		return true
+	return false
+}
+
+// === MISC SPACE QUERIES ===
+
+function is_adjacent(a, b) {
+	return set_has(data.spaces[a].adjacent, b)
+}
+
+function is_coastal_space(s) {
 	return (
-		count_underground_guerrillas(s, FARC) +
-		count_underground_guerrillas(s, AUC) +
-		count_underground_guerrillas(s, CARTELS)
+		s === CESAR ||
+		s === SANTA_MARTA ||
+		s === ATLANTICO ||
+		s === CARTAGENA ||
+		s === SINCELEJO ||
+		s === CHOCO ||
+		s === NARINO ||
+		s === PANAMA ||
+		s === ECUADOR ||
+		s === PASTO_TUMACO ||
+		s === CALI_BUENAVENTURA ||
+		s === CARTAGENA_SINCELEJO ||
+		s === SANTA_MARTA_CARTAGENA
 	)
 }
 
-function update_control() {
-	game.govt_control = 0
-	game.farc_control = 0
-	for (let s = first_space; s <= last_dept; ++s) {
-		let g = count_faction_pieces(s, GOVT)
-		let f = count_faction_pieces(s, FARC)
-		let a = count_faction_pieces(s, AUC)
-		let c = count_faction_pieces(s, CARTELS)
-		if (g > a + c + f)
-			game.govt_control |= (1 << s)
-		else if (f > g + a + c)
-			game.farc_control |= (1 << s)
-	}
+function is_next_to_ecuador(s) {
+	return (
+		s === NARINO ||
+		s === PASTO ||
+		s === PUTUMAYO ||
+		s === ARAUCA ||
+		s === PASTO_TUMACO
+	)
 }
 
-function has_auc_control(s) {
-	// AUC outnumber all other forces
-	let g = count_faction_pieces(s, GOVT)
-	let f = count_faction_pieces(s, FARC)
-	let a = count_faction_pieces(s, AUC)
-	let c = count_faction_pieces(s, CARTELS)
-	return a > g + f + c
-}
-
-function is_city(s) {
-	return s >= first_city && s <= last_city
+function is_next_to_venezuela(s) {
+	return (
+		s === CESAR ||
+		s === CUCUTA ||
+		s === SANTANDER ||
+		s === ARAUCA ||
+		s === VICHADA ||
+		s === GUAINIA ||
+		s === CUCUTA_AYACUCHO ||
+		s === CUCUTA_ARAUCA
+	)
 }
 
 function is_space(s) {
@@ -761,12 +713,12 @@ function is_dept(s) {
 	return s >= first_dept && s <= last_dept
 }
 
-function is_loc(s) {
-	return s >= first_loc && s <= last_loc
+function is_city(s) {
+	return s >= first_city && s <= last_city
 }
 
-function is_city_or_loc(s) {
-	return (s >= first_city && s <= last_city) || (s >= first_loc && s <= last_loc)
+function is_loc(s) {
+	return s >= first_loc && s <= last_loc
 }
 
 function is_pop(s) {
@@ -785,128 +737,34 @@ function is_forest(s) {
 	return data.spaces[s].type === "forest"
 }
 
-function is_adjacent(a, b) {
-	return set_has(data.spaces[a].adjacent, b)
+function is_city_or_loc(s) {
+	return is_city(s) || is_loc(s)
+}
+
+function is_zero_pop_dept(s) {
+	return !is_pop(s) && is_dept(s)
+}
+
+function is_zero_pop_forest(s) {
+	return !is_pop(s) && is_forest(s)
+}
+
+// === MISC DYNAMIC QUERIES ===
+
+function has_momentum(c) {
+	return set_has(game.momentum, c)
+}
+
+function has_capability(c) {
+	return set_has(game.capabilities, c)
+}
+
+function has_shaded_capability(c) {
+	return set_has(game.capabilities, -c)
 }
 
 function is_farc_zone(s) {
 	return set_has(game.farc_zones, s)
-}
-
-function is_empty(s) {
-	return !(
-		has_any_piece(s, GOVT) ||
-		has_any_piece(s, FARC) ||
-		has_any_piece(s, AUC) ||
-		has_any_piece(s, CARTELS)
-	)
-}
-
-function faction_with_most_pieces(s) {
-	let g = count_faction_pieces(s, GOVT)
-	let f = count_faction_pieces(s, FARC)
-	let a = count_faction_pieces(s, AUC)
-	let c = count_faction_pieces(s, CARTELS)
-	if (g >= f && g >= a && g >= c)
-		return GOVT
-	if (f > g && f > a && f > c)
-		return FARC
-	if (a > g && a > f && a > c)
-		return AUC
-	if (c > g && c > f && c > a)
-		return CARTELS
-	return GOVT
-}
-
-function is_guerrilla(p) {
-	for (let faction = 1; faction < 4; ++faction) {
-		let p0 = first_piece[faction][GUERRILLA]
-		let p1 = last_piece[faction][GUERRILLA]
-		if (p >= p0 && p <= p1)
-			return true
-	}
-	return false
-}
-
-function is_insurgent_piece(p) {
-	return is_farc_piece(p) || is_auc_piece(p) || is_cartels_piece(p)
-}
-
-function is_active(p) {
-	return !is_underground(p)
-}
-
-function is_underground(p) {
-	for (let faction = 1; faction < 4; ++faction) {
-		let p0 = first_piece[faction][GUERRILLA]
-		let p1 = last_piece[faction][GUERRILLA]
-		if (p >= p0 && p <= p1)
-			return game.underground[faction] & (1 << (p - p0))
-	}
-}
-
-function set_underground(p) {
-	for (let faction = 1; faction < 4; ++faction) {
-		let p0 = first_piece[faction][GUERRILLA]
-		let p1 = last_piece[faction][GUERRILLA]
-		if (p >= p0 && p <= p1)
-			game.underground[faction] |= (1 << (p - p0))
-	}
-}
-
-function set_active(p) {
-	for (let faction = 1; faction < 4; ++faction) {
-		let p0 = first_piece[faction][GUERRILLA]
-		let p1 = last_piece[faction][GUERRILLA]
-		if (p >= p0 && p <= p1)
-			game.underground[faction] &= ~(1 << (p - p0))
-	}
-}
-
-function remove_piece(p) {
-	let s = game.pieces[p]
-	drop_held_shipments(p)
-	set_underground(p)
-	game.pieces[p] = AVAILABLE
-	// auto_transfer_dropped_shipments(s)
-}
-
-function place_piece(p, s) {
-	set_underground(p)
-	game.pieces[p] = s
-}
-
-function move_piece(p, s) {
-	game.pieces[p] = s
-}
-
-function count_terror_and_sabotage() {
-	let n = (game.sabotage.length >> 1)
-	for (let i = 1; i < game.terror.length; i += 2)
-		n += game.terror[i]
-	return n
-}
-
-function place_terror(s) {
-	if (count_terror_and_sabotage() < 40)
-		map_set(game.terror, s, map_get(game.terror, s, 0) + 1)
-}
-
-function place_sabotage(s) {
-	if (count_terror_and_sabotage() < 40)
-		set_add(game.sabotage, s)
-}
-
-function has_sabotage(s) {
-	return set_has(game.sabotage, s)
-}
-
-function count_terror(s) {
-	return map_get(game.terror, s, 0)
-}
-
-function has_terror(s) {
-	return map_get(game.terror, s, 0) > 0
 }
 
 function has_govt_control(s) {
@@ -917,36 +775,13 @@ function has_farc_control(s) {
 	return (s <= last_dept) && game.farc_control & (1 << s)
 }
 
-function has_cartels_base(s) {
-	return has_piece(s, CARTELS, BASE)
-}
-
-function has_farc_guerrilla(s) {
-	return has_piece(s, FARC, GUERRILLA)
-}
-
-function has_cartels_guerrilla(s) {
-	return has_piece(s, CARTELS, GUERRILLA)
-}
-
-function is_unsabotaged_pipeline(s) {
-	return is_pipeline(s) && !has_sabotage(s)
-}
-
-function has_no_guerrilla(s) {
-	return !has_any_guerrilla(s)
-}
-
-function has_auc_piece(s) {
-	return has_piece(s, AUC, BASE) || has_piece(s, AUC, GUERRILLA)
-}
-
-function has_farc_piece(s) {
-	return has_piece(s, FARC, BASE) || has_piece(s, FARC, GUERRILLA)
-}
-
-function has_cartels_piece(s) {
-	return has_piece(s, CARTELS, BASE) || has_piece(s, CARTELS, GUERRILLA)
+function has_auc_control(s) {
+	// AUC outnumber all other forces
+	let g = count_faction_pieces(s, GOVT)
+	let f = count_faction_pieces(s, FARC)
+	let a = count_faction_pieces(s, AUC)
+	let c = count_faction_pieces(s, CARTELS)
+	return a > g + f + c
 }
 
 function is_neutral(s) {
@@ -977,77 +812,115 @@ function is_opposition(s) {
 	return is_pop(s) && game.support[s] < 0
 }
 
-function has_govt_piece(s) {
-	return has_piece(s, GOVT, BASE) || has_piece(s, GOVT, TROOPS) || has_piece(s, GOVT, POLICE)
+function has_sabotage(s) {
+	return set_has(game.sabotage, s)
 }
 
-function has_cubes(s) {
-	return has_piece(s, GOVT, TROOPS) || has_piece(s, GOVT, POLICE)
+function has_terror(s) {
+	return map_get(game.terror, s, 0) > 0
 }
 
-function has_troops(s) {
-	return has_piece(s, GOVT, TROOPS)
+function count_terror(s) {
+	return map_get(game.terror, s, 0)
 }
 
-function has_police(s) {
-	return has_piece(s, GOVT, POLICE)
+function count_terror_and_sabotage() {
+	let n = (game.sabotage.length >> 1)
+	for (let i = 1; i < game.terror.length; i += 2)
+		n += game.terror[i]
+	return n
 }
 
-function is_next_to_venezuela(s) {
-	return (
-		s === CESAR ||
-		s === CUCUTA ||
-		s === SANTANDER ||
-		s === ARAUCA ||
-		s === VICHADA ||
-		s === GUAINIA ||
-		s === CUCUTA_AYACUCHO ||
-		s === CUCUTA_ARAUCA
-	)
+function is_unsabotaged_pipeline(s) {
+	return is_pipeline(s) && !has_sabotage(s)
 }
 
-function is_next_to_ecuador(s) {
-	return (
-		s === NARINO ||
-		s === PASTO ||
-		s === PUTUMAYO ||
-		s === ARAUCA ||
-		s === PASTO_TUMACO
-	)
-}
+// === MISC COMPOUND QUERIES ==
 
-function is_coastal_space(s) {
-	return (
-		s === CESAR ||
-		s === SANTA_MARTA ||
-		s === ATLANTICO ||
-		s === CARTAGENA ||
-		s === SINCELEJO ||
-		s === CHOCO ||
-		s === NARINO ||
-		s === PANAMA ||
-		s === ECUADOR ||
-		s === PASTO_TUMACO ||
-		s === CALI_BUENAVENTURA ||
-		s === CARTAGENA_SINCELEJO ||
-		s === SANTA_MARTA_CARTAGENA
-	)
-}
-
-function is_zero_pop_dept(s) {
-	return !is_pop(s) && is_dept(s)
-}
-
-function is_zero_pop_forest(s) {
-	return !is_pop(s) && is_forest(s)
-}
-
-function can_govt_civic_action(s) {
-	if (game.support[s] < 2 && has_govt_control(s)) {
-		if (has_shaded_capability(CAP_1ST_DIV))
-			return count_pieces(s, GOVT, TROOPS) >= 2 && count_pieces(s, GOVT, POLICE) >= 2
-		return has_piece(s, GOVT, TROOPS) && has_piece(s, GOVT, POLICE)
+function is_possible_farc_zone(s) {
+	if (is_mountain(s) && !is_farc_zone(s)) {
+		let max = 0
+		for (let x = first_dept; x <= last_dept; ++x) {
+			if (is_mountain(x) && !is_farc_zone(x)) {
+				let xn = count_pieces(x, FARC, BASE) + count_pieces(x, FARC, GUERRILLA)
+				if (xn > max)
+					max = xn
+			}
+		}
+		return count_pieces(s, FARC, BASE) + count_pieces(s, FARC, GUERRILLA) === max
 	}
+	return false
+}
+
+function is_highest_value_pipeline_without_cubes(s) {
+	let max = 0
+	for (let x = first_loc; x <= last_loc; ++x) {
+		if (is_pipeline(x) && !has_cube(x)) {
+			let e = data.spaces[x].econ
+			if (e > max)
+				max = e
+		}
+	}
+	return data.spaces[s].econ === max
+}
+
+function faction_with_most_pieces(s) {
+	let g = count_faction_pieces(s, GOVT)
+	let f = count_faction_pieces(s, FARC)
+	let a = count_faction_pieces(s, AUC)
+	let c = count_faction_pieces(s, CARTELS)
+	if (g >= f && g >= a && g >= c)
+		return GOVT
+	if (f > g && f > a && f > c)
+		return FARC
+	if (a > g && a > f && a > c)
+		return AUC
+	if (c > g && c > f && c > a)
+		return CARTELS
+	return GOVT
+}
+
+function is_any_pipeline_sabotaged() {
+	for (let s of game.sabotage)
+		if (is_pipeline(s))
+			return true
+	return false
+}
+
+function is_adjacent_to_3econ_loc(s) {
+	for (let x of data.spaces[s].adjacent)
+		if (is_loc(x) && data.spaces[x].econ === 3)
+			return true
+	return false
+}
+
+function is_adjacent_to_3econ_pipeline(s) {
+	for (let x of data.spaces[s].adjacent)
+		if (is_pipeline(x) && data.spaces[x].econ === 3)
+			return true
+	return false
+}
+
+function is_with_or_adjacent_to_mark(s, list) {
+	for (let x of list)
+		if (x === s || is_adjacent(x, s))
+			return true
+	return false
+}
+
+function is_with_or_adjacent_to_farc_guerrilla(s) {
+	if (has_farc_guerrilla(s))
+		return true
+	for (let x of data.spaces[s].adjacent)
+		if (has_farc_guerrilla(x))
+			return true
+	return false
+}
+
+function is_adjacent_to_support(s) {
+	for (let x of data.spaces[s].adjacent)
+		if (is_support(x))
+			return true
 	return false
 }
 
@@ -1071,54 +944,257 @@ function is_redeploy_police_space(s) {
 	return false
 }
 
-function is_any_pipeline_sabotaged() {
-	for (let s of game.sabotage)
-		if (is_pipeline(s))
-			return true
-	return false
-}
+// === MISC STATE COMMANDS ==
 
-function adjacent_has_farc_guerrilla(s) {
-	for (let x of data.spaces[s].adjacent)
-		if (has_farc_guerrilla(x))
-			return true
-	return false
-}
-
-function is_there_or_adjacent(s, list) {
-	for (let x of list)
-		if (x === s || is_adjacent(x, s))
-			return true
-	return false
-}
-
-function is_adjacent_to_3econ_loc(s) {
-	for (let x of data.spaces[s].adjacent)
-		if (is_loc(x) && data.spaces[x].econ === 3)
-			return true
-	return false
-}
-
-function is_adjacent_to_3econ_pipeline(s) {
-	for (let x of data.spaces[s].adjacent)
-		if (is_pipeline(x) && data.spaces[x].econ === 3)
-			return true
-	return false
-}
-
-function is_possible_farc_zone(s) {
-	if (is_mountain(s) && !is_farc_zone(s)) {
-		let max = 0
-		for (let x = first_dept; x <= last_dept; ++x) {
-			if (is_mountain(x) && !is_farc_zone(x)) {
-				let xn = count_pieces(x, FARC, BASE) + count_pieces(x, FARC, GUERRILLA)
-				if (xn > max)
-					max = xn
-			}
-		}
-		return count_pieces(s, FARC, BASE) + count_pieces(s, FARC, GUERRILLA) === max
+function update_control() {
+	game.govt_control = 0
+	game.farc_control = 0
+	for (let s = first_space; s <= last_dept; ++s) {
+		let g = count_faction_pieces(s, GOVT)
+		let f = count_faction_pieces(s, FARC)
+		let a = count_faction_pieces(s, AUC)
+		let c = count_faction_pieces(s, CARTELS)
+		if (g > a + c + f)
+			game.govt_control |= (1 << s)
+		else if (f > g + a + c)
+			game.farc_control |= (1 << s)
 	}
+}
+
+function add_resources(faction, n) {
+	game.resources[faction] = Math.max(0, Math.min(99, game.resources[faction] + n))
+}
+
+function add_aid(n) {
+	game.aid = Math.max(0, Math.min(29, game.aid + n))
+}
+
+function is_underground(p) {
+	for (let faction = 1; faction < 4; ++faction) {
+		let p0 = first_piece[faction][GUERRILLA]
+		let p1 = last_piece[faction][GUERRILLA]
+		if (p >= p0 && p <= p1)
+			return game.underground[faction] & (1 << (p - p0))
+	}
+}
+
+function set_underground(p) {
+	for (let faction = 1; faction < 4; ++faction) {
+		let p0 = first_piece[faction][GUERRILLA]
+		let p1 = last_piece[faction][GUERRILLA]
+		if (p >= p0 && p <= p1)
+			game.underground[faction] |= (1 << (p - p0))
+	}
+}
+
+function set_active(p) {
+	for (let faction = 1; faction < 4; ++faction) {
+		let p0 = first_piece[faction][GUERRILLA]
+		let p1 = last_piece[faction][GUERRILLA]
+		if (p >= p0 && p <= p1)
+			game.underground[faction] &= ~(1 << (p - p0))
+	}
+}
+
+function is_active(p) {
+	return !is_underground(p)
+}
+
+function move_piece(p, s) {
+	game.pieces[p] = s
+}
+
+function place_piece(p, s) {
+	set_underground(p)
+	game.pieces[p] = s
+}
+
+function remove_piece(p) {
+	if (is_guerrilla(p)) {
+		// let s = game.pieces[p]
+		drop_held_shipments(p)
+		// TODO: auto_transfer_dropped_shipments(s) - immediate or wait?
+		set_underground(p)
+	}
+	game.pieces[p] = AVAILABLE
+}
+
+function place_terror(s) {
+	if (count_terror_and_sabotage() < 40)
+		map_set(game.terror, s, map_get(game.terror, s, 0) + 1)
+}
+
+function place_sabotage(s) {
+	if (count_terror_and_sabotage() < 40)
+		set_add(game.sabotage, s)
+}
+
+// === SHIPMENT QUERIES AND COMMANDS ===
+
+function place_shipment(sh, p) {
+	game.shipments[sh] = p << 2
+}
+
+function remove_shipment(sh) {
+	game.shipments[sh] = 0
+}
+
+function drop_shipment(sh) {
+	let p = game.shipments[sh] >> 2
+	let s = game.pieces[p]
+	let f = piece_faction(p)
+	game.shipments[sh] = (s << 2) | f
+}
+
+function is_shipment_available(sh) {
+	return game.shipments[sh] === 0
+}
+
+function is_shipment_held(sh) {
+	return game.shipments[sh] !== 0 && (game.shipments[sh] & 3) === 0
+}
+
+function get_held_shipment_faction(sh) {
+	return piece_faction(game.shipments[sh] >> 2)
+}
+
+function get_held_shipment_piece(sh) {
+	return (game.shipments[sh] >> 2)
+}
+
+function is_shipment_dropped(sh) {
+	return (game.shipments[sh] & 3) !== 0
+}
+
+function get_dropped_shipment_faction(sh) {
+	return (game.shipments[sh] & 3)
+}
+
+function get_dropped_shipment_space(sh) {
+	return (game.shipments[sh] >> 2)
+}
+
+function is_shipment_held_by_piece(sh, p) {
+	return is_shipment_held(sh) && get_held_shipment_piece(sh) === p
+}
+
+function is_shipment_held_by_faction(sh, f) {
+	return is_shipment_held(sh) && get_held_shipment_faction(sh) === f
+}
+
+function is_any_shipment_held() {
+	for (let sh = 0; sh < 4; ++sh)
+		if (is_shipment_held(sh))
+			return true
 	return false
+}
+
+function remove_dropped_shipments() {
+	for (let sh = 0; sh < 4; ++sh)
+		if (is_shipment_dropped(sh))
+			remove_shipment(sh)
+}
+
+function drop_held_shipments(p) {
+	for (let sh = 0; sh < 4; ++sh)
+		if (is_shipment_held_by_piece(sh, p))
+			drop_shipment(sh)
+}
+
+function has_dropped_shipments() {
+	for (let sh = 0; sh < 4; ++sh)
+		if (is_shipment_dropped(sh))
+			return true
+	return false
+}
+
+function can_transfer_dropped_shipments() {
+	for (let sh = 0; sh < 4; ++sh)
+		if (is_shipment_dropped(sh))
+			if (has_any_guerrilla(get_dropped_shipment_space(sh)))
+				return true
+	return false
+}
+
+function auto_transfer_dropped_shipments(s) {
+	for (let sh = 0; sh < 4; ++sh)
+		if (is_shipment_dropped(sh))
+			auto_transfer_dropped_shipment_imp(sh)
+}
+
+function auto_transfer_dropped_shipment_imp(sh) {
+	let f = get_dropped_shipment_faction(sh)
+	let s = get_dropped_shipment_space(sh)
+	let a, b, p
+
+	p = find_piece(s, f, GUERRILLA)
+	if (p >= 0) {
+		place_shipment(sh, p)
+		return
+	}
+
+	if (f === FARC) {
+		a = find_piece(s, AUC, GUERRILLA)
+		b = find_piece(s, CARTELS, GUERRILLA)
+	}
+	if (f === AUC) {
+		a = find_piece(s, FARC, GUERRILLA)
+		b = find_piece(s, CARTELS, GUERRILLA)
+	}
+	if (f === CARTELS) {
+		a = find_piece(s, FARC, GUERRILLA)
+		b = find_piece(s, AUC, GUERRILLA)
+	}
+
+	if (a >= 0 && b < 0) {
+		place_shipment(sh, a)
+		return
+	}
+	if (a < 0 && b >= 0) {
+		place_shipment(sh, b)
+		return
+	}
+
+	// nobody to pick it up...
+}
+
+// === ITERATORS AND ACTION GENERATORS ===
+
+function can_stack_base(s) {
+	// TODO: faction for ECUADOR check
+	return count_bases(s) < 2
+}
+
+function can_stack_piece(s, faction, type) {
+	if (faction === GOVT)
+		if (is_farc_zone(s))
+			return false
+	if (type === BASE)
+		if (!can_stack_base(s))
+			return false
+	if (s === PANAMA)
+		return set_has(game.capabilities, EVT_DARIEN)
+	if (s === ECUADOR) {
+		if (set_has(game.capabilities, EVT_SUCUMBIOS))
+			return count_faction_pieces(s, faction) < 2
+		else
+			return false
+	}
+	return true
+}
+
+function can_place_any_available_piece(s, faction) {
+	if (can_stack_base(s) && has_piece(AVAILABLE, faction, BASE))
+		return true
+	return can_stack_piece(s, faction, GUERRILLA) && has_piece(AVAILABLE, faction, GUERRILLA)
+}
+
+function did_maximum_damage(targeted) {
+	if (view.actions.piece)
+		for (let p of view.actions.piece)
+			if (targeted & target_faction(p))
+				return false
+	return true
 }
 
 function for_each_piece(faction, type, f) {
@@ -1183,388 +1259,6 @@ function gen_attack_piece(s, faction) {
 		gen_piece_in_space(s, faction, GUERRILLA)
 		if (!has_piece(s, faction, GUERRILLA))
 			gen_piece_in_space(s, faction, BASE)
-	}
-}
-
-
-// === SHIPMENTS ===
-
-function place_shipment(sh, p) {
-	game.shipments[sh] = p << 2
-}
-
-function remove_shipment(sh) {
-	game.shipments[sh] = 0
-}
-
-function drop_shipment(sh) {
-	let p = game.shipments[sh] >> 2
-	let s = game.pieces[p]
-	let f = piece_faction(p)
-	game.shipments[sh] = (s << 2) | f
-}
-
-function is_shipment_available(sh) {
-	return game.shipments[sh] === 0
-}
-
-function is_shipment_held(sh) {
-	return game.shipments[sh] !== 0 && (game.shipments[sh] & 3) === 0
-}
-
-function get_held_shipment_faction(sh) {
-	return piece_faction(game.shipments[sh] >> 2)
-}
-
-function get_held_shipment_piece(sh) {
-	return (game.shipments[sh] >> 2)
-}
-
-function is_shipment_dropped(sh) {
-	return (game.shipments[sh] & 3) !== 0
-}
-
-function get_dropped_shipment_faction(sh) {
-	return (game.shipments[sh] & 3)
-}
-
-function get_dropped_shipment_space(sh) {
-	return (game.shipments[sh] >> 2)
-}
-
-function is_shipment_held_by_piece(sh, p) {
-	return is_shipment_held(sh) && get_held_shipment_piece(sh) === p
-}
-
-function is_shipment_held_by_faction(sh, f) {
-	return is_shipment_held(sh) && get_held_shipment_faction(sh) === f
-}
-
-function is_any_shipment_held_by_faction(faction) {
-	for (let sh = 0; sh < 4; ++sh)
-		if (is_shipment_held_by_faction(sh, faction))
-			return true
-	return false
-}
-
-function is_any_shipment_held() {
-	for (let sh = 0; sh < 4; ++sh)
-		if (is_shipment_held(sh))
-			return true
-	return false
-}
-
-function remove_dropped_shipments() {
-	for (let sh = 0; sh < 4; ++sh)
-		if (is_shipment_dropped(sh))
-			remove_shipment(sh)
-}
-
-function drop_held_shipments(p) {
-	for (let sh = 0; sh < 4; ++sh)
-		if (is_shipment_held_by_piece(sh, p))
-			drop_shipment(sh)
-}
-
-function has_dropped_shipments() {
-	for (let sh = 0; sh < 4; ++sh)
-		if (is_shipment_dropped(sh))
-			return true
-	return false
-}
-
-function can_transfer_dropped_shipments() {
-	for (let sh = 0; sh < 4; ++sh)
-		if (is_shipment_dropped(sh))
-			if (has_any_guerrilla(get_dropped_shipment_space(sh)))
-				return true
-	return false
-}
-
-function auto_transfer_dropped_shipments(s) {
-	for (let sh = 0; sh < 4; ++sh)
-		if (is_shipment_dropped(sh))
-			auto_transfer_dropped_shipment_imp(sh)
-}
-
-function auto_transfer_dropped_shipment_imp(sh) {
-	let f = get_dropped_shipment_faction(sh)
-	let s = get_dropped_shipment_space(sh)
-	let a, b, p
-
-	p = find_guerrilla(s, f)
-	if (p >= 0) {
-		place_shipment(sh, p)
-		return
-	}
-
-	if (f === FARC) {
-		a = find_guerrilla(s, AUC)
-		b = find_guerrilla(s, CARTELS)
-	}
-	if (f === AUC) {
-		a = find_guerrilla(s, FARC)
-		b = find_guerrilla(s, CARTELS)
-	}
-	if (f === CARTELS) {
-		a = find_guerrilla(s, FARC)
-		b = find_guerrilla(s, AUC)
-	}
-
-	if (a >= 0 && b < 0) {
-		place_shipment(sh, a)
-		return
-	}
-	if (a < 0 && b >= 0) {
-		place_shipment(sh, b)
-		return
-	}
-
-	// nobody to pick it up...
-}
-
-// === SEQUENCE OF PLAY ===
-
-function this_card() {
-	return game.deck[0]
-}
-
-function is_final_card() {
-	return false
-}
-
-function goto_card() {
-	if (this_card() > 72)
-		goto_propaganda_card()
-	else
-		goto_event_card()
-}
-
-function adjust_eligibility(faction) {
-	if (game.cylinder[faction] === INELIGIBLE || game.cylinder[faction] === SOP_PASS)
-		game.cylinder[faction] = ELIGIBLE
-	else if (game.cylinder[faction] !== ELIGIBLE)
-		game.cylinder[faction] = INELIGIBLE
-}
-
-function end_card() {
-	adjust_eligibility(GOVT)
-	adjust_eligibility(FARC)
-	adjust_eligibility(AUC)
-	adjust_eligibility(CARTELS)
-
-	clear_undo()
-	array_remove(game.deck, 0)
-	goto_card()
-}
-
-function is_eligible(faction) {
-	return game.cylinder[faction] === ELIGIBLE
-}
-
-function next_eligible_faction() {
-	let order = data.card_order[this_card()]
-	for (let faction of order)
-		if (is_eligible(faction))
-			return faction
-	return null
-}
-
-function did_option(e) {
-	return (
-		game.cylinder[GOVT] === e ||
-		game.cylinder[FARC] === e ||
-		game.cylinder[AUC] === e ||
-		game.cylinder[CARTELS] === e
-	)
-}
-
-function goto_event_card() {
-	log_h1("C" + this_card())
-	resume_event_card()
-}
-
-function resume_event_card() {
-	clear_undo()
-	let did_1st = (did_option(SOP_1ST_OP_ONLY) || did_option(SOP_1ST_OP_AND_SA) || did_option(SOP_1ST_EVENT))
-	let did_2nd = (did_option(SOP_2ND_LIMOP) || did_option(SOP_2ND_LIMOP_OR_EVENT) || did_option(SOP_2ND_OP_AND_SA))
-	if (did_1st) {
-		if (did_2nd)
-			end_card()
-		else
-			goto_eligible2()
-	} else {
-		goto_eligible1()
-	}
-}
-
-function goto_eligible1() {
-	game.current = next_eligible_faction()
-	if (game.current === null)
-		end_card()
-	else
-		game.state = "eligible1"
-}
-
-function goto_eligible2() {
-	game.current = next_eligible_faction()
-	if (game.current === null)
-		end_card()
-	else
-		game.state = "eligible2"
-}
-
-states.eligible1 = {
-	disable_negotiation: true,
-	inactive: "1st Eligible",
-	prompt() {
-		view.prompt = `${data.card_title[this_card()]}: Choose a Sequence of Play option.`
-		gen_action("sop", SOP_1ST_OP_ONLY)
-		gen_action("sop", SOP_1ST_OP_AND_SA)
-		gen_action("sop", SOP_1ST_EVENT)
-		gen_action("sop", SOP_PASS)
-	},
-	sop(option) {
-		push_undo()
-		game.cylinder[game.current] = option
-		switch (option) {
-			case SOP_PASS:
-				goto_pass()
-				break
-			case SOP_1ST_OP_ONLY:
-				goto_op_only()
-				break
-			case SOP_1ST_OP_AND_SA:
-				goto_op_and_sa()
-				break
-			case SOP_1ST_EVENT:
-				goto_event()
-				break
-		}
-	},
-}
-
-states.eligible2 = {
-	disable_negotiation: true,
-	inactive: "2nd Eligible",
-	prompt() {
-		view.prompt = `${data.card_title[this_card()]}: Choose a Sequence of Play option.`
-		if (did_option(SOP_1ST_OP_ONLY))
-			gen_action("sop", SOP_2ND_LIMOP)
-		if (did_option(SOP_1ST_OP_AND_SA))
-			gen_action("sop", SOP_2ND_LIMOP_OR_EVENT)
-		if (did_option(SOP_1ST_EVENT))
-			gen_action("sop", SOP_2ND_OP_AND_SA)
-		gen_action("sop", SOP_PASS)
-	},
-	sop(option) {
-		push_undo()
-		game.cylinder[game.current] = option
-		switch (option) {
-			case SOP_PASS:
-				goto_pass()
-				break
-			case SOP_2ND_LIMOP:
-				goto_limop()
-				break
-			case SOP_2ND_LIMOP_OR_EVENT:
-				goto_limop_or_event()
-				break
-			case SOP_2ND_OP_AND_SA:
-				goto_op_and_sa()
-				break
-		}
-	},
-}
-
-function goto_pass() {
-	log_h2(faction_name[game.current] + " - Pass")
-	if (game.current === GOVT)
-		add_resources(game.current, 3)
-	else
-		add_resources(game.current, 1)
-	resume_event_card()
-}
-
-function goto_limop_or_event() {
-	game.state = "limop_or_event"
-}
-
-states.limop_or_event = {
-	prompt() {
-		view.prompt = `${data.card_title[this_card()]}: Event or Limited Operation?`
-		view.actions.event = 1
-		view.actions.limop = 1
-	},
-	event() {
-		goto_event()
-	},
-	limop() {
-		goto_limop()
-	}
-}
-
-function goto_event() {
-	log_h2(faction_name[game.current] + " - Event")
-	if (set_has(single_events, this_card()))
-		execute_event(0)
-	else
-		game.state = "event"
-}
-
-function goto_op_only() {
-	log_h2(faction_name[game.current] + " - Op Only")
-	goto_operation(0, 0, 0, 1)
-}
-
-function goto_op_and_sa() {
-	log_h2(faction_name[game.current] + " - Op + Special")
-	goto_operation(0, 0, 1, 0)
-}
-
-function goto_limop() {
-	log_h2(faction_name[game.current] + " - LimOp")
-	goto_operation(0, 1, 0, 1)
-}
-
-function goto_ship_limop() {
-	log_h2(faction_name[game.current] + " - Ship")
-	goto_operation(1, 1, 0, 0)
-}
-
-function goto_operation(free, limited, special, ship) {
-	game.state = "op"
-	game.op = {
-		free,
-		limited,
-		ship,
-		spaces: [],
-		targeted: 0,
-		pieces: 0,
-		count: 0,
-	}
-	game.sa = special
-}
-
-function init_free_operation(state) {
-	goto_operation(1, 0, 0, 0)
-	game.state = state
-}
-
-function can_ship() {
-	return game.op.ship && is_any_shipment_held()
-}
-
-function end_operation() {
-	if (can_ship()) {
-		push_undo()
-		game.state = "ship"
-	} else {
-		game.op = null
-		if (game.vm)
-			vm_next()
-		else
-			resume_event_card()
 	}
 }
 
@@ -2054,6 +1748,251 @@ states.drug_bust = {
 	},
 }
 
+// === SEQUENCE OF PLAY ===
+
+function this_card() {
+	return game.deck[0]
+}
+
+function is_final_card() {
+	// TODO
+	return false
+}
+
+function is_eligible(faction) {
+	return game.cylinder[faction] === ELIGIBLE
+}
+
+function goto_card() {
+	if (this_card() > 72)
+		goto_propaganda_card()
+	else
+		goto_event_card()
+}
+
+function adjust_eligibility(faction) {
+	if (game.cylinder[faction] === INELIGIBLE || game.cylinder[faction] === SOP_PASS)
+		game.cylinder[faction] = ELIGIBLE
+	else if (game.cylinder[faction] !== ELIGIBLE)
+		game.cylinder[faction] = INELIGIBLE
+}
+
+function end_card() {
+	adjust_eligibility(GOVT)
+	adjust_eligibility(FARC)
+	adjust_eligibility(AUC)
+	adjust_eligibility(CARTELS)
+
+	clear_undo()
+	array_remove(game.deck, 0)
+	goto_card()
+}
+
+function next_eligible_faction() {
+	let order = data.card_order[this_card()]
+	for (let faction of order)
+		if (is_eligible(faction))
+			return faction
+	return null
+}
+
+function did_option(e) {
+	return (
+		game.cylinder[GOVT] === e ||
+		game.cylinder[FARC] === e ||
+		game.cylinder[AUC] === e ||
+		game.cylinder[CARTELS] === e
+	)
+}
+
+function goto_event_card() {
+	log_h1("C" + this_card())
+	resume_event_card()
+}
+
+function resume_event_card() {
+	clear_undo()
+	let did_1st = (did_option(SOP_1ST_OP_ONLY) || did_option(SOP_1ST_OP_AND_SA) || did_option(SOP_1ST_EVENT))
+	let did_2nd = (did_option(SOP_2ND_LIMOP) || did_option(SOP_2ND_LIMOP_OR_EVENT) || did_option(SOP_2ND_OP_AND_SA))
+	if (did_1st) {
+		if (did_2nd)
+			end_card()
+		else
+			goto_eligible2()
+	} else {
+		goto_eligible1()
+	}
+}
+
+function goto_eligible1() {
+	game.current = next_eligible_faction()
+	if (game.current === null)
+		end_card()
+	else
+		game.state = "eligible1"
+}
+
+function goto_eligible2() {
+	game.current = next_eligible_faction()
+	if (game.current === null)
+		end_card()
+	else
+		game.state = "eligible2"
+}
+
+states.eligible1 = {
+	disable_negotiation: true,
+	inactive: "1st Eligible",
+	prompt() {
+		view.prompt = `${data.card_title[this_card()]}: Choose a Sequence of Play option.`
+		gen_action("sop", SOP_1ST_OP_ONLY)
+		gen_action("sop", SOP_1ST_OP_AND_SA)
+		gen_action("sop", SOP_1ST_EVENT)
+		gen_action("sop", SOP_PASS)
+	},
+	sop(option) {
+		push_undo()
+		game.cylinder[game.current] = option
+		switch (option) {
+			case SOP_PASS:
+				goto_pass()
+				break
+			case SOP_1ST_OP_ONLY:
+				goto_op_only()
+				break
+			case SOP_1ST_OP_AND_SA:
+				goto_op_and_sa()
+				break
+			case SOP_1ST_EVENT:
+				goto_event()
+				break
+		}
+	},
+}
+
+states.eligible2 = {
+	disable_negotiation: true,
+	inactive: "2nd Eligible",
+	prompt() {
+		view.prompt = `${data.card_title[this_card()]}: Choose a Sequence of Play option.`
+		if (did_option(SOP_1ST_OP_ONLY))
+			gen_action("sop", SOP_2ND_LIMOP)
+		if (did_option(SOP_1ST_OP_AND_SA))
+			gen_action("sop", SOP_2ND_LIMOP_OR_EVENT)
+		if (did_option(SOP_1ST_EVENT))
+			gen_action("sop", SOP_2ND_OP_AND_SA)
+		gen_action("sop", SOP_PASS)
+	},
+	sop(option) {
+		push_undo()
+		game.cylinder[game.current] = option
+		switch (option) {
+			case SOP_PASS:
+				goto_pass()
+				break
+			case SOP_2ND_LIMOP:
+				goto_limop()
+				break
+			case SOP_2ND_LIMOP_OR_EVENT:
+				goto_limop_or_event()
+				break
+			case SOP_2ND_OP_AND_SA:
+				goto_op_and_sa()
+				break
+		}
+	},
+}
+
+function goto_pass() {
+	log_h2(faction_name[game.current] + " - Pass")
+	if (game.current === GOVT)
+		add_resources(game.current, 3)
+	else
+		add_resources(game.current, 1)
+	resume_event_card()
+}
+
+function goto_limop_or_event() {
+	game.state = "limop_or_event"
+}
+
+states.limop_or_event = {
+	prompt() {
+		view.prompt = `${data.card_title[this_card()]}: Event or Limited Operation?`
+		view.actions.event = 1
+		view.actions.limop = 1
+	},
+	event() {
+		goto_event()
+	},
+	limop() {
+		goto_limop()
+	}
+}
+
+function goto_event() {
+	log_h2(faction_name[game.current] + " - Event")
+	if (set_has(single_events, this_card()))
+		execute_event(0)
+	else
+		game.state = "event"
+}
+
+function goto_op_only() {
+	log_h2(faction_name[game.current] + " - Op Only")
+	goto_operation(0, 0, 0, 1)
+}
+
+function goto_op_and_sa() {
+	log_h2(faction_name[game.current] + " - Op + Special")
+	goto_operation(0, 0, 1, 0)
+}
+
+function goto_limop() {
+	log_h2(faction_name[game.current] + " - LimOp")
+	goto_operation(0, 1, 0, 1)
+}
+
+function goto_ship_limop() {
+	log_h2(faction_name[game.current] + " - Ship")
+	goto_operation(1, 1, 0, 0)
+}
+
+function goto_operation(free, limited, special, ship) {
+	game.state = "op"
+	game.op = {
+		free,
+		limited,
+		ship,
+		spaces: [],
+		targeted: 0,
+		pieces: 0,
+		count: 0,
+	}
+	game.sa = special
+}
+
+function init_free_operation(state) {
+	goto_operation(1, 0, 0, 0)
+	game.state = state
+}
+
+function can_ship() {
+	return game.op.ship && is_any_shipment_held()
+}
+
+function end_operation() {
+	if (can_ship()) {
+		push_undo()
+		game.state = "ship"
+	} else {
+		game.op = null
+		if (game.vm)
+			vm_next()
+		else
+			resume_event_card()
+	}
+}
 
 // === OPERATIONS ===
 
@@ -2155,11 +2094,20 @@ function select_op_space(s, cost) {
 // OPERATION: TRAIN
 
 function can_govt_train_base(s) {
-	return count_bases(s) < 2 && count_cubes(s) >= 3
+	return can_stack_base(s) && count_cubes(s) >= 3
 }
 
 function can_govt_train_place(s) {
 	return is_city(s) || has_piece(s, GOVT, BASE)
+}
+
+function can_govt_civic_action(s) {
+	if (game.support[s] < 2 && has_govt_control(s)) {
+		if (has_shaded_capability(CAP_1ST_DIV))
+			return count_pieces(s, GOVT, TROOPS) >= 2 && count_pieces(s, GOVT, POLICE) >= 2
+		return has_piece(s, GOVT, TROOPS) && has_piece(s, GOVT, POLICE)
+	}
+	return false
 }
 
 states.train = {
@@ -2768,7 +2716,6 @@ states.sweep_move = {
 	},
 }
 
-
 function do_sweep_activate() {
 	game.state = "sweep_activate"
 
@@ -3343,24 +3290,6 @@ function vm_free_attack() {
 	do_attack_space(game.vm.s)
 }
 
-function has_any_piece(s, faction) {
-	if (faction === GOVT)
-		return has_piece(s, GOVT, BASE) || has_piece(s, GOVT, TROOPS) || has_piece(s, GOVT, POLICE)
-	return has_piece(s, faction, BASE) || has_piece(s, faction, GUERRILLA)
-}
-
-function has_enemy_piece(s) {
-	if (game.current !== GOVT && has_any_piece(s, GOVT))
-		return true
-	if (game.current !== FARC && has_any_piece(s, FARC))
-		return true
-	if (game.current !== AUC && has_any_piece(s, AUC))
-		return true
-	if (game.current !== CARTELS && has_any_piece(s, CARTELS))
-		return true
-	return false
-}
-
 states.attack = {
 	prompt() {
 		view.prompt = "Attack: Select space with Guerrilla and enemy piece."
@@ -3922,7 +3851,6 @@ states.eradicate_shift = {
 	},
 }
 
-
 // SPECIAL ACTIVITY: AMBUSH
 
 function vm_free_ambush() {
@@ -3959,41 +3887,10 @@ function goto_extort() {
 		spaces: [],
 		where: -1,
 	}
-	game.state = "extort2"
+	game.state = "extort"
 }
 
-states.extort1 = {
-	prompt() {
-		view.prompt = "Extort: Activate Underground Guerrillas to gain Resources."
-
-		for (let s = first_space; s <= last_space; ++s) {
-			if (set_has(game.sa.spaces, s))
-				continue
-			if (has_underground_guerrilla(s, game.current)) {
-				if (game.current === FARC && has_farc_control(s))
-					gen_action_space(s)
-				if (game.current === AUC && has_auc_control(s))
-					gen_action_space(s)
-			}
-		}
-
-		view.actions.end_activity = 1
-	},
-	space(s) {
-		push_undo()
-		logi(`S${s}.`)
-		let p = find_underground_guerrilla(s, game.current)
-		set_active(p)
-		set_add(game.sa.spaces, s)
-		add_resources(game.current, 1)
-	},
-	end_activity() {
-		push_undo()
-		end_special_activity()
-	},
-}
-
-states.extort2 = {
+states.extort = {
 	prompt() {
 		if (game.sa.where < 0) {
 			view.prompt = "Extort: Select space with Underground Guerrilla that you control."
@@ -4110,14 +4007,6 @@ function transfer_resources(from, to, n) {
 	add_resources(to, n)
 }
 
-function can_place_auc_piece(s) {
-	if (can_stack_base(s) && has_piece(AVAILABLE, AUC, BASE))
-		return true
-	if (can_stack_piece(AUC, GUERRILLA, s) && has_piece(AVAILABLE, AUC, GUERRILLA))
-		return true
-	return false
-}
-
 states.kidnap_space = {
 	prompt() {
 		view.prompt = `Kidnap in ${space_name[game.sa.where]}.`
@@ -4151,7 +4040,7 @@ states.kidnap_space = {
 		log("Rolled " + die + ".")
 		transfer_resources(faction, game.current, die)
 
-		if (die === 6 && can_place_auc_piece(game.sa.where)) {
+		if (die === 6 && can_place_any_available_piece(game.sa.where, AUC)) {
 			game.current = AUC
 			game.state = "kidnap_place"
 		} else {
@@ -4165,7 +4054,7 @@ states.kidnap_place = {
 		view.prompt = `Kidnap in ${space_name[game.sa.where]}: Place an AUC piece.`
 		if (can_stack_base(game.sa.where))
 			gen_piece_in_space(AVAILABLE, AUC, BASE)
-		if (can_stack_piece(AUC, GUERRILLA, game.sa.where))
+		if (can_stack_piece(game.sa.where, AUC, GUERRILLA))
 			gen_piece_in_space(AVAILABLE, AUC, GUERRILLA)
 	},
 	piece(p) {
@@ -5925,7 +5814,7 @@ const CODE = [
 	[ vm_mark_space ],
 	[ vm_endspace ],
 	[ vm_prompt, "Flip 3 Guerrillas there or adjacent to Active." ],
-	[ vm_piece, 3, (p,s)=>is_guerrilla(p) && is_underground(p) && is_there_or_adjacent(s, game.vm.m) ],
+	[ vm_piece, 3, (p,s)=>is_guerrilla(p) && is_underground(p) && is_with_or_adjacent_to_mark(s, game.vm.m) ],
 	[ vm_activate ],
 	[ vm_endpiece ],
 	[ vm_return ],
@@ -6065,7 +5954,7 @@ const CODE = [
 	[ vm_return ],
 	// EVENT 19
 	[ vm_if, ()=>game.current === GOVT ],
-	[ vm_space, 0, (s)=>has_cubes(s) && has_enemy_piece(s) ],
+	[ vm_space, 0, (s)=>has_cube(s) && has_enemy_piece(s) ],
 	[ vm_free_sweep_or_assault ],
 	[ vm_endspace ],
 	[ vm_endif ],
@@ -6354,7 +6243,7 @@ const CODE = [
 	// TODO
 	// EVENT 37
 	[ vm_current, GOVT ],
-	[ vm_space, 0, (s)=>has_cubes(s) && has_farc_piece(s) ],
+	[ vm_space, 0, (s)=>has_cube(s) && has_farc_piece(s) ],
 	[ vm_free_sweep_or_assault_farc ],
 	[ vm_endspace ],
 	[ vm_return ],
@@ -6368,14 +6257,14 @@ const CODE = [
 	[ vm_endspace ],
 	[ vm_return ],
 	// EVENT 38
-	[ vm_space, 3, (s)=>has_cubes(s) || is_support(s) ],
+	[ vm_space, 3, (s)=>has_cube(s) || is_support(s) ],
 	[ vm_piece, 0, (p,s)=>is_piece_in_event_space(p) && is_auc_guerrilla(p) && is_active(p) ],
 	[ vm_remove ],
 	[ vm_endpiece ],
 	[ vm_endspace ],
 	[ vm_return ],
 	// SHADED 38
-	[ vm_space, 0, (s)=>has_cubes(s) || is_support(s) ],
+	[ vm_space, 0, (s)=>has_cube(s) || is_support(s) ],
 	[ vm_piece, 0, (p,s)=>is_piece_in_event_space(p) && is_auc_guerrilla(p) && is_active(p) ],
 	[ vm_underground ],
 	[ vm_endpiece ],
@@ -6404,7 +6293,7 @@ const CODE = [
 	[ vm_endpiece ],
 	[ vm_return ],
 	// SHADED 40
-	[ vm_space, 1, (s)=>is_dept(s) && has_auc_piece(s) && has_cubes(s) ],
+	[ vm_space, 1, (s)=>is_dept(s) && has_auc_piece(s) && has_cube(s) ],
 	[ vm_prompt, "Move all cubes to any Cities." ],
 	[ vm_piece, 0, (p,s)=>is_piece_in_event_space(p) && (is_troops(p) || is_police(p)) ],
 	[ vm_save_space ],
@@ -6473,7 +6362,7 @@ const CODE = [
 	[ vm_resources, GOVT, -3 ],
 	[ vm_return ],
 	// EVENT 45
-	[ vm_space, 0, (s)=>has_cubes(s) && has_terror(s) ],
+	[ vm_space, 0, (s)=>has_cube(s) && has_terror(s) ],
 	[ vm_shift_support ],
 	[ vm_endspace ],
 	[ vm_return ],
@@ -6577,7 +6466,7 @@ const CODE = [
 	[ vm_return ],
 	// SHADED 51
 	[ vm_prompt, "Sabotage Pipelines with or adjacent to FARC Guerrillas." ],
-	[ vm_space, 3, (s)=>is_pipeline(s) && (has_farc_guerrilla(s) || adjacent_has_farc_guerrilla(s)) ],
+	[ vm_space, 3, (s)=>is_pipeline(s) && is_with_or_adjacent_to_farc_guerrilla(s) ],
 	[ vm_sabotage ],
 	[ vm_endspace ],
 	[ vm_return ],
