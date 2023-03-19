@@ -358,7 +358,6 @@ EVENT 30
 	endspace
 
 SHADED 30
-	eligible (game.current)
 	current GOVT
 	prompt Place FARC Zone.
 	space 1 is_possible_farc_zone(s)
@@ -454,7 +453,7 @@ SHADED 35
 	endspace
 
 EVENT 36
-	# COPY SHADED 30
+	# SEE SHADED 30
 	eligible (game.current)
 	current GOVT
 	prompt Place FARC Zone.

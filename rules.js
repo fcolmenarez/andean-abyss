@@ -7,8 +7,6 @@
 // TODO: clean up init_free_operation and transitions
 // TODO: resume_...activity - end automatically when no more possible
 
-// TODO: mark faction ineligible/eligible
-
 // OP in a space -> next handler to cope with events/elite backing
 
 // TODO: All - Ecuador and Panama stacking for place/move
@@ -285,6 +283,7 @@ exports.setup = function (seed, scenario, options) {
 			setup_deck(4, 0, 15)
 	}
 
+	game.deck[0] = 23
 	game.deck[1] = PROPAGANDA
 	log("DECK " + game.deck.join(", "))
 
@@ -5049,6 +5048,7 @@ function goto_reset_phase() {
 	game.cylinder[FARC] = ELIGIBLE
 	game.cylinder[AUC] = ELIGIBLE
 	game.cylinder[CARTELS] = ELIGIBLE
+	game.marked = 0
 
 	for_each_piece(FARC, GUERRILLA, set_underground)
 	for_each_piece(AUC, GUERRILLA, set_underground)
@@ -5788,6 +5788,8 @@ function vm_remove_sabotage() {
 function vm_ineligible() {
 	let faction = vm_operand(1)
 	log("Marked " + faction_name[faction] + " Ineligible.")
+	if (game.cylinder[faction] === ELIGIBLE)
+		game.cylinder[faction] = INELIGIBLE
 	game.marked |= (1 << faction)
 	vm_next()
 }
