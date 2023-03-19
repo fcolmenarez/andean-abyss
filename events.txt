@@ -1,5 +1,3 @@
-# TODO: optional/not_optional -> space_opt, piece_opt, place_opt instead
-
 EVENT 1
 	log 1 Civic Action space each Support Phase requires Govt Control and any cube.
 	capability
@@ -319,8 +317,7 @@ SHADED 27
 	momentum
 
 EVENT 28
-	optional
-	space 1 is_next_to_venezuela(s)
+	space_opt 1 is_next_to_venezuela(s)
 		piece 3 is_piece_in_event_space(p) && is_insurgent_piece(p)
 			remove
 		endpiece
@@ -414,8 +411,7 @@ SHADED 32
 	resources FARC 12
 
 EVENT 33
-	optional
-	space 1 is_next_to_ecuador(s)
+	space_opt 1 is_next_to_ecuador(s)
 		piece 3 is_piece_in_event_space(p) && is_insurgent_piece(p)
 			remove
 		endpiece
@@ -526,15 +522,12 @@ EVENT 39
 
 SHADED 39
 	prompt Replace Police with AUC Guerrillas.
-	optional
 	# FIXME: space 3 is_dept(s)
-	space 3 is_dept(s) && has_police(s)
-		not_optional
+	space_opt 3 is_dept(s) && has_police(s)
 		piece 1 is_piece_in_event_space(p) && is_police(p)
 			remove
 			place AUC GUERRILLA
 		endpiece
-		optional
 	endspace
 
 EVENT 40
@@ -563,9 +556,8 @@ SHADED 40
 
 EVENT 41
 	resources AUC -6
-	# FIXME
-	# space 1 has_auc_piece(s)
-	space 1 true
+	# FIXME: space 1 is_space(s)
+	space 1 has_auc_piece(s)
 		piece 0 is_piece_in_event_space(p) && is_auc_piece(p)
 			remove
 		endpiece
@@ -706,9 +698,7 @@ SHADED 50
 	piece 2 is_police(p)
 		set_piece_space
 		remove
-		optional
-		place AUC GUERRILLA
-		not_optional
+		place_opt AUC GUERRILLA
 	endpiece
 
 EVENT 51
@@ -762,17 +752,15 @@ EVENT 54
 	piece 2 is_guerrilla(p)
 		set_piece_space
 		remove
-		optional
 		if piece_faction(game.vm.p) === FARC
-			place [AUC,CARTELS] GUERRILLA
+			place_opt [AUC,CARTELS] GUERRILLA
 		endif
 		if piece_faction(game.vm.p) === AUC
-			place [FARC,CARTELS] GUERRILLA
+			place_opt [FARC,CARTELS] GUERRILLA
 		endif
 		if piece_faction(game.vm.p) === CARTELS
-			place [FARC,AUC] GUERRILLA
+			place_opt [FARC,AUC] GUERRILLA
 		endif
-		not_optional
 	endpiece
 
 EVENT 55
@@ -801,13 +789,10 @@ SHADED 56
 
 EVENT 57
 	prompt Replace Cartels pieces with Police.
-	optional
-	piece 3 is_cartels_piece(p)
+	piece_opt 3 is_cartels_piece(p)
 		set_piece_space
 		remove
-		not_optional
 		place GOVT POLICE
-		optional
 	endpiece
 
 SHADED 57
@@ -827,9 +812,8 @@ EVENT 58
 
 SHADED 58
 	current CARTELS
-	optional
 	prompt Relocate Police to any spaces.
-	piece 4 is_police(p)
+	piece_opt 4 is_police(p)
 		space 1 is_space(s)
 			move
 		endspace
@@ -850,9 +834,8 @@ SHADED 59
 	piece 0 is_cartels_guerrilla(p) && is_active(p)
 		underground
 	endpiece
-	optional
 	prompt Relocate Cartels Guerrillas anywhere.
-	piece 3 is_cartels_guerrilla(p)
+	piece_opt 3 is_cartels_guerrilla(p)
 		space 1 is_space(s)
 			move
 		endspace
@@ -889,8 +872,7 @@ SHADED 61
 	endspace
 
 EVENT 62
-	optional
-	piece 3 is_insurgent_piece(p) && is_zero_pop_forest(s)
+	piece_opt 3 is_insurgent_piece(p) && is_zero_pop_forest(s)
 		remove
 	endpiece
 

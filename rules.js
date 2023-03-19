@@ -285,7 +285,7 @@ exports.setup = function (seed, scenario, options) {
 			setup_deck(4, 0, 15)
 	}
 
-	game.deck[0] = 50
+	game.deck[0] = 49
 	log("DECK " + game.deck.join(", "))
 
 	update_control()
@@ -4731,15 +4731,19 @@ function vm_next() {
 	vm_exec()
 }
 
-function vm_goto(op, nop, dir, step) {
+function vm_goto(op1, op2, nop1, nop2, dir, step) {
 	let balance = 1
 	while (balance > 0) {
 		game.vm.pc += dir
-		if (CODE[game.vm.pc][0] === op)
+		if (CODE[game.vm.pc][0] === op1)
 			--balance
-		if (CODE[game.vm.pc][0] === nop)
+		if (CODE[game.vm.pc][0] === op2)
+			--balance
+		if (CODE[game.vm.pc][0] === nop1)
 			++balance
-		if (game.vm.pc > CODE.length)
+		if (CODE[game.vm.pc][0] === nop2)
+			++balance
+		if (game.vm.pc < 0 || game.vm.pc > CODE.length)
 			throw "ERROR"
 	}
 	game.vm.pc += step
@@ -4763,16 +4767,6 @@ function vm_shaded_capability() {
 
 function vm_senado() {
 	game.senado = game.current
-	vm_next()
-}
-
-function vm_optional() {
-	game.vm.opt = 1
-	vm_next()
-}
-
-function vm_not_optional() {
-	game.vm.opt = 0
 	vm_next()
 }
 
@@ -4860,7 +4854,7 @@ function vm_if() {
 	if (vm_operand(1))
 		vm_next()
 	else
-		vm_goto(vm_endif, vm_if, 1, 1)
+		vm_goto(vm_endif, vm_endif, vm_if, vm_if, 1, 1)
 }
 
 function vm_endif() {
@@ -4871,24 +4865,35 @@ function vm_while() {
 	if (vm_operand(1))
 		vm_next()
 	else
-		vm_goto(vm_endwhile, vm_while, 1, 1)
+		vm_goto(vm_endwhile, vm_endwhile, vm_while, vm_while, 1, 1)
 }
 
 function vm_endwhile() {
-	vm_goto(vm_while, vm_endwhile, -1, 0)
+	vm_goto(vm_while, vm_while, vm_endwhile, vm_endwhile, -1, 0)
 }
 
-function vm_space() {
+function vm_space_opt() {
+	game.vm.opt = 1
 	if (can_vm_space()) {
 		game.state = "vm_space"
 	} else {
 		game.vm.ss = []
-		vm_goto(vm_endspace, vm_space, 1, 1)
+		vm_goto(vm_endspace, vm_endspace, vm_space, vm_space_opt, 1, 1)
+	}
+}
+
+function vm_space() {
+	game.vm.opt = 0
+	if (can_vm_space()) {
+		game.state = "vm_space"
+	} else {
+		game.vm.ss = []
+		vm_goto(vm_endspace, vm_endspace, vm_space, vm_space_opt, 1, 1)
 	}
 }
 
 function vm_endspace() {
-	vm_goto(vm_space, vm_endspace, -1, 0)
+	vm_goto(vm_space, vm_space_opt, vm_endspace, vm_endspace, -1, 0)
 }
 
 function can_vm_space() {
@@ -4929,13 +4934,28 @@ states.vm_space = {
 	end_event,
 }
 
-function vm_piece() {
+function vm_piece_opt() {
+	game.vm.opt = 1
 	if (can_vm_piece()) {
 		game.state = "vm_piece"
 	} else {
 		game.vm.pp = []
-		vm_goto(vm_endpiece, vm_piece, 1, 1)
+		vm_goto(vm_endpiece, vm_endpiece, vm_piece, vm_piece_opt, 1, 1)
 	}
+}
+
+function vm_piece() {
+	game.vm.opt = 0
+	if (can_vm_piece()) {
+		game.state = "vm_piece"
+	} else {
+		game.vm.pp = []
+		vm_goto(vm_endpiece, vm_endpiece, vm_piece, vm_piece_opt, 1, 1)
+	}
+}
+
+function vm_endpiece() {
+	vm_goto(vm_piece, vm_piece_opt, vm_endpiece, vm_endpiece, -1, 0)
 }
 
 function can_vm_piece() {
@@ -4974,10 +4994,6 @@ states.vm_piece = {
 		vm_next()
 	},
 	end_event,
-}
-
-function vm_endpiece() {
-	vm_goto(vm_piece, vm_endpiece, -1, 0)
 }
 
 function vm_transfer() {
@@ -5114,7 +5130,16 @@ states.vm_current_farc_or_auc = {
 	},
 }
 
+function vm_place_opt() {
+	game.vm.opt = 1
+	if (can_vm_place())
+		game.state = "vm_place"
+	else
+		vm_next()
+}
+
 function vm_place() {
+	game.vm.opt = 0
 	if (can_vm_place())
 		game.state = "vm_place"
 	else
@@ -6252,7 +6277,6 @@ const CODE = [
 	[ vm_momentum ],
 	[ vm_return ],
 	// EVENT 28
-	[ vm_optional ],
 	[ vm_space, 1, (s)=>is_next_to_venezuela(s) ],
 	[ vm_piece, 3, (p,s)=>is_piece_in_event_space(p) && is_insurgent_piece(p) ],
 	[ vm_remove ],
@@ -6347,7 +6371,6 @@ const CODE = [
 	[ vm_resources, FARC, 12 ],
 	[ vm_return ],
 	// EVENT 33
-	[ vm_optional ],
 	[ vm_space, 1, (s)=>is_next_to_ecuador(s) ],
 	[ vm_piece, 3, (p,s)=>is_piece_in_event_space(p) && is_insurgent_piece(p) ],
 	[ vm_remove ],
@@ -6459,14 +6482,11 @@ const CODE = [
 	[ vm_return ],
 	// SHADED 39
 	[ vm_prompt, "Replace Police with AUC Guerrillas." ],
-	[ vm_optional ],
 	[ vm_space, 3, (s)=>is_dept(s) && has_police(s) ],
-	[ vm_not_optional ],
 	[ vm_piece, 1, (p,s)=>is_piece_in_event_space(p) && is_police(p) ],
 	[ vm_remove ],
 	[ vm_place, AUC, GUERRILLA ],
 	[ vm_endpiece ],
-	[ vm_optional ],
 	[ vm_endspace ],
 	[ vm_return ],
 	// EVENT 40
@@ -6495,7 +6515,7 @@ const CODE = [
 	[ vm_return ],
 	// EVENT 41
 	[ vm_resources, AUC, -6 ],
-	[ vm_space, 1, (s)=>true ],
+	[ vm_space, 1, (s)=>has_auc_piece(s) ],
 	[ vm_piece, 0, (p,s)=>is_piece_in_event_space(p) && is_auc_piece(p) ],
 	[ vm_remove ],
 	[ vm_endpiece ],
@@ -6636,9 +6656,7 @@ const CODE = [
 	[ vm_piece, 2, (p,s)=>is_police(p) ],
 	[ vm_set_piece_space ],
 	[ vm_remove ],
-	[ vm_optional ],
-	[ vm_place, AUC, GUERRILLA ],
-	[ vm_not_optional ],
+	[ vm_place_opt, AUC, GUERRILLA ],
 	[ vm_endpiece ],
 	[ vm_return ],
 	// EVENT 51
@@ -6694,17 +6712,15 @@ const CODE = [
 	[ vm_piece, 2, (p,s)=>is_guerrilla(p) ],
 	[ vm_set_piece_space ],
 	[ vm_remove ],
-	[ vm_optional ],
 	[ vm_if, ()=>piece_faction(game.vm.p) === FARC ],
-	[ vm_place, [AUC,CARTELS], GUERRILLA ],
+	[ vm_place_opt, [AUC,CARTELS], GUERRILLA ],
 	[ vm_endif ],
 	[ vm_if, ()=>piece_faction(game.vm.p) === AUC ],
-	[ vm_place, [FARC,CARTELS], GUERRILLA ],
+	[ vm_place_opt, [FARC,CARTELS], GUERRILLA ],
 	[ vm_endif ],
 	[ vm_if, ()=>piece_faction(game.vm.p) === CARTELS ],
-	[ vm_place, [FARC,AUC], GUERRILLA ],
+	[ vm_place_opt, [FARC,AUC], GUERRILLA ],
 	[ vm_endif ],
-	[ vm_not_optional ],
 	[ vm_endpiece ],
 	[ vm_return ],
 	// SHADED 54
@@ -6735,13 +6751,10 @@ const CODE = [
 	[ vm_return ],
 	// EVENT 57
 	[ vm_prompt, "Replace Cartels pieces with Police." ],
-	[ vm_optional ],
 	[ vm_piece, 3, (p,s)=>is_cartels_piece(p) ],
 	[ vm_set_piece_space ],
 	[ vm_remove ],
-	[ vm_not_optional ],
 	[ vm_place, GOVT, POLICE ],
-	[ vm_optional ],
 	[ vm_endpiece ],
 	[ vm_return ],
 	// SHADED 57
@@ -6761,7 +6774,6 @@ const CODE = [
 	[ vm_return ],
 	// SHADED 58
 	[ vm_current, CARTELS ],
-	[ vm_optional ],
 	[ vm_prompt, "Relocate Police to any spaces." ],
 	[ vm_piece, 4, (p,s)=>is_police(p) ],
 	[ vm_space, 1, (s)=>is_space(s) ],
@@ -6784,7 +6796,6 @@ const CODE = [
 	[ vm_piece, 0, (p,s)=>is_cartels_guerrilla(p) && is_active(p) ],
 	[ vm_underground ],
 	[ vm_endpiece ],
-	[ vm_optional ],
 	[ vm_prompt, "Relocate Cartels Guerrillas anywhere." ],
 	[ vm_piece, 3, (p,s)=>is_cartels_guerrilla(p) ],
 	[ vm_space, 1, (s)=>is_space(s) ],
@@ -6823,7 +6834,6 @@ const CODE = [
 	[ vm_endspace ],
 	[ vm_return ],
 	// EVENT 62
-	[ vm_optional ],
 	[ vm_piece, 3, (p,s)=>is_insurgent_piece(p) && is_zero_pop_forest(s) ],
 	[ vm_remove ],
 	[ vm_endpiece ],
@@ -6944,4 +6954,4 @@ const CODE = [
 	[ vm_endwhile ],
 	[ vm_return ],
 ]
-const CODE_INDEX = [ 0, 3, 6, 9, 12, 15, 18, 23, 28, 58, 64, 69, 78, 81, 84, 89, 91, 94, 97, 100, 103, 106, 109, 112, 115, 118, 121, 129, 138, 141, 145, 150, 152, 155, 158, 161, 165, -1, 176, 182, 188, 193, 198, 202, 205, 214, 221, 226, 235, 241, 247, 252, 257, 262, 265, 272, 279, 287, 293, 300, 333, 340, 344, 348, 350, 357, 363, 365, 372, 380, 385, -1, 418, 423, 431, 437, 443, 447, 458, 465, 480, 487, 492, 497, 501, 509, 515, 520, 525, 529, 536, -1, 553, 560, -1, 574, 578, 582, 587, 598, 606, 615, 620, 624, 631, -1, 648, -1, 664, 671, 675, 677, 684, 694, 702, 707, 716, 724, 737, 744, 752, 759, 763, 768, 772, -1, 784, 789, -1, -1, 798, 802, 806, 808, -1, 811, -1, -1, 816, 821, 830, 836, 842, 849 ]
+const CODE_INDEX = [ 0, 3, 6, 9, 12, 15, 18, 23, 28, 58, 64, 69, 78, 81, 84, 89, 91, 94, 97, 100, 103, 106, 109, 112, 115, 118, 121, 129, 138, 141, 145, 150, 152, 155, 158, 161, 165, -1, 176, 182, 188, 193, 198, 202, 205, 214, 221, 226, 235, 241, 247, 252, 257, 262, 265, 271, 278, 286, 292, 299, 332, 339, 343, 347, 349, 355, 361, 363, 370, 378, 383, -1, 416, 421, 429, 435, 441, 445, 453, 460, 475, 482, 487, 492, 496, 504, 510, 515, 520, 524, 531, -1, 548, 555, -1, 569, 573, 577, 582, 593, 599, 608, 613, 617, 624, -1, 641, -1, 655, 662, 666, 668, 675, 682, 690, 695, 703, 711, 723, 730, 738, 745, 749, 753, 757, -1, 769, 774, -1, -1, 783, 787, 791, 793, -1, 796, -1, -1, 801, 806, 815, 821, 827, 834 ]
