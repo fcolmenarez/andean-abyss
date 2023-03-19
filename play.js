@@ -601,8 +601,8 @@ function calc_oppose_bases() {
 		if (view.support[s] < 0)
 			total -= data.spaces[s].pop * view.support[s]
 	}
-	for (let b = first_piece[FARC][BASE]; b <= last_piece[FARC][BASE]; ++b)
-		if (b !== AVAILABLE)
+	for (let p = first_piece[FARC][BASE]; p <= last_piece[FARC][BASE]; ++p)
+		if (view.pieces[p] !== AVAILABLE)
 			total += 1
 	return total
 }
@@ -1124,6 +1124,10 @@ function on_log(text) {
 	else if (text.match(/^\.h2 FARC/)) {
 		text = text.substring(3)
 		p.className = "h2 farc"
+	}
+	else if (text.match(/^\.h2 /)) {
+		text = text.substring(3)
+		p.className = "h2"
 	}
 	else if (text.match(/^\.h3/)) {
 		text = text.substring(4)
