@@ -1,3 +1,5 @@
+# remove piece - transfer or remove shipments
+
 EVENT 1
 	log 1 Civic Action space each Support Phase requires Govt Control and any cube.
 	capability
@@ -342,7 +344,7 @@ EVENT 29
 
 SHADED 29
 	current [FARC,AUC]
-	piece 2 is_piece(p, game.current, GUERRILLA) && has_enemy_piece(s)
+	piece 2 is_faction_guerrilla(p, game.current) && has_enemy_piece(s)
 		free_ambush
 		underground
 	endpiece
@@ -625,7 +627,7 @@ EVENT 46
 	current [FARC,AUC,CARTELS]
 	prompt Execute free Terror with any Guerrilla.
 	space 1 has_piece(s, game.current, GUERRILLA)
-		piece 1 is_piece_in_event_space(p) && is_piece(p, game.current, GUERRILLA)
+		piece 1 is_piece_in_event_space(p) && is_faction_guerrilla(p, game.current)
 			free_terror
 			terror
 			terror_aid_cut
@@ -766,13 +768,15 @@ EVENT 54
 EVENT 55
 	remove_shipment
 	remove_shipment
+	prompt Remove N Cartels Guerrillas.
 	piece 5 is_cartels_guerrilla(p)
 		remove
 	endpiece
 	aid 3
 
 SHADED 55
-	space 3 has_cartel_piece(s)
+	prompt Shift N spaces with Cartels pieces 1 level toward Active Opposition.
+	space 3 has_cartels_piece(s) && !is_active_opposition(s)
 		shift_opposition
 	endspace
 
@@ -942,7 +946,7 @@ EVENT 70
 SHADED 70
 	current [FARC,AUC,CARTELS]
 	space 0 is_forest(s) && has_piece(s, game.current, GUERRILLA)
-		piece 1 is_piece_in_event_space(p) && is_piece(p, game.current, GUERRILLA)
+		piece 1 is_piece_in_event_space(p) && is_faction_guerrilla(p, game.current)
 			free_terror
 			resources (game.current) 3
 		endpiece

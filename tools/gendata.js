@@ -304,16 +304,12 @@ def_space("forest", 0, "Guainía")
 def_space("forest", 0, "Vaupés")
 def_space("forest", 0, "Amazonas")
 
-data.last_dept = spaces.length-1
-
 // Foreign Countries
-
-data.first_foreign = spaces.length
 
 def_space("foreign", 0, "Ecuador")
 def_space("foreign", 0, "Panamá")
 
-data.last_foreign = spaces.length-1
+data.last_dept = spaces.length-1
 
 // LoC
 
