@@ -426,9 +426,10 @@ SHADED 35
 
 EVENT 36
 	eligible (game.current)
+	save_current
 	current GOVT
 	place_farc_zone
-	# TODO: current (executing_faction())
+	restore_current
 	prompt Shift adjacent spaces toward Active Support.
 	space 2 is_pop(s) && !is_active_support(s) && is_adjacent(game.vm.farc_zone, s)
 		shift_support

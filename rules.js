@@ -5609,10 +5609,20 @@ function vm_current() {
 		vm_next()
 }
 
+function vm_save_current() {
+	game.vm.faction = game.current
+	vm_next()
+}
+
+function vm_restore_current() {
+	game.current = game.vm.faction
+	vm_next()
+}
+
 states.vm_current = {
 	prompt() {
 		let list = vm_operand(1)
-		event_prompt("Select Faction to execute Event.")
+		event_prompt("Select Faction.")
 		if (list === GOVT || (Array.isArray(list) && list.includes(GOVT)))
 			view.actions.govt = 1
 		if (list === FARC || (Array.isArray(list) && list.includes(FARC)))
