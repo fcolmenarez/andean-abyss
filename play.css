@@ -5,9 +5,9 @@ main { background-color: #777; }
 #role_Cartels, header.cartels.your_turn { background-color: darkseagreen; }
 #role_FARC, header.farc.your_turn { background-color: lightcoral; }
 
-#role_Government_\+_AUC { background-image: linear-gradient(135deg, skyblue 30%, khaki 70%) }
-#role_FARC_\+_Cartels { background-image: linear-gradient(135deg, lightcoral 30%, darkseagreen 70%) }
-#role_AUC_\+_Cartels { background-image: linear-gradient(135deg, khaki 30%, darkseagreen 70%) }
+#role_Government_\+_AUC { background-image: linear-gradient(135deg, skyblue 40%, khaki 60%) }
+#role_FARC_\+_Cartels { background-image: linear-gradient(135deg, lightcoral 40%, hsl(60, 20%, 60%) 52%, darkseagreen 60%) }
+#role_AUC_\+_Cartels { background-image: linear-gradient(135deg, khaki 40%, darkseagreen 60%) }
 
 #log { background-color: whitesmoke; }
 #log .h1 { background-color: silver; font-weight: bold; padding-top:4px; padding-bottom:4px; }

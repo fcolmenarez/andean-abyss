@@ -4673,9 +4673,7 @@ function cartels_victory_margin() {
 	return Math.min(calc_bases(CARTELS) - 10, game.resources[CARTELS] - 40)
 }
 
-function goto_victory_phase() {
-	log_h2("Victory Phase")
-
+function calc_victory(is_final) {
 	let g = govt_victory_margin()
 	let f = farc_victory_margin()
 	let a = auc_victory_margin()
@@ -4686,38 +4684,54 @@ function goto_victory_phase() {
 	log("AUC: " + a)
 	log("Cartels: " + c)
 
-	if (g > 0 || f > 0 || a > 0 || c > 0) {
-		// Ties go to Cartels, then AUC, then FARC.
-		if (c >= g && c >= f && c >= a)
-			return goto_game_over(CARTELS, "Cartels Bases > 10 and Cartels Resources > 40")
-		if (a >= g && a >= f && a >= c)
-			return goto_game_over(AUC, "AUC Bases > FARC Bases")
-		if (f >= g && f >= a && f >= c)
-			return goto_game_over(FARC, "Total Opposition + FARC Bases > 25")
-		return goto_game_over(GOVT, "Total Support > 60")
+	if (game.scenario === 4) {
+		if (is_final || g > 0 || f > 0 || a > 0 || c > 0) {
+			if (c >= g && c >= f && c >= a)
+				return NAME_CARTELS
+			if (a >= g && a >= f && a >= c)
+				return NAME_AUC
+			if (f >= g && f >= a && f >= c)
+				return NAME_FARC
+			return NAME_GOVT
+		}
 	}
 
-	goto_sabotage_phase()
+	if (game.scenario === 3) {
+		let ac = Math.min(a, c)
+		if (is_final || g > 0 || f > 0 || ac > 0) {
+			if (ac >= g && ac >= f)
+				return NAME_AUC_CARTELS
+			if (f >= g && f >= ac)
+				return NAME_FARC
+			return NAME_GOVT
+		}
+	}
+
+	if (game.scenario === 2) {
+		let ga = Math.min(g, a)
+		let fc = Math.min(f, c)
+		if (is_final || ga > 0 || fc > 0) {
+			if (fc >= ga)
+				return NAME_FARC_CARTELS
+			return NAME_GOVT_AUC
+		}
+	}
+
+	return null
+}
+
+function goto_victory_phase() {
+	log_h2("Victory Phase")
+	let result = calc_victory(false)
+	if (result)
+		goto_game_over(result)
+	else
+		goto_sabotage_phase()
 }
 
 function goto_final_victory() {
-	let g = govt_victory_margin()
-	let f = farc_victory_margin()
-	let a = auc_victory_margin()
-	let c = cartels_victory_margin()
-
 	log_h2("Final Victory")
-
-	log("Government: " + g)
-	log("FARC: " + f)
-	log("AUC: " + a)
-	log("Cartels: " + c)
-
-	// Ties go to Cartels, then AUC, then FARC.
-	if (c >= g && c >= f && c >= a) return goto_game_over(CARTELS, "Cartels won!")
-	if (a >= g && a >= f && a >= c) return goto_game_over(AUC, "AUC won!")
-	if (f >= g && f >= a && f >= c) return goto_game_over(FARC, "FARC won!")
-	return goto_game_over(GOVT, "Government won!")
+	goto_game_over(calc_victory(true))
 }
 
 // PROPAGANDA: SABOTAGE
@@ -6136,13 +6150,12 @@ states.vm_free_attack_terror = {
 
 // === GAME OVER ===
 
-function goto_game_over(faction, victory) {
-	game = { ...game } // make a copy so we can add properties!
+function goto_game_over(result) {
 	game.state = "game_over"
 	game.current = -1
 	game.active = "None"
-	game.result = faction_name[faction]
-	game.victory = victory
+	game.result = result
+	game.victory = victory + " won!"
 	log_h1("Game Over")
 	log(game.victory)
 	return true
@@ -6317,10 +6330,6 @@ exports.view = function (state, role) {
 
 exports.action = function (state, role, action, arg) {
 	load_game(state)
-
-	// XXX - don't allow adding properties
-	// Object.seal(game) // XXX: don't allow adding properties
-
 	let S = states[game.state]
 	if (S && action in S) {
 		S[action](arg)
