@@ -46,16 +46,10 @@ for event in range(2,146):
 	for line in code[event]:
 		if line.startswith('space'):
 			line = line.split(' ', 2)
-			print('\t[ vm_space, ' + line[1] + ', (s)=>' + line[2] + ' ],')
-		elif line.startswith('each space'):
-			line = line.split(' ', 2)
-			print('\t[ vm_space, 0, (s)=>' + line[2] + ' ],')
+			print('\t[ vm_'+line[0]+', ' + line[1] + ', (s)=>' + line[2] + ' ],')
 		elif line.startswith('piece'):
 			line = line.split(' ', 2)
-			print('\t[ vm_piece, ' + line[1] + ', (p,s)=>' + line[2] + ' ],')
-		elif line.startswith('each piece'):
-			line = line.split(' ', 2)
-			print('\t[ vm_piece, 0, (p,s)=>' + line[2] + ' ],')
+			print('\t[ vm_'+line[0]+', ' + line[1] + ', (p,s)=>' + line[2] + ' ],')
 		elif line.startswith('while'):
 			line = line.split(' ', 1)
 			print('\t[ vm_while, ()=>' + line[1] + ' ],')

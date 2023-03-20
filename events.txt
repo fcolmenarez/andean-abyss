@@ -330,7 +330,7 @@ SHADED 28
 	space 1 is_dept(s) && is_next_to_venezuela(s) && can_stack_base(s)
 		place FARC BASE
 	endspace
-	each space is_loc(s) && is_adjacent(CUCUTA, s) && is_empty(s)
+	space 0 is_loc(s) && is_adjacent(CUCUTA, s) && is_empty(s)
 		sabotage
 	endspace
 
@@ -861,6 +861,12 @@ SHADED 64
 		resources CARTELS 1
 	endpiece
 
+EVENT 65
+	space 1 is_mountain(s)
+		place_or_remove_shipment
+		place_or_remove_insurgent_base
+	endspace
+
 EVENT 66
 	piece 3 is_cartels_base(p) && is_forest(s)
 		remove
@@ -883,6 +889,36 @@ SHADED 68
 	piece 0 is_cartels_piece(p) && is_coastal_space(s)
 		resources CARTELS 2
 	endpiece
+
+EVENT 69
+	prompt Select source space.
+	if game.current === GOVT
+		space 1 has_cube(s)
+			mark_space
+		endspace
+	endif
+	if game.current !== GOVT
+		space 1 has_piece(s, game.current, GUERRILLA)
+			mark_space
+		endspace
+	endif
+	prompt Select destination space.
+	space 1 (s !== game.vm.m[0]) && is_within_adjacent_depts(s, game.vm.m[0], 3)
+		if game.current === GOVT
+			prompt Move cubes to destination.
+			piece_opt 0 (game.pieces[p] === game.vm.m[0]) && is_cube(p)
+				move
+			endpiece
+			free_train_sweep_assault
+		endif
+		if game.current !== GOVT
+			prompt Move Guerrillas to destination.
+			piece_opt 0 (game.pieces[p] === game.vm.m[0]) && is_piece(p, game.current, GUERRILLA)
+				move
+			endpiece
+			free_rally_attack_terror
+		endif
+	endspace
 
 EVENT 70
 	prompt Select each Forest without Guerrillas.
@@ -916,7 +952,7 @@ SHADED 71
 
 EVENT 72
 	space 2 has_cartels_guerrilla(s)
-		pieces 0 is_piece_in_event_space(p) && is_cartels_guerrilla(p)
+		piece 0 is_piece_in_event_space(p) && is_cartels_guerrilla(p)
 			remove
 			place [FARC,AUC] GUERRILLA
 		endpiece
@@ -945,11 +981,6 @@ EVENT 68
 	remove 2 cartels pieces from coastal spaces
 	OR
 	remove 2 shipments from coastal spaces
-
-EVENT 65
-	in one mountain dept:
-		place or remove 1 shipment
-		place or remove 1 insurgent base
 
 EVENT 48
 	space 1 is_adjacent_to_3econ_pipeline(s)
