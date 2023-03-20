@@ -2194,6 +2194,10 @@ function select_op_space(s, cost) {
 
 // OPERATION: TRAIN
 
+function vm_free_train() {
+	throw "TODO"
+}
+
 function can_govt_train_base(s) {
 	return can_stack_base(s) && count_cubes(s) >= 3
 }
@@ -3077,6 +3081,12 @@ states.assault_space = {
 
 // OPERATION: RALLY
 
+function vm_free_rally() {
+	init_free_operation("rally_space")
+	game.op.where = game.vm.s
+	game.op.count = rally_count()
+}
+
 function free_rally_elite_backing(s) {
 	init_free_operation("rally_space")
 	game.op.elite_backing = 1
@@ -3148,7 +3158,7 @@ states.rally = {
 
 states.rally_space = {
 	prompt() {
-		view.prompt = `Rally: Place up to ${game.op.count} Guerrillas.`
+		view.prompt = `Rally: Place up to ${game.op.count} Guerrillas, build Base, or Move.`
 		view.where = game.op.where
 
 		if (game.op.count === rally_count()) {
@@ -3194,6 +3204,8 @@ states.rally_space = {
 function resume_rally() {
 	if (game.op.elite_backing)
 		end_elite_backing()
+	else if (game.vm)
+		end_operation()
 	else
 		game.state = "rally"
 }
@@ -3257,8 +3269,7 @@ function vm_free_march() {
 	init_free_operation("march")
 	game.op.pieces = []
 	// remember destinations
-	if (game.vm)
-		game.vm.m = []
+	game.vm.m = []
 }
 
 function can_march_to(to) {
@@ -6060,11 +6071,41 @@ function vm_place_shipment() {
 	vm_next()
 }
 
-function vm_free_sweep_or_assault() {
-	game.state = "vm_free_sweep_or_assault"
+// VM FREE OPS/ACTIVITIES
+
+function vm_free_govt_activity() { game.state = "vm_free_govt_activity" }
+function vm_free_train_sweep_assault() { game.state = "vm_free_train_sweep_assault" }
+function vm_free_sweep_assault() { game.state = "vm_free_sweep_assault" }
+function vm_free_sweep_assault_farc() { game.state = "vm_free_sweep_assault_farc" }
+function vm_free_rally_attack_terror() { game.state = "vm_free_rally_attack_terror" }
+function vm_free_attack_terror() { game.state = "vm_free_attack_terror" }
+
+states.vm_free_govt_activity = {
+	prompt() {
+		event_prompt(`Free Special Activity.`)
+		view.actions.air_lift = 1
+		view.actions.air_strike = 1
+		view.actions.eradicate = 1
+	},
+	air_lift: vm_free_air_lift,
+	air_strike: vm_free_air_strike,
+	eradicate: vm_free_eradicate,
 }
 
-states.vm_free_sweep_or_assault = {
+states.vm_free_train_sweep_assault = {
+	prompt() {
+		event_prompt(`Free Train, Sweep, or Assault in ${space_name[game.vm.s]}.`)
+		view.where = game.vm.s
+		view.actions.train = 1
+		view.actions.sweep = 1
+		view.actions.assault = 1
+	},
+	train: vm_free_train,
+	sweep: vm_free_sweep,
+	assault: vm_free_assault,
+}
+
+states.vm_free_sweep_assault = {
 	prompt() {
 		event_prompt(`Free Sweep or Assault in ${space_name[game.vm.s]}.`)
 		view.where = game.vm.s
@@ -6075,11 +6116,7 @@ states.vm_free_sweep_or_assault = {
 	assault: vm_free_assault,
 }
 
-function vm_free_sweep_or_assault_farc() {
-	game.state = "vm_free_sweep_or_assault_farc"
-}
-
-states.vm_free_sweep_or_assault_farc = {
+states.vm_free_sweep_assault_farc = {
 	prompt() {
 		event_prompt(`Free Sweep or Assault FARC in ${space_name[game.vm.s]}.`)
 		view.where = game.vm.s
@@ -6093,11 +6130,23 @@ states.vm_free_sweep_or_assault_farc = {
 	assault: vm_free_assault_farc,
 }
 
-function vm_free_attack_or_terror() {
-	game.state = "vm_free_attack_or_terror"
+states.vm_free_rally_attack_terror = {
+	prompt() {
+		event_prompt(`Free Rally, Attack, or Terror in ${space_name[game.vm.s]}.`)
+		view.where = game.vm.s
+		view.actions.rally = 1
+		if (has_enemy_piece(game.vm.s))
+			view.actions.attack = 1
+		else
+			view.actions.attack = 0
+		view.actions.terror = 1
+	},
+	rally: vm_free_rally,
+	attack: vm_free_attack,
+	terror: vm_free_terror_space,
 }
 
-states.vm_free_attack_or_terror = {
+states.vm_free_attack_terror = {
 	prompt() {
 		event_prompt(`Free Attack or Terror in ${space_name[game.vm.s]}.`)
 		view.where = game.vm.s
@@ -6109,22 +6158,6 @@ states.vm_free_attack_or_terror = {
 	},
 	attack: vm_free_attack,
 	terror: vm_free_terror_space,
-}
-
-function vm_free_govt_activity() {
-	game.state = "vm_free_govt_activity"
-}
-
-states.vm_free_govt_activity = {
-	prompt() {
-		event_prompt(`Free Special Activity.`)
-		view.actions.air_lift = 1
-		view.actions.air_strike = 1
-		view.actions.eradicate = 1
-	},
-	air_lift: vm_free_air_lift,
-	air_strike: vm_free_air_strike,
-	eradicate: vm_free_eradicate,
 }
 
 // === GAME OVER ===
@@ -6799,12 +6832,12 @@ const CODE = [
 	// EVENT 19
 	[ vm_if, ()=>game.current === GOVT ],
 	[ vm_space, 0, (s)=>has_cube(s) && has_enemy_piece(s) ],
-	[ vm_free_sweep_or_assault ],
+	[ vm_free_sweep_assault ],
 	[ vm_endspace ],
 	[ vm_endif ],
 	[ vm_if, ()=>game.current !== GOVT ],
 	[ vm_space, 0, (s)=>has_piece(s, game.current, GUERRILLA) ],
-	[ vm_free_attack_or_terror ],
+	[ vm_free_attack_terror ],
 	[ vm_endspace ],
 	[ vm_endif ],
 	[ vm_return ],
@@ -7036,7 +7069,7 @@ const CODE = [
 	// EVENT 37
 	[ vm_current, GOVT ],
 	[ vm_space, 0, (s)=>has_cube(s) && has_farc_piece(s) ],
-	[ vm_free_sweep_or_assault_farc ],
+	[ vm_free_sweep_assault_farc ],
 	[ vm_endspace ],
 	[ vm_return ],
 	// SHADED 37
@@ -7509,20 +7542,24 @@ const CODE = [
 	[ vm_endspace ],
 	[ vm_endif ],
 	[ vm_prompt, "Select destination space." ],
-	[ vm_space, 1, (s)=>(s !== game.vm.m[0]) && is_within_adjacent_depts(s, game.vm.m[0], 3) ],
 	[ vm_if, ()=>game.current === GOVT ],
+	[ vm_space, 1, (s)=>(s !== game.vm.m[0]) && !is_farc_zone(s) && is_within_adjacent_depts(s, game.vm.m[0], 3) ],
 	[ vm_prompt, "Move cubes to destination." ],
 	[ vm_piece_opt, 0, (p,s)=>(game.pieces[p] === game.vm.m[0]) && is_cube(p) ],
 	[ vm_move ],
 	[ vm_endpiece ],
+	[ vm_free_train_sweep_assault ],
+	[ vm_endspace ],
 	[ vm_endif ],
 	[ vm_if, ()=>game.current !== GOVT ],
+	[ vm_space, 1, (s)=>(s !== game.vm.m[0]) && is_within_adjacent_depts(s, game.vm.m[0], 3) ],
 	[ vm_prompt, "Move Guerrillas to destination." ],
 	[ vm_piece_opt, 0, (p,s)=>(game.pieces[p] === game.vm.m[0]) && is_piece(p, game.current, GUERRILLA) ],
 	[ vm_move ],
 	[ vm_endpiece ],
-	[ vm_endif ],
+	[ vm_free_rally_attack_terror ],
 	[ vm_endspace ],
+	[ vm_endif ],
 	[ vm_return ],
 	// SHADED 69
 	// TODO
@@ -7573,4 +7610,4 @@ const CODE = [
 	[ vm_endwhile ],
 	[ vm_return ],
 ]
-const CODE_INDEX = [ 0, 3, 6, 9, 12, 15, 18, 23, 28, 58, 64, 69, 78, 81, 84, 89, 91, 94, 97, 100, 103, 106, 109, 112, 115, 118, 121, 129, 138, 141, 145, 150, 152, 155, 158, 161, 165, -1, 176, 183, 189, 194, 199, 203, 206, 215, 222, 227, 236, 242, 248, 253, 258, 263, 266, 272, 279, 287, 293, 300, 303, 310, 314, 318, 320, 326, 332, 334, 341, 349, 354, -1, 364, 369, 377, 383, 389, 393, 401, 408, 423, 430, 435, 440, 444, 452, 458, 463, 468, 472, 479, -1, 496, 503, -1, 517, 521, 525, 530, 541, 547, 556, 561, 565, 572, -1, 589, -1, 603, 611, 616, 618, 625, 632, 640, 645, 653, 661, 673, 680, 688, 695, 699, 703, 707, -1, 719, 724, 733, -1, 738, 742, 746, 748, -1, 751, 756, -1, 783, 788, 797, 803, 809, 816 ]
+const CODE_INDEX = [ 0, 3, 6, 9, 12, 15, 18, 23, 28, 58, 64, 69, 78, 81, 84, 89, 91, 94, 97, 100, 103, 106, 109, 112, 115, 118, 121, 129, 138, 141, 145, 150, 152, 155, 158, 161, 165, -1, 176, 183, 189, 194, 199, 203, 206, 215, 222, 227, 236, 242, 248, 253, 258, 263, 266, 272, 279, 287, 293, 300, 303, 310, 314, 318, 320, 326, 332, 334, 341, 349, 354, -1, 364, 369, 377, 383, 389, 393, 401, 408, 423, 430, 435, 440, 444, 452, 458, 463, 468, 472, 479, -1, 496, 503, -1, 517, 521, 525, 530, 541, 547, 556, 561, 565, 572, -1, 589, -1, 603, 611, 616, 618, 625, 632, 640, 645, 653, 661, 673, 680, 688, 695, 699, 703, 707, -1, 719, 724, 733, -1, 738, 742, 746, 748, -1, 751, 756, -1, 787, 792, 801, 807, 813, 820 ]

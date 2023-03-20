@@ -204,12 +204,12 @@ SHADED 18
 EVENT 19
 	if game.current === GOVT
 		space 0 has_cube(s) && has_enemy_piece(s)
-			free_sweep_or_assault
+			free_sweep_assault
 		endspace
 	endif
 	if game.current !== GOVT
 		space 0 has_piece(s, game.current, GUERRILLA)
-			free_attack_or_terror
+			free_attack_terror
 		endspace
 	endif
 
@@ -438,7 +438,7 @@ EVENT 36
 EVENT 37
 	current GOVT
 	space 0 has_cube(s) && has_farc_piece(s)
-		free_sweep_or_assault_farc
+		free_sweep_assault_farc
 	endspace
 
 SHADED 37
@@ -903,22 +903,25 @@ EVENT 69
 		endspace
 	endif
 	prompt Select destination space.
-	space 1 (s !== game.vm.m[0]) && is_within_adjacent_depts(s, game.vm.m[0], 3)
-		if game.current === GOVT
+	if game.current === GOVT
+		space 1 (s !== game.vm.m[0]) && !is_farc_zone(s) && is_within_adjacent_depts(s, game.vm.m[0], 3)
 			prompt Move cubes to destination.
 			piece_opt 0 (game.pieces[p] === game.vm.m[0]) && is_cube(p)
 				move
 			endpiece
+			# TODO: free sweep move or only flip?
 			free_train_sweep_assault
-		endif
-		if game.current !== GOVT
+		endspace
+	endif
+	if game.current !== GOVT
+		space 1 (s !== game.vm.m[0]) && is_within_adjacent_depts(s, game.vm.m[0], 3)
 			prompt Move Guerrillas to destination.
 			piece_opt 0 (game.pieces[p] === game.vm.m[0]) && is_piece(p, game.current, GUERRILLA)
 				move
 			endpiece
 			free_rally_attack_terror
-		endif
-	endspace
+		endspace
+	endif
 
 EVENT 70
 	prompt Select each Forest without Guerrillas.
@@ -970,12 +973,6 @@ SHADED 72
 # --- --- --- --- ---
 
 EOF
-
-EVENT 69
-	select source space
-	select destination space through chain of up to 3 adjacent depts
-	move any cubes/guerrillas from source to destination
-	any free op (except patrol or march) in destination
 
 EVENT 68
 	remove 2 cartels pieces from coastal spaces
