@@ -38,9 +38,15 @@ for (let line of fs.readFileSync("events.txt", "utf-8").split("\n")) {
 		break
 
 	case "space_opt":
-		emit([ "space", 0, 1, line[1], "(s)=>" + line.slice(2).join(" ") ])
+		emit([ "space", 1, 1, line[1], "(s)=>" + line.slice(2).join(" ") ])
 		break
 	case "space":
+		emit([ "space", 1, 0, line[1], "(s)=>" + line.slice(2).join(" ") ])
+		break
+	case "space_no_undo_opt":
+		emit([ "space", 0, 1, line[1], "(s)=>" + line.slice(2).join(" ") ])
+		break
+	case "space_no_undo":
 		emit([ "space", 0, 0, line[1], "(s)=>" + line.slice(2).join(" ") ])
 		break
 	case "space_undo_opt":
@@ -51,16 +57,29 @@ for (let line of fs.readFileSync("events.txt", "utf-8").split("\n")) {
 		break
 
 	case "piece_opt":
-		emit([ "piece", 0, 1, line[1], "(s,p)=>" + line.slice(2).join(" ") ])
+		emit([ "piece", 0, 1, line[1], "(p,s)=>" + line.slice(2).join(" ") ])
 		break
 	case "piece":
-		emit([ "piece", 0, 0, line[1], "(s,p)=>" + line.slice(2).join(" ") ])
+		emit([ "piece", 0, 0, line[1], "(p,s)=>" + line.slice(2).join(" ") ])
+		break
+	case "piece_no_undo_opt":
+		emit([ "piece", 0, 1, line[1], "(p,s)=>" + line.slice(2).join(" ") ])
+		break
+	case "piece_no_undo":
+		emit([ "piece", 0, 0, line[1], "(p,s)=>" + line.slice(2).join(" ") ])
 		break
 	case "piece_undo_opt":
-		emit([ "piece", 1, 1, line[1], "(s,p)=>" + line.slice(2).join(" ") ])
+		emit([ "piece", 1, 1, line[1], "(p,s)=>" + line.slice(2).join(" ") ])
 		break
 	case "piece_undo":
-		emit([ "piece", 1, 0, line[1], "(s,p)=>" + line.slice(2).join(" ") ])
+		emit([ "piece", 1, 0, line[1], "(p,s)=>" + line.slice(2).join(" ") ])
+		break
+
+	case "shipment_opt":
+		emit([ "shipment", 0, 1, line[1], "(p,s)=>" + line.slice(2).join(" ") ])
+		break
+	case "shipment":
+		emit([ "shipment", 0, 0, line[1], "(p,s)=>" + line.slice(2).join(" ") ])
 		break
 
 	case "place_opt":
