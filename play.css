@@ -21,8 +21,7 @@ main { background-color: #777; }
 #log .tip:hover { text-decoration: underline; }
 
 #log div { padding-left: 20px; text-indent: -12px; }
-#log div.i { padding-left: 32px; text-indent: -12px; }
-#log div.ii { padding-left: 44px; text-indent: -12px; }
+#log div.i { padding-left: 32px; text-indent: -12px; font-style: italic; }
 
 .action { cursor: pointer }
 

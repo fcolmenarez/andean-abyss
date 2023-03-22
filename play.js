@@ -106,19 +106,10 @@ let ui = {
 	support: [],
 	sabotage: [],
 	terror: [],
+	card_tip: document.getElementById("card_tip"),
 	next_card: document.getElementById("next_card"),
 	this_card: document.getElementById("this_card"),
 	deck_size: document.getElementById("deck_size"),
-	sop: [
-		null,
-		document.getElementById("SOP_A1"),
-		document.getElementById("SOP_A2"),
-		document.getElementById("SOP_B1"),
-		document.getElementById("SOP_B2"),
-		document.getElementById("SOP_C1"),
-		document.getElementById("SOP_C2"),
-		document.getElementById("SOP_PASS"),
-	],
 	tokens: {
 		aid: document.getElementById("token_aid"),
 		total_support: document.getElementById("token_total_support"),
@@ -432,14 +423,6 @@ function init_ui() {
 
 	create_piece_list(CARTELS, GUERRILLA, "piece cartels guerrilla", 2, 0)
 	create_piece_list(CARTELS, BASE, "piece cartels base", -4, 10)
-
-	register_action(ui.sop[1], "sop", 1)
-	register_action(ui.sop[2], "sop", 2)
-	register_action(ui.sop[3], "sop", 3)
-	register_action(ui.sop[4], "sop", 4)
-	register_action(ui.sop[5], "sop", 5)
-	register_action(ui.sop[6], "sop", 6)
-	register_action(ui.sop[7], "sop", 7)
 }
 
 function is_carrying_shipment(p) {
@@ -585,13 +568,6 @@ function layout_sop() {
 		for (let faction = 0; faction < 4; ++faction)
 			if (view.cylinder[faction] === i)
 				place_piece(ui.cylinder[faction], x, y)
-	}
-
-	for (let i = 1; i <= 7; ++i) {
-		if (view.actions && view.actions.sop && set_has(view.actions.sop, i))
-			ui.sop[i].classList.add("action")
-		else
-			ui.sop[i].classList.remove("action")
 	}
 }
 
@@ -996,20 +972,26 @@ function on_update() {
 		"ask_shipment",
 	])
 
+	// Select Faction
+	action_button("govt", "Government")
+	action_button("farc", "FARC")
+	action_button("auc", "AUC")
+	action_button("cartels", "Cartels")
+
+	// Select Operation
 	action_button("train", "Train")
 	action_button("patrol", "Patrol")
 	action_button("sweep", "Sweep")
 	action_button("assault", "Assault")
-
 	action_button("rally", "Rally")
 	action_button("march", "March")
 	action_button("attack", "Attack")
 	action_button("terror", "Terror")
 
+	// Select Special Activity
 	action_button("air_lift", "Air Lift")
 	action_button("air_strike", "Air Strike")
 	action_button("eradicate", "Eradicate")
-
 	action_button("extort", "Extort")
 	action_button("ambush", "Ambush")
 	action_button("assassinate", "Assassinate")
@@ -1027,43 +1009,52 @@ function on_update() {
 	action_button("base", "Base")
 	action_button("civic", "Civic Action")
 
-	action_button("unshaded", "Unshaded")
-	action_button("shaded", "Shaded")
-
-	action_button("event", "Event")
-	action_button("limop", "LimOp")
-
-	action_button("govt", "Government")
-	action_button("farc", "FARC")
-	action_button("auc", "AUC")
-	action_button("cartels", "Cartels")
-
 	action_button("support", "Support")
 	action_button("opposition", "Opposition")
 
-	action_button("end_activity", "End Activity")
-	action_button("end_operation", "End Op")
-	action_button("end_event", "End Event")
+	action_button("limop", "LimOp")
+	action_button("event", "Event")
+	action_button("unshaded", "Unshaded")
+	action_button("shaded", "Shaded")
 
 	action_button("skip", "Skip")
 	action_button("next", "Next")
+	action_button("pass", "Pass")
+
+	action_button("end_train", "End Train")
+	action_button("end_patrol", "End Patrol")
+	action_button("end_sweep", "End Sweep")
+	action_button("end_assault", "End Assault")
+	action_button("end_rally", "End Rally")
+	action_button("end_march", "End March")
+	action_button("end_attack", "End Attack")
+	action_button("end_terror", "End Terror")
+
+	action_button("end_air_lift", "End Air Lift")
+	action_button("end_extort", "End Extort")
+	action_button("end_assassinate", "End Assassinate")
+	action_button("end_kidnap", "End Kidnap")
+	action_button("end_process", "End Process")
+	action_button("end_bribe", "End Bribe")
+
+	action_button("end_event", "End Event")
+
 	action_button("deny", "Deny")
 	action_button("done", "Done")
 	action_button("undo", "Undo")
 }
 
 function register_card_tip(e, c) {
-	e.onmouseenter = () => //console.log("FOCUS ME", c)
-	on_focus_card_tip(c)
+	e.onmouseenter = () => on_focus_card_tip(c)
 	e.onmouseleave = on_blur_card_tip
 }
 
 function on_focus_card_tip(c) {
-	document.getElementById("card_tip").className = "card card_" + c
+	card_tip.className = "card card_" + c
 }
 
 function on_blur_card_tip() {
-	document.getElementById("card_tip").className = "hide"
+	card_tip.className = "hide"
 }
 
 function on_focus_space_tip(s) {

@@ -220,7 +220,7 @@ EVENT 19
 EVENT 20
 	current GOVT
 	piece_undo_opt 6 is_farc_guerrilla(p)
-		space_no_undo 1 is_adjacent(s, game.pieces[game.vm.p])
+		space_no_undo 1 is_adjacent(s, piece_space(game.vm.p))
 			move
 		endspace
 	endpiece
@@ -315,9 +315,9 @@ SHADED 26
 
 EVENT 27
 	current GOVT
-	free_govt_activity
-	free_govt_activity
-	free_govt_activity
+	free_govt_special_activity
+	free_govt_special_activity
+	free_govt_special_activity
 
 SHADED 27
 	log "Until next Propaganda, no Govt Special Activities where Guerrilla."
@@ -624,7 +624,8 @@ EVENT 48
 	select_space_or_piece (s)=>(is_opposition(s)&&is_adjacent_to_3econ_pipeline(s)) (p,s)=>(is_farc_base(p)&&is_adjacent_to_3econ_pipeline(s))
 	if game.vm.p >= 0
 		remove
-	else
+	endif
+	if game.vm.s >= 0
 		shift_support
 	endif
 
@@ -702,7 +703,7 @@ EVENT 53
 	endspace
 	prompt "Move Guerrillas between Departments."
 	piece 2 is_any_guerrilla(p) && (s === game.vm.m[0] || s === game.vm.m[1])
-		if game.pieces[game.vm.p] === game.vm.m[0]
+		if piece_space(game.vm.p) === game.vm.m[0]
 			set_space (game.vm.m[1])
 		else
 			set_space (game.vm.m[0])
@@ -909,7 +910,8 @@ EVENT 68
 		piece 1 is_coastal_space(s) && is_cartels_piece(p)
 			remove
 		endpiece
-	else
+	endif
+	if game.vm.sh >= 0
 		remove_shipment
 		shipment_opt 1 is_coastal_space(s)
 			remove_shipment
