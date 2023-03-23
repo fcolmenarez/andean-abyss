@@ -308,6 +308,7 @@ path.tip { stroke: yellow; }
 #card_panel {
 	display: flex;
 	flex-wrap: wrap;
+	justify-content: center;
 	gap: 18px;
 	padding: 0 18px;
 	max-width: 1614px;
