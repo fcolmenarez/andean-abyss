@@ -2728,7 +2728,11 @@ states.sweep = {
 
 		log(`S${s}.`)
 
-		select_op_space(s, 3)
+		let cost = 3
+		if (has_capability(CAP_OSPINA))
+			cost = 1
+
+		select_op_space(s, cost)
 
 		game.state = "sweep_move"
 		game.op.where = s
@@ -2995,7 +2999,11 @@ states.assault = {
 
 		log(`S${s}.`)
 
-		select_op_space(s, 3)
+		let cost = 3
+		if (has_capability(CAP_TAPIAS))
+			cost = 1
+
+		select_op_space(s, cost)
 
 		game.state = "assault_space"
 		game.op.where = s
@@ -3259,6 +3267,7 @@ function goto_march() {
 
 function vm_free_march() {
 	init_free_operation("march")
+game.op.spaces = []
 	game.op.pieces = []
 	// remember destinations
 	game.vm.m = []
@@ -4351,7 +4360,7 @@ states.cultivate = {
 	prompt() {
 		view.prompt = "Cultivate: Select Department or City."
 		for (let s = first_pop; s <= last_pop; ++s)
-			if (count_bases(s) < 2)
+			if (count_bases(s) < 2 && count_pieces(s, CARTELS, GUERRILLA) > count_pieces(s, GOVT, POLICE))
 				gen_action_space(s)
 	},
 	space(s) {
@@ -4815,7 +4824,7 @@ states.sabotage = {
 function calc_govt_earnings() {
 	let n = 30
 	for (let s of game.sabotage)
-		n -= data.space[s].econ
+		n -= data.spaces[s].econ
 	if (game.president === SAMPER)
 		return n
 	return n + game.aid
