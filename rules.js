@@ -2658,17 +2658,21 @@ function can_sweep_move(here) {
 
 	let ndsc = has_capability(CAP_NDSC)
 	for (let next of data.spaces[here].adjacent) {
-		if (has_piece(next, GOVT, TROOPS))
-			return true
-		if (ndsc && has_piece(next, GOVT, POLICE))
-			return true
+		if (!set_has(game.op.spaces, next)) {
+			if (has_piece(next, GOVT, TROOPS))
+				return true
+			if (ndsc && has_piece(next, GOVT, POLICE))
+				return true
+		}
 		if (is_loc(next) && !has_any_guerrilla(next)) {
 			for (let nextnext of data.spaces[next].adjacent) {
 				if (nextnext !== here) {
-					if (has_piece(nextnext, GOVT, TROOPS))
-						return true
-					if (ndsc && has_piece(next, GOVT, POLICE))
-						return true
+					if (!set_has(game.op.spaces, nextnext)) {
+						if (has_piece(nextnext, GOVT, TROOPS))
+							return true
+						if (ndsc && has_piece(next, GOVT, POLICE))
+							return true
+					}
 				}
 			}
 		}
@@ -2679,15 +2683,19 @@ function can_sweep_move(here) {
 function gen_sweep_move(here) {
 	// TODO: only unmoved pieces (can't move twice)
 	for (let next of data.spaces[here].adjacent) {
-		if (game.op.ndsc)
-			gen_piece_in_space(next, GOVT, POLICE)
-		gen_piece_in_space(next, GOVT, TROOPS)
+		if (!set_has(game.op.spaces, next)) {
+			if (game.op.ndsc)
+				gen_piece_in_space(next, GOVT, POLICE)
+			gen_piece_in_space(next, GOVT, TROOPS)
+		}
 		if (is_loc(next) && !has_any_guerrilla(next)) {
 			for (let nextnext of data.spaces[next].adjacent) {
 				if (nextnext !== here) {
-					if (game.op.ndsc)
-						gen_piece_in_space(nextnext, GOVT, POLICE)
-					gen_piece_in_space(nextnext, GOVT, TROOPS)
+					if (!set_has(game.op.spaces, nextnext)) {
+						if (game.op.ndsc)
+							gen_piece_in_space(nextnext, GOVT, POLICE)
+						gen_piece_in_space(nextnext, GOVT, TROOPS)
+					}
 				}
 			}
 		}
