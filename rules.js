@@ -2074,14 +2074,15 @@ function select_op_space(s, cost) {
 		game.resources[game.current] -= cost
 }
 
-function init_operation(state, name) {
+function init_operation(type) {
+	push_undo()
+	move_cylinder_to_operation()
 	if (game.op.limited)
-		log_h2(faction_name[game.current] + " - Limited " + name)
+		log_h2(faction_name[game.current] + " - Limited " + type)
 	else
-		log_h2(faction_name[game.current] + " - " + name)
-	game.state = state
+		log_h2(faction_name[game.current] + " - " + type)
+	game.op.type = type
 	game.op.spaces = []
-	game.op.pieces = []
 }
 
 function init_free_operation(state, name) {
@@ -2109,10 +2110,7 @@ function vm_free_train() {
 }
 
 function goto_train() {
-	init_operation("train", "Train")
-	push_undo()
-	move_cylinder_to_operation()
-	log_h3("Train")
+	init_operation("Train")
 	game.state = "train"
 }
 
@@ -2300,9 +2298,8 @@ states.train_civic = {
 // OPERATION: PATROL
 
 function goto_patrol() {
-	push_undo()
-	move_cylinder_to_operation()
-	log_h3("Patrol")
+	init_operation("Patrol")
+	game.op.pieces = []
 	goto_patrol1()
 }
 
@@ -2548,7 +2545,7 @@ states.patrol_assault = {
 		if (has_capability(CAP_METEORO)) {
 			view.prompt = "Patrol: Free Assault in each LoC."
 			for (let s = first_loc; s <= last_loc; ++s) {
-				if (set_has(game.op.spaces, s))
+				if (is_selected_op_space(s))
 					continue
 				if (has_assault_target(s))
 					gen_action_space(s)
@@ -2628,9 +2625,7 @@ states.patrol_done = {
 // OPERATION: SWEEP
 
 function goto_sweep() {
-	push_undo()
-	move_cylinder_to_operation()
-	log_h3("Sweep")
+	init_operation("Sweep")
 	game.state = "sweep"
 	if (has_shaded_capability(CAP_OSPINA))
 		game.op.limited = 1
@@ -2658,7 +2653,7 @@ function can_sweep_move(here) {
 
 	let ndsc = has_capability(CAP_NDSC)
 	for (let next of data.spaces[here].adjacent) {
-		if (!set_has(game.op.spaces, next)) {
+		if (!is_selected_op_space(next)) {
 			if (has_piece(next, GOVT, TROOPS))
 				return true
 			if (ndsc && has_piece(next, GOVT, POLICE))
@@ -2667,7 +2662,7 @@ function can_sweep_move(here) {
 		if (is_loc(next) && !has_any_guerrilla(next)) {
 			for (let nextnext of data.spaces[next].adjacent) {
 				if (nextnext !== here) {
-					if (!set_has(game.op.spaces, nextnext)) {
+					if (!is_selected_op_space(nextnext)) {
 						if (has_piece(nextnext, GOVT, TROOPS))
 							return true
 						if (ndsc && has_piece(next, GOVT, POLICE))
@@ -2683,7 +2678,7 @@ function can_sweep_move(here) {
 function gen_sweep_move(here) {
 	// TODO: only unmoved pieces (can't move twice)
 	for (let next of data.spaces[here].adjacent) {
-		if (!set_has(game.op.spaces, next)) {
+		if (!is_selected_op_space(next)) {
 			if (game.op.ndsc)
 				gen_piece_in_space(next, GOVT, POLICE)
 			gen_piece_in_space(next, GOVT, TROOPS)
@@ -2691,7 +2686,7 @@ function gen_sweep_move(here) {
 		if (is_loc(next) && !has_any_guerrilla(next)) {
 			for (let nextnext of data.spaces[next].adjacent) {
 				if (nextnext !== here) {
-					if (!set_has(game.op.spaces, nextnext)) {
+					if (!is_selected_op_space(nextnext)) {
 						if (game.op.ndsc)
 							gen_piece_in_space(nextnext, GOVT, POLICE)
 						gen_piece_in_space(nextnext, GOVT, TROOPS)
@@ -2854,9 +2849,7 @@ function do_sweep_next() {
 // OPERATION: ASSAULT
 
 function goto_assault() {
-	push_undo()
-	move_cylinder_to_operation()
-	log_h3("Assault")
+	init_operation("Assault")
 	game.state = "assault"
 	if (has_shaded_capability(CAP_TAPIAS))
 		game.op.limited = 1
@@ -3069,9 +3062,7 @@ states.assault_space = {
 // OPERATION: RALLY
 
 function goto_rally() {
-	push_undo()
-	move_cylinder_to_operation()
-	log_h3("Rally")
+	init_operation("Rally")
 	game.state = "rally"
 }
 
@@ -3266,9 +3257,7 @@ states.rally_move = {
 // OPERATION: MARCH
 
 function goto_march() {
-	push_undo()
-	move_cylinder_to_operation()
-	log_h3("March")
+	init_operation("March")
 	game.state = "march"
 	game.op.pieces = []
 }
@@ -3418,9 +3407,7 @@ states.march_move = {
 // OPERATION: ATTACK
 
 function goto_attack() {
-	push_undo()
-	move_cylinder_to_operation()
-	log_h3("Attack")
+	init_operation("Attack")
 	game.state = "attack"
 }
 
@@ -3573,9 +3560,7 @@ states.attack_remove = {
 // OPERATION: TERROR
 
 function goto_terror() {
-	push_undo()
-	move_cylinder_to_operation()
-	log_h3("Terror")
+	init_operation("Terror")
 	game.state = "terror"
 }
 
@@ -4112,7 +4097,7 @@ function can_kidnap(s) {
 		// FARC Guerrillas outnumber Police
 		if (count_pieces(s, FARC, GUERRILLA) > count_pieces(s, GOVT, POLICE)) {
 			// Selected for Terror
-			if (set_has(game.op.spaces, s))
+			if (is_selected_op_space(s))
 				return true
 
 			// ... or may be for future Terror if ...
@@ -4285,7 +4270,7 @@ function goto_assassinate() {
 
 function can_assassinate(s) {
 	// Space where Terror
-	if (set_has(game.op.spaces, s))
+	if (is_selected_op_space(s))
 		// AUC Guerrillas outnumber Police
 		if (count_pieces(s, AUC, GUERRILLA) > count_pieces(s, GOVT, POLICE))
 			if (has_enemy_piece(s))
@@ -4368,14 +4353,15 @@ states.cultivate = {
 	prompt() {
 		view.prompt = "Cultivate: Select Department or City."
 		for (let s = first_pop; s <= last_pop; ++s)
-			if (count_bases(s) < 2 && count_pieces(s, CARTELS, GUERRILLA) > count_pieces(s, GOVT, POLICE))
-				gen_action_space(s)
+			if (can_stack_base(s))
+				if (count_pieces(s, CARTELS, GUERRILLA) > count_pieces(s, GOVT, POLICE))
+					gen_action_space(s)
 	},
 	space(s) {
 		push_undo()
 		log(`Cultivate in S${s}.`)
 		game.sa.where = s
-		if (game.sa.save === "rally")
+		if (is_selected_op_space(s) && game.op.type === "Rally")
 			game.state = "cultivate_place"
 		else
 			game.state = "cultivate_move"
