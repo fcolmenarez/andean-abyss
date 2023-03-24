@@ -2006,21 +2006,11 @@ function goto_pass() {
 	push_undo()
 	game.cylinder[game.current] = SOP_PASS
 	log_h2(faction_name[game.current] + " - Pass")
-	game.state = "pass"
-}
-
-states.pass = {
-	prompt() {
-		view.prompt = `Pass: ${faction_name[game.current]} +${game.current === GOVT ? 3 : 1} Resources.`
-		gen_action_resources(game.current)
-	},
-	resources(_) {
-		if (game.current === GOVT)
-			add_resources(game.current, 3)
-		else
-			add_resources(game.current, 1)
-		resume_event_card()
-	},
+	if (game.current === GOVT)
+		add_resources(game.current, 3)
+	else
+		add_resources(game.current, 1)
+	resume_event_card()
 }
 
 // === OPERATIONS ===
