@@ -2083,10 +2083,10 @@ function init_operation(type) {
 	game.op.spaces = []
 }
 
-function init_free_operation(state, name) {
-	log_h3("Free " + name)
-	game.state = state
+function init_free_operation(type) {
+	log_h3("Free " + type)
 	game.op = {
+		type: type,
 		limited: 1,
 		free: 1,
 		ship: 0,
@@ -2096,7 +2096,7 @@ function init_free_operation(state, name) {
 // OPERATION: TRAIN
 
 function vm_free_train() {
-	init_free_operation("train")
+	init_free_operation("Train")
 	game.op.limited = 1
 	select_op_space(game.vm.s, 0)
 	game.op.where = game.vm.s
@@ -2630,13 +2630,15 @@ function goto_sweep() {
 }
 
 function vm_free_sweep() {
-	init_free_operation("sweep_activate")
+	init_free_operation("Sweep")
+	game.state = "sweep_activate"
 	game.op.where = game.vm.s
 	do_sweep_activate()
 }
 
 function vm_free_sweep_farc() {
-	init_free_operation("sweep_activate")
+	init_free_operation("Sweep")
+	game.state = "sweep_activate"
 	game.op.faction = FARC
 	game.op.where = game.vm.s
 	do_sweep_activate()
@@ -2854,27 +2856,31 @@ function goto_assault() {
 }
 
 function vm_free_assault() {
-	init_free_operation("assault_space")
+	init_free_operation("Assault")
+	game.state = "assault_space"
 	game.op.where = game.vm.s
 	game.op.count = assault_kill_count(game.vm.s, undefined)
 }
 
 function vm_free_assault_auc() {
-	init_free_operation("assault_space")
+	init_free_operation("Assault")
+	game.state = "assault_space"
 	game.op.faction = AUC
 	game.op.where = game.vm.s
 	game.op.count = assault_kill_count(game.vm.s, AUC)
 }
 
 function vm_free_assault_farc() {
-	init_free_operation("assault_space")
+	init_free_operation("Assault")
+	game.state = "assault_space"
 	game.op.faction = FARC
 	game.op.where = game.vm.s
 	game.op.count = assault_kill_count(game.vm.s, FARC)
 }
 
 function vm_free_assault_cartels() {
-	init_free_operation("assault_space")
+	init_free_operation("Assault")
+	game.state = "assault_space"
 	game.op.faction = CARTELS
 	game.op.where = game.vm.s
 	game.op.count = assault_kill_count(game.vm.s, CARTELS)
@@ -3065,13 +3071,15 @@ function goto_rally() {
 }
 
 function vm_free_rally() {
-	init_free_operation("rally_space")
+	init_free_operation("Rally")
+	game.state = "rally_space"
 	game.op.where = game.vm.s
 	game.op.count = rally_count()
 }
 
 function free_rally_elite_backing(s) {
-	init_free_operation("rally_space")
+	init_free_operation("Rally")
+	game.state = "rally_space"
 	game.op.elite_backing = 1
 	game.op.where = s
 	game.op.count = rally_count()
@@ -3261,7 +3269,8 @@ function goto_march() {
 }
 
 function vm_free_march() {
-	init_free_operation("march")
+	init_free_operation("March")
+	game.state = "march"
 	game.op.limited = 0
 	game.op.spaces = []
 	game.op.pieces = []
@@ -3369,7 +3378,6 @@ states.march_move = {
 				return // continue
 
 			let s = piece_space(p)
-			if (s > 0)
 			if (is_adjacent(game.op.where, s))
 				gen_action_piece(p)
 		})
@@ -3411,7 +3419,7 @@ function goto_attack() {
 }
 
 function vm_free_attack() {
-	init_free_operation("attack")
+	init_free_operation("Attack")
 	do_attack_space(game.vm.s)
 }
 
@@ -3564,13 +3572,13 @@ function goto_terror() {
 }
 
 function vm_free_terror() {
-	init_free_operation("terror")
+	init_free_operation("Terror")
 	do_terror_space(game.vm.s)
 	do_terror_piece(game.vm.p)
 }
 
 function vm_free_terror_space() {
-	init_free_operation("terror")
+	init_free_operation("Terror")
 	do_terror_space(game.vm.s)
 }
 
@@ -3607,25 +3615,23 @@ states.terror = {
 		if (!view.actions.space)
 			view.prompt = "Terror: All done."
 
-		if (game.current === AUC) {
-			if (game.op.spaces.length > 0)
-				view.actions.next = 1
-			else
-				view.actions.next = 0
+		if (game.op.spaces.length > 0)
+			view.actions.end_terror = 1
+		else
 			view.actions.end_terror = 0
-		} else {
-			if (game.op.spaces.length > 0)
-				view.actions.end_terror = 1
-			else
-				view.actions.end_terror = 0
-		}
 	},
 	space(s) {
 		push_undo()
 		do_terror_space(s)
 	},
-	next: do_terror_aid,
-	end_terror: end_operation,
+	end_terror() {
+		if (game.current === AUC) {
+			push_undo()
+			game.state = "terror_aid_cut"
+		} else {
+			end_operation()
+		}
+	}
 }
 
 function do_terror_space(s) {
@@ -3683,11 +3689,7 @@ function do_terror_piece(p) {
 	}
 }
 
-function do_terror_aid() {
-	game.state = "terror_aid"
-}
-
-states.terror_aid = {
+states.terror_aid_cut = {
 	prompt() {
 		let n = (game.op.spaces.length >= 2) ? -5 : -3
 		view.prompt = `Terror: Aid Cut by ${n}.`
@@ -3998,7 +4000,8 @@ states.eradicate_shift = {
 // SPECIAL ACTIVITY: AMBUSH
 
 function vm_free_ambush() {
-	init_free_operation("attack_place")
+	init_free_operation("Attack")
+	game.state = "attack_place"
 	set_active(game.vm.p)
 	game.op.where = game.vm.s
 }
@@ -4560,7 +4563,7 @@ states.bribe = {
 
 states.bribe_space = {
 	prompt() {
-		view.prompt = "Bribe: Remove or flip 1 base, 2 cubes, or 2 guerrillas."
+		view.prompt = "Bribe: Remove 1 base or 2 cubes or 2 guerrillas, or flip 2 guerrillas."
 
 		// Nothing removed yet
 		if (game.sa.targeted === 0) {
@@ -5280,6 +5283,8 @@ function goto_event(shaded) {
 	push_undo()
 	move_cylinder_to_event()
 	let c = this_card()
+
+	game.sa = 0
 
 	if (shaded) {
 		log_h2(faction_name[game.current] + " - Shaded Event")
