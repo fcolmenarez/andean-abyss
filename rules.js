@@ -66,7 +66,7 @@ const TROOPS = 2
 const POLICE = 3
 
 const piece_type_name = [ "Base", "Guerrilla", "Troops", "Police" ]
-const piece_name = [
+const piece_faction_type_name = [
 	[ "Govt Base", null, "Troops", "Police" ],
 	[ "FARC Base", "FARC Guerrilla" ],
 	[ "AUC Base", "AUC Guerrilla" ],
@@ -476,6 +476,27 @@ function piece_faction(p) {
 	if (p >= first_piece[CARTELS][BASE] && p <= last_piece[CARTELS][BASE])
 		return CARTELS
 	throw "IMPOSSIBLE"
+}
+
+function piece_name(p) {
+	if (p >= first_piece[GOVT][TROOPS] && p <= last_piece[GOVT][TROOPS])
+		return "Troops"
+	if (p >= first_piece[GOVT][POLICE] && p <= last_piece[GOVT][POLICE])
+		return "Police"
+	if (p >= first_piece[GOVT][BASE] && p <= last_piece[GOVT][BASE])
+		return "Govt Base"
+	if (p >= first_piece[FARC][GUERRILLA] && p <= last_piece[FARC][GUERRILLA])
+		return "FARC Guerrilla"
+	if (p >= first_piece[FARC][BASE] && p <= last_piece[FARC][BASE])
+		return "FARC Base"
+	if (p >= first_piece[AUC][GUERRILLA] && p <= last_piece[AUC][GUERRILLA])
+		return "AUC Guerrilla"
+	if (p >= first_piece[AUC][BASE] && p <= last_piece[AUC][BASE])
+		return "AUC Base"
+	if (p >= first_piece[CARTELS][GUERRILLA] && p <= last_piece[CARTELS][GUERRILLA])
+		return "Cartels Guerrilla"
+	if (p >= first_piece[CARTELS][BASE] && p <= last_piece[CARTELS][BASE])
+		return "Cartels Base"
 }
 
 function target_faction(p) {
@@ -1012,10 +1033,18 @@ function update_control() {
 }
 
 function add_resources(faction, n) {
+	if (n > 0)
+		log(faction_name[faction] + " Resources +" + n + ".")
+	else
+		log(faction_name[faction] + " Resources " + n + ".")
 	game.resources[faction] = Math.max(0, Math.min(99, game.resources[faction] + n))
 }
 
 function add_aid(n) {
+	if (n > 0)
+		log("Aid +" + n + ".")
+	else
+		log("Aid " + n + ".")
 	game.aid = Math.max(0, Math.min(29, game.aid + n))
 }
 
@@ -1051,17 +1080,20 @@ function is_active(p) {
 }
 
 function move_piece(p, s) {
+	log(`Moved ${piece_name(p)} from S${piece_space(p)} to S${s}.`)
 	set_piece_space(p, s)
 	update_control()
 }
 
 function place_piece(p, s) {
+	log(`Placed ${piece_name(p)} in S${s}.`)
 	set_underground(p)
 	set_piece_space(p, s)
 	update_control()
 }
 
 function remove_piece(p) {
+	log(`Removed ${piece_name(p)} from S${piece_space(p)}.`)
 	if (is_any_guerrilla(p)) {
 		drop_held_shipments(p)
 		set_underground(p)
@@ -1071,6 +1103,7 @@ function remove_piece(p) {
 }
 
 function place_terror(s) {
+	log(`Placed Terror in S${s}.`)
 	if (count_terror_and_sabotage() < 40)
 		map_set(game.terror, s, map_get(game.terror, s, 0) + 1)
 }
@@ -1084,17 +1117,20 @@ function remove_terror(s) {
 }
 
 function place_sabotage(s) {
+	log(`Placed Sabotage in S${s}.`)
 	if (count_terror_and_sabotage() < 40)
 		set_add(game.sabotage, s)
 }
 
 function remove_sabotage(s) {
+	log(`Removed Sabotage from S${s}.`)
 	set_delete(game.sabotage, s)
 }
 
 // === SHIPMENT QUERIES AND COMMANDS ===
 
 function place_shipment(sh, p) {
+	log(`Placed Shipment with ${piece_name(p)} in S${piece_space(p)}.`)
 	game.shipments[sh] = p << 2
 }
 
@@ -4803,22 +4839,10 @@ function goto_resources_phase() {
 	game.prop.step = 3
 	log_h2("Resources Phase")
 
-	let govt_earnings = calc_govt_earnings()
-	let farc_earnings = calc_farc_earnings()
-	let auc_earnings = calc_auc_earnings()
-	let cartels_earnings = calc_cartels_earnings()
-
-	log("Government +" + govt_earnings + " Resources")
-	add_resources(GOVT, govt_earnings)
-
-	log("FARC +" + farc_earnings + " Resources")
-	add_resources(FARC, farc_earnings)
-
-	log("AUC +" + auc_earnings + " Resources")
-	add_resources(AUC, auc_earnings)
-
-	log("Cartels +" + cartels_earnings + " Resources")
-	add_resources(CARTELS, cartels_earnings)
+	add_resources(GOVT, calc_govt_earnings())
+	add_resources(FARC, calc_farc_earnings())
+	add_resources(AUC, calc_auc_earnings())
+	add_resources(CARTELS, calc_cartels_earnings())
 
 	goto_drug_profits()
 }
@@ -5677,7 +5701,7 @@ states.vm_remove_permanently = {
 	prompt() {
 		let faction = vm_operand(1)
 		let type = vm_operand(2)
-		event_prompt(`Remove ${piece_name[faction][type]} permanently.`)
+		event_prompt(`Remove ${piece_faction_type_name[faction][type]} permanently.`)
 		gen_place_piece(OUT_OF_PLAY, faction, type)
 	},
 	piece(p) {
@@ -5953,7 +5977,7 @@ states.vm_place = {
 			for (let t of type)
 				skip |= gen_place_piece(game.vm.s, faction, t)
 		} else {
-			event_prompt(`Place ${piece_name[faction][type]} in ${where}.`)
+			event_prompt(`Place ${piece_faction_type_name[faction][type]} in ${where}.`)
 			skip |= gen_place_piece(game.vm.s, faction, type)
 		}
 		if (skip)
