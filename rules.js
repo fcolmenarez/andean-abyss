@@ -1052,11 +1052,13 @@ function is_active(p) {
 
 function move_piece(p, s) {
 	set_piece_space(p, s)
+	update_control()
 }
 
 function place_piece(p, s) {
 	set_underground(p)
 	set_piece_space(p, s)
+	update_control()
 }
 
 function remove_piece(p) {
@@ -1065,6 +1067,7 @@ function remove_piece(p) {
 		set_underground(p)
 	}
 	set_piece_space(p, AVAILABLE)
+	update_control()
 }
 
 function place_terror(s) {
@@ -1361,7 +1364,6 @@ states.remove_pieces = {
 	},
 	piece(p) {
 		remove_piece(p)
-		update_control()
 	},
 	done() {
 		game.state = game.transfer
@@ -1801,8 +1803,8 @@ states.drug_bust = {
 				gen_action_shipment(sh)
 	},
 	shipment(sh) {
-		add_resources(GOVT, 6)
 		remove_shipment(sh)
+		add_resources(GOVT, 6)
 		resume_drug_bust()
 	},
 	resources(_) {
@@ -2170,7 +2172,6 @@ states.train_place = {
 	},
 	piece(p) {
 		place_piece(p, game.op.where)
-		update_control()
 		if (--game.op.count == 0)
 			this.next()
 	},
@@ -2248,7 +2249,6 @@ states.train_base = {
 		else
 			place_piece(p, game.op.where)
 		--game.op.count
-		update_control()
 	},
 	end_train: end_operation,
 }
@@ -2381,7 +2381,6 @@ states.patrol_limop_move = {
 	},
 	piece(p) {
 		move_piece(p, game.op.where)
-		update_control()
 	},
 	next: goto_patrol_activate,
 }
@@ -2449,7 +2448,6 @@ states.patrol = {
 	space(s) {
 		move_piece(game.op.who, s)
 		game.op.who = -1
-		update_control()
 	},
 	next: goto_patrol_activate,
 }
@@ -2588,7 +2586,6 @@ states.patrol_assault_space = {
 	piece(p) {
 		game.op.targeted |= target_faction(p)
 		remove_piece(p)
-		update_control()
 
 		if (--game.op.count === 0 || !has_assault_target(game.op.where)) {
 			end_patrol_assault_space()
@@ -2750,7 +2747,6 @@ states.sweep_move = {
 	},
 	piece(p) {
 		place_piece(p, game.op.where)
-		update_control()
 
 		// NDSC
 		if (is_police(p))
@@ -3036,7 +3032,6 @@ states.assault_space = {
 	piece(p) {
 		game.op.targeted |= target_faction(p)
 		remove_piece(p)
-		update_control()
 
 		if (--game.op.count === 0 || !has_assault_target(game.op.where, game.op.faction))
 			this.next()
@@ -3167,7 +3162,6 @@ states.rally_space = {
 		place_piece(p, game.op.where)
 		if (--game.op.count === 0 && !game.op.elite_backing)
 			resume_rally()
-		update_control()
 	},
 	base() {
 		push_undo()
@@ -3215,7 +3209,6 @@ states.rally_base = {
 			resume_rally()
 			transfer_or_remove_shipments()
 		}
-		update_control()
 	},
 }
 
@@ -3236,7 +3229,6 @@ states.rally_move = {
 	piece(p) {
 		move_piece(p, game.op.where)
 		game.op.count++
-		update_control()
 	},
 	flip() {
 		push_undo()
@@ -3391,8 +3383,6 @@ states.march_move = {
 		set_add(game.op.pieces, p)
 
 		move_piece(p, game.op.where)
-
-		update_control()
 	},
 	next() {
 		push_undo()
@@ -3512,7 +3502,6 @@ states.attack_place = {
 	},
 	piece(p) {
 		place_piece(p, game.op.where)
-		update_control()
 		game.state = "attack_remove"
 		game.op.count = 2
 	}
@@ -3540,7 +3529,6 @@ states.attack_remove = {
 	piece(p) {
 		game.op.targeted |= target_faction(p)
 		remove_piece(p)
-		update_control()
 
 		if (--game.op.count === 0 || !has_enemy_piece(game.op.where)) {
 			do_attack_next()
@@ -3825,7 +3813,6 @@ states.air_lift_move = {
 	piece(p) {
 		push_undo()
 		move_piece(p, game.sa.to)
-		update_control()
 		if (--game.sa.count === 0 || count_cubes(game.sa.from) === 0)
 			end_special_activity()
 	},
@@ -3865,7 +3852,6 @@ states.air_strike = {
 		let s = piece_space(p)
 		log(`Air Strike in S${s}.`)
 		remove_piece(p)
-		update_control()
 		end_special_activity()
 	}
 }
@@ -3928,7 +3914,6 @@ states.eradicate_base = {
 	},
 	piece(p) {
 		remove_piece(p)
-		update_control()
 		if (!has_piece(game.sa.where, CARTELS, BASE))
 			goto_eradicate_shift()
 	}
@@ -3979,7 +3964,6 @@ states.eradicate_shift = {
 	},
 	piece(p) {
 		place_piece(p, game.sa.where)
-		update_control()
 		end_special_activity()
 	},
 	end_special_activity() {
@@ -4225,7 +4209,6 @@ states.kidnap_place = {
 	},
 	piece(p) {
 		place_piece(p, game.sa.where)
-		update_control()
 		game.current = FARC
 		resume_kidnap_1()
 	}
@@ -4317,7 +4300,6 @@ states.assassinate_space = {
 	},
 	piece(p) {
 		remove_piece(p)
-		update_control()
 
 		if (game.sa.spaces.length === 3)
 			end_special_activity()
@@ -4368,7 +4350,6 @@ states.cultivate_place = {
 	},
 	piece(p) {
 		place_piece(p, game.sa.where)
-		update_control()
 		end_special_activity()
 	},
 }
@@ -4384,7 +4365,6 @@ states.cultivate_move = {
 	},
 	piece(p) {
 		move_piece(p, game.sa.where)
-		update_control()
 		end_special_activity()
 	},
 }
@@ -4477,7 +4457,6 @@ states.process = {
 			push_undo()
 			add_resources(CARTELS, 3)
 			remove_piece(p)
-			update_control()
 			game.sa.count = -1
 		} else {
 			log("Placed Shipment.")
@@ -4593,7 +4572,6 @@ states.bribe_space = {
 	},
 	piece(p) {
 		remove_piece(p)
-		update_control()
 		if (game.sa.targeted || is_any_base(p)) {
 			resume_bribe()
 			transfer_or_remove_shipments()
@@ -5240,7 +5218,6 @@ states.farc_zone_redeploy = {
 	piece(p) {
 		if (is_govt_base(p)) {
 			remove_piece(p)
-			update_control()
 		} else {
 			if (game.redeploy === p)
 				game.redeploy = -1
@@ -5253,7 +5230,6 @@ states.farc_zone_redeploy = {
 		game.redeploy = -1
 		push_undo()
 		place_piece(p, s)
-		update_control()
 		if (!has_govt_in_farc_zone())
 			end_farc_zone_place()
 	},
@@ -5490,13 +5466,11 @@ function vm_remove_sabotage() {
 
 function vm_move() {
 	move_piece(game.vm.p, game.vm.s)
-	update_control()
 	vm_next()
 }
 
 function vm_remove() {
 	remove_piece(game.vm.p)
-	update_control()
 	transfer_or_remove_shipments()
 	vm_next()
 }
@@ -5708,7 +5682,6 @@ states.vm_remove_permanently = {
 	},
 	piece(p) {
 		place_piece(p, OUT_OF_PLAY)
-		update_control()
 		vm_next()
 		transfer_or_remove_shipments()
 	},
@@ -5990,7 +5963,6 @@ states.vm_place = {
 		if (CODE[game.vm.pc][1])
 			push_undo()
 		place_piece(p, game.vm.s)
-		update_control()
 		vm_next()
 	},
 	skip() {
@@ -6079,7 +6051,6 @@ states.vm_place_or_remove_insurgent_base = {
 			place_piece(p, game.vm.s)
 		else
 			remove_piece(p)
-		update_control()
 		vm_next()
 		transfer_or_remove_shipments()
 	},
