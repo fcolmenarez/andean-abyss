@@ -2,9 +2,6 @@
 
 // TODO: game.memory instead of president/aid/cylinder/resources/samper/pieces/
 
-// TODO: op prompt - show if "Limited" and/or "Free"
-// TODO: sweep can only move cubes once
-
 // TODO: rules material - reference 6.3.3 Drug Profits to 5.2.2 should be 4.5.3
 
 // TODO: Automatic "All done" message. (limited / no more resources / no more available options).
@@ -255,8 +252,8 @@ exports.setup = function (seed, scenario, options) {
 		sabotage: [],
 
 		// Dynamically added when needed:
+		// prop: 0,
 		// transfer: null,
-		// propaganda: 0,
 		// redeploy: -1,
 	}
 
@@ -287,6 +284,7 @@ exports.setup = function (seed, scenario, options) {
 			setup_deck(4, 0, 15)
 	}
 
+	game.deck[0] = PROPAGANDA
 	log("DECK " + game.deck.join(", "))
 
 	update_control()
@@ -3264,7 +3262,8 @@ function goto_march() {
 
 function vm_free_march() {
 	init_free_operation("march")
-game.op.spaces = []
+	game.op.limited = 0
+	game.op.spaces = []
 	game.op.pieces = []
 	// remember destinations
 	game.vm.m = []
@@ -4657,7 +4656,11 @@ states.bribe_flip = {
 // === PROPAGANDA ===
 
 function goto_propaganda_card() {
-	game.propaganda = 1
+	game.prop = {
+		step: 1,
+		redeploy: 0,
+		pieces: 0,
+	}
 	goto_victory_phase()
 }
 
@@ -4767,7 +4770,7 @@ function goto_final_victory() {
 // PROPAGANDA: SABOTAGE
 
 function goto_sabotage_phase() {
-	game.propaganda = 2
+	game.prop.step = 2
 	game.current = GOVT
 	if (can_sabotage_phase())
 		game.state = "sabotage"
@@ -4839,7 +4842,7 @@ function calc_cartels_earnings() {
 }
 
 function goto_resources_phase() {
-	game.propaganda = 3
+	game.prop.step = 3
 	log_h2("Resources Phase")
 	game.current = GOVT
 	game.state = "govt_earnings"
@@ -4981,7 +4984,7 @@ function can_agitate(s) {
 }
 
 function goto_support_phase() {
-	game.propaganda = 4
+	game.prop.step = 4
 	log_h2("Support Phase")
 	log_h3("Civic Action")
 	game.current = GOVT
@@ -5110,8 +5113,9 @@ states.elite_backing = {
 // PROPAGANDA: REDEPLOY PHASE
 
 function goto_redeploy_phase() {
-	game.propaganda = 5
-	game.redeploy = -1
+	game.prop.step = 5
+	game.prop.who = -1
+	game.prop.pieces = []
 	log_h2("Redeploy Phase")
 	game.current = GOVT
 	game.state = "redeploy"
@@ -5123,31 +5127,33 @@ states.redeploy = {
 
 		let done = true
 
-		if (game.redeploy < 0) {
+		if (game.prop.who < 0) {
 			for_each_piece(GOVT, TROOPS, (p,s) => {
-				if (is_loc(s)) {
-					done = false
-					gen_action_piece(p)
-				}
-				if (is_dept(s) && !has_govt_base(s)) {
-					done = false
-					gen_action_piece(p)
+				if (!set_has(game.prop.pieces, p)) {
+					if (is_loc(s)) {
+						done = false
+						gen_action_piece(p)
+					}
+					if (is_dept(s) && !has_govt_base(s)) {
+						done = false
+						gen_action_piece(p)
+					}
 				}
 			})
 			if (done) {
 				for_each_piece(GOVT, TROOPS, (p,s) => {
-					if (s !== AVAILABLE)
+					if (s !== AVAILABLE && !set_has(game.prop.pieces, p))
 						gen_action_piece(p)
 				})
 				for_each_piece(GOVT, POLICE, (p,s) => {
-					if (s !== AVAILABLE)
+					if (s !== AVAILABLE && !set_has(game.prop.pieces, p))
 						gen_action_piece(p)
 				})
 			}
 		}
 
 		else {
-			let p = game.redeploy
+			let p = game.prop.who
 			view.who = p
 			done = false
 			if (is_troops(p)) {
@@ -5168,20 +5174,21 @@ states.redeploy = {
 			view.actions.next = 0
 	},
 	piece(p) {
-		if (game.redeploy === p)
-			game.redeploy = -1
+		if (game.prop.who === p)
+			game.prop.who = -1
 		else
-			game.redeploy = p
+			game.prop.who = p
 	},
 	space(s) {
-		let p = game.redeploy
-		game.redeploy = -1
+		let p = game.prop.who
+		game.prop.who = -1
 		push_undo()
-		place_piece(p, s)
+		set_piece_space(p, s)
+		set_add(game.prop.pieces, p)
 		// NOTE: do not update control yet!
 	},
 	next() {
-		delete game.redeploy
+		// NOTE: finally update control!
 		update_control()
 		goto_reset_phase()
 	},
@@ -5190,7 +5197,7 @@ states.redeploy = {
 // PROPAGANDA: RESET PHASE
 
 function goto_reset_phase() {
-	game.propaganda = 6
+	game.prop.step = 6
 	game.state = "reset"
 
 	log_h2("Reset Phase")
@@ -5210,7 +5217,7 @@ function goto_reset_phase() {
 	for_each_piece(AUC, GUERRILLA, set_underground)
 	for_each_piece(CARTELS, GUERRILLA, set_underground)
 
-	delete game.propaganda
+	delete game.prop
 
 	if (is_final_propaganda_card()) {
 		goto_final_victory()
@@ -6464,8 +6471,8 @@ exports.view = function (state, role) {
 		sabotage: game.sabotage,
 	}
 
-	if (game.propaganda)
-		view.propaganda = game.propaganda
+	if (game.prop)
+		view.propaganda = game.prop.step
 
 	if (game.state === "game_over") {
 		view.prompt = game.victory
@@ -6481,7 +6488,7 @@ exports.view = function (state, role) {
 			view.prompt = "Unknown state: " + game.state
 
 		if (states[game.state])
-		if (!states[game.state].disable_negotiation && !game.propaganda) {
+		if (!states[game.state].disable_negotiation && !game.prop) {
 			view.actions.remove_pieces = 1
 			view.actions.ask_resources = 1
 			if (game.resources[game.current] > 0)
