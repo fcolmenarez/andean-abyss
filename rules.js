@@ -4831,56 +4831,25 @@ function calc_cartels_earnings() {
 function goto_resources_phase() {
 	game.prop.step = 3
 	log_h2("Resources Phase")
-	game.current = GOVT
-	game.state = "govt_earnings"
-}
 
-states.govt_earnings = {
-	prompt() {
-		view.prompt = `Earnings: Government +${calc_govt_earnings()} Resources.`
-		gen_action_resources(GOVT)
-	},
-	resources(f) {
-		log("Government +" + calc_govt_earnings() + " Resources")
-		add_resources(GOVT, calc_govt_earnings())
-		game.state = "farc_earnings"
-	},
-}
+	let govt_earnings = calc_govt_earnings()
+	let farc_earnings = calc_farc_earnings()
+	let auc_earnings = calc_auc_earnings()
+	let cartels_earnings = calc_cartels_earnings()
 
-states.farc_earnings = {
-	prompt() {
-		view.prompt = `Earnings: FARC +${calc_farc_earnings()} Resources.`
-		gen_action_resources(FARC)
-	},
-	resources(_) {
-		log("FARC +" + calc_farc_earnings() + " Resources")
-		add_resources(FARC, calc_farc_earnings())
-		game.state = "auc_earnings"
-	},
-}
+	log("Government +" + govt_earnings + " Resources")
+	add_resources(GOVT, govt_earnings)
 
-states.auc_earnings = {
-	prompt() {
-		view.prompt = `Earnings: AUC +${calc_auc_earnings()} Resources.`
-		gen_action_resources(AUC)
-	},
-	resources(_) {
-		log("AUC +" + calc_auc_earnings() + " Resources")
-		add_resources(AUC, calc_auc_earnings())
-		game.state = "cartels_earnings"
-	},
-}
+	log("FARC +" + farc_earnings + " Resources")
+	add_resources(FARC, farc_earnings)
 
-states.cartels_earnings = {
-	prompt() {
-		view.prompt = `Earnings: Cartels +${calc_cartels_earnings()} Resources.`
-		gen_action_resources(CARTELS)
-	},
-	resources(_) {
-		log("Cartels +" + calc_cartels_earnings() + " Resources")
-		add_resources(CARTELS, calc_cartels_earnings())
-		goto_drug_profits()
-	},
+	log("AUC +" + auc_earnings + " Resources")
+	add_resources(AUC, auc_earnings)
+
+	log("Cartels +" + cartels_earnings + " Resources")
+	add_resources(CARTELS, cartels_earnings)
+
+	goto_drug_profits()
 }
 
 function goto_drug_profits() {
