@@ -4772,10 +4772,17 @@ function goto_final_victory() {
 function goto_sabotage_phase() {
 	game.prop.step = 2
 	game.current = GOVT
-	if (can_sabotage_phase())
-		game.state = "sabotage"
-	else
-		goto_resources_phase()
+
+	log_h2("Sabotage Phase")
+
+	for (let s = first_loc; s <= last_loc; ++s) {
+		if (can_sabotage_phase_space(s)) {
+			log("Sabotaged S" + s + ".")
+			place_sabotage(s)
+		}
+	}
+
+	goto_resources_phase()
 }
 
 function is_adjacent_to_city_farc_control(s) {
@@ -4794,26 +4801,6 @@ function can_sabotage_phase_space(s) {
 		return count_guerrillas(s) > count_cubes(s)
 	}
 	return false
-}
-
-function can_sabotage_phase() {
-	for (let s = first_loc; s <= last_loc; ++s)
-		if (can_sabotage_phase_space(s))
-			return true
-}
-
-states.sabotage = {
-	prompt() {
-		view.prompt = "Sabotage LoCs."
-		for (let s = first_loc; s <= last_loc; ++s)
-			if (can_sabotage_phase_space(s))
-				gen_action_space(s)
-	},
-	space(s) {
-		place_sabotage(s)
-		if (!can_sabotage_phase())
-			goto_resources_phase()
-	},
 }
 
 // PROPAGANDA: RESOURCES PHASE
