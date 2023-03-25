@@ -1901,7 +1901,7 @@ function move_cylinder_to_event() {
 }
 
 function goto_card() {
-	log_h1("C73")
+	log_h1("C" + this_card())
 	if (this_card() === PROPAGANDA)
 		goto_propaganda_card()
 	else
@@ -1986,15 +1986,14 @@ states.eligible = {
 	march: goto_march,
 	attack: goto_attack,
 	terror: goto_terror,
-	event() { execute_event(0) },
-	unshaded() { execute_event(0) },
-	shaded() { execute_event(1) },
+	event() { goto_event(0) },
+	shaded() { goto_event(1) },
 	pass: goto_pass,
 }
 
 function end_operation() {
-	if (game.op.ship && is_any_shipment_held())
-		push_undo()
+	push_undo()
+	if (game.op.ship && is_any_shipment_held()) {
 		game.state = "ship"
 	} else {
 		game.op = null
@@ -2052,7 +2051,7 @@ function gen_any_event() {
 	if (set_has(single_events, this_card())) {
 		view.actions.event = 1
 	} else {
-		view.actions.unshaded = 1
+		view.actions.event = 1
 		view.actions.shaded = 1
 	}
 }
@@ -2075,16 +2074,23 @@ function select_op_space(s, cost) {
 		game.resources[game.current] -= cost
 }
 
-function init_free_operation(state) {
+function init_operation(state, name) {
+	if (game.op.limited)
+		log_h2(faction_name[game.current] + " - Limited " + name)
+	else
+		log_h2(faction_name[game.current] + " - " + name)
+	game.state = state
+	game.op.spaces = []
+	game.op.pieces = []
+}
+
+function init_free_operation(state, name) {
+	log_h3("Free " + name)
 	game.state = state
 	game.op = {
-		free,
-		limited,
-		ship,
-		spaces: [],
-		targeted: 0,
-		pieces: 0,
-		count: 0,
+		limited: 1,
+		free: 1,
+		ship: 0,
 	}
 }
 
@@ -2103,6 +2109,7 @@ function vm_free_train() {
 }
 
 function goto_train() {
+	init_operation("train", "Train")
 	push_undo()
 	move_cylinder_to_operation()
 	log_h3("Train")
@@ -5303,49 +5310,26 @@ function end_farc_zone_place() {
 
 // === EVENTS ===
 
-function goto_event() {
-	log_h2(faction_name[game.current] + " - Event")
-	if (set_has(single_events, this_card()))
-		execute_event(0)
-	else
-		game.state = "event_effect"
-}
-
-function end_event() {
-	game.vm = null
-	resume_event_card()
-}
-
-states.event_effect = {
-	prompt() {
-		let c = this_card()
-		view.prompt = `${data.card_title[c]}: Choose effect.`
-		view.actions.unshaded = 1
-		view.actions.shaded = 1
-	},
-	unshaded() {
-		execute_event(0)
-	},
-	shaded() {
-		execute_event(1)
-	},
-}
-
-function execute_event(shaded) {
+function goto_event(shaded) {
 	push_undo()
 	move_cylinder_to_event()
 	let c = this_card()
 
 	if (shaded) {
-		log(`C${c} - Shaded`)
-		logi(data.card_flavor_shaded[c] + ".")
+		log_h2(faction_name[game.current] + " - Shaded Event")
+		log(".i " + data.card_flavor_shaded[c] + ".")
 		goto_vm(SCODE[c])
 	} else {
-		log(`C${c}`)
+		log_h2(faction_name[game.current] + " - Event")
 		if (data.card_flavor[c])
-			logi(data.card_flavor[c] + ".")
+			log(".i " + data.card_flavor[c] + ".")
 		goto_vm(UCODE[c])
 	}
+}
+
+function end_event() {
+	game.vm = null
+	resume_event_card()
 }
 
 // EVENT VM
@@ -7022,7 +7006,7 @@ const CODE = [
 // EVENT 20
 	[ vm_current, GOVT ],
 	[ vm_piece, 1, 1, 6, (p,s)=>is_farc_guerrilla(p) ],
-	[ vm_space, 0, 0, 1, (s)=>is_adjacent(s, game.pieces[game.vm.p]) ],
+	[ vm_space, 0, 0, 1, (s)=>is_adjacent(s, piece_space(game.vm.p)) ],
 	[ vm_move ],
 	[ vm_endspace ],
 	[ vm_endpiece ],
@@ -7498,7 +7482,7 @@ const CODE = [
 	[ vm_endspace ],
 	[ vm_prompt, "Move Guerrillas between Departments." ],
 	[ vm_piece, 0, 0, 2, (p,s)=>is_any_guerrilla(p) && (s === game.vm.m[0] || s === game.vm.m[1]) ],
-	[ vm_if, ()=>game.pieces[game.vm.p] === game.vm.m[0] ],
+	[ vm_if, ()=>piece_space(game.vm.p) === game.vm.m[0] ],
 	[ vm_set_space, ()=>(game.vm.m[1]) ],
 	[ vm_else ],
 	[ vm_set_space, ()=>(game.vm.m[0]) ],

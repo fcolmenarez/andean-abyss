@@ -17,11 +17,12 @@ main { background-color: #777; }
 #log .h2.auc { background-color: #eaddc4 }
 #log .h2.cartels { background-color: #c2d7c7 }
 #log .h3 { text-decoration: underline; }
+#log .i { font-style: italic; }
 #log .tip { cursor: pointer; }
 #log .tip:hover { text-decoration: underline; }
 
 #log div { padding-left: 20px; text-indent: -12px; }
-#log div.i { padding-left: 32px; text-indent: -12px; font-style: italic; }
+#log div.ind { padding-left: 32px; text-indent: -12px; }
 
 .action { cursor: pointer }
 

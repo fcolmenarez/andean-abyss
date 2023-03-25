@@ -109,6 +109,7 @@ let ui = {
 	card_tip: document.getElementById("card_tip"),
 	next_card: document.getElementById("next_card"),
 	this_card: document.getElementById("this_card"),
+	shaded_event: document.getElementById("shaded_event"),
 	deck_size: document.getElementById("deck_size"),
 	tokens: {
 		aid: document.getElementById("token_aid"),
@@ -288,6 +289,8 @@ function get_layout_radius(s) {
 }
 
 function init_ui() {
+	register_action(ui.this_card, "event", undefined)
+	register_action(ui.shaded_event, "shaded", undefined)
 	register_action(ui.tokens.aid, "aid", undefined)
 	register_action(ui.resources[GOVT], "resources", GOVT)
 	register_action(ui.resources[FARC], "resources", FARC)
@@ -826,9 +829,15 @@ function on_update() {
 		ui.tokens.propaganda.style.left = "1029px"
 	}
 
-	ui.this_card.className = "card card_" + view.deck[0]
+	if (set_has([1,2,3,7,9,10,11,13], view.deck[0]))
+		ui.this_card.className = "card card_" + view.deck[0] + " n" + data.card_lines[view.deck[0]] + "c"
+	else
+		ui.this_card.className = "card card_" + view.deck[0] + " n" + data.card_lines[view.deck[0]]
 	ui.next_card.className = "card card_" + view.deck[1]
 	ui.deck_size.textContent = view.deck[2]
+
+	ui.this_card.classList.toggle("action", !!(view.actions && view.actions.event === 1))
+	ui.shaded_event.classList.toggle("action", !!(view.actions && view.actions.shaded === 1))
 
 	layout_sop()
 	layout_score()
@@ -1086,7 +1095,7 @@ function on_log(text) {
 
 	if (text.match(/^>/)) {
                 text = text.substring(1)
-                p.className = "i"
+                p.className = "ind"
         }
 
 	text = text.replace(/&/g, "&amp;")
@@ -1127,6 +1136,10 @@ function on_log(text) {
 	else if (text.match(/^\.h4/)) {
 		text = text.substring(4)
 		p.className = "h4"
+	}
+	else if (text.match(/^\.i/)) {
+		text = text.substring(3)
+		p.className = "i"
 	}
 
 	p.innerHTML = text
