@@ -74,6 +74,7 @@ const senado_class_list = [
 let ui = {
 	favicon: document.getElementById("favicon"),
 	header: document.querySelector("header"),
+	status: document.getElementById("status"),
 	player: [
 		document.getElementById("role_Government"),
 		document.getElementById("role_FARC"),
@@ -288,6 +289,34 @@ function get_layout_radius(s) {
 	}
 }
 
+function on_focus_next_event() {
+	let c = view.deck[1]
+	if (c > 0)
+		ui.status.textContent = data.card_title[c]
+}
+
+function on_focus_event() {
+	let c = view.deck[0]
+	if (c > 0) {
+		let f = data.card_flavor[c]
+		if (f)
+			ui.status.textContent = data.card_title[c] + " - " + f
+		else
+			ui.status.textContent = data.card_title[c]
+	}
+}
+
+function on_focus_shaded_event() {
+	let c = view.deck[0]
+	if (c > 0) {
+		ui.status.textContent = data.card_title[c] + " - " + data.card_flavor_shaded[c]
+	}
+}
+
+function on_blur_event() {
+	ui.status.textContent = ""
+}
+
 function init_ui() {
 	register_action(ui.this_card, "event", undefined)
 	register_action(ui.shaded_event, "shaded", undefined)
@@ -296,6 +325,13 @@ function init_ui() {
 	register_action(ui.resources[FARC], "resources", FARC)
 	register_action(ui.resources[AUC], "resources", AUC)
 	register_action(ui.resources[CARTELS], "resources", CARTELS)
+
+	ui.this_card.onmouseenter = on_focus_event
+	ui.this_card.onmouseleave = on_blur_event
+	ui.shaded_event.onmouseenter = on_focus_shaded_event
+	ui.shaded_event.onmouseleave = on_focus_event
+	ui.next_card.onmouseenter = on_focus_next_event
+	ui.next_card.onmouseleave = on_blur_event
 
 	for (let c of momentum_events)
 		register_card_tip(ui.momentum[c], c)
@@ -1022,9 +1058,8 @@ function on_update() {
 	action_button("opposition", "Opposition")
 
 	action_button("limop", "LimOp")
-	action_button("event", "Event")
-	action_button("unshaded", "Unshaded")
-	action_button("shaded", "Shaded")
+	// action_button("event", "Event")
+	// action_button("shaded", "Shaded")
 
 	action_button("skip", "Skip")
 	action_button("next", "Next")

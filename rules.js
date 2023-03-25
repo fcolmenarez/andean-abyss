@@ -284,7 +284,6 @@ exports.setup = function (seed, scenario, options) {
 			setup_deck(4, 0, 15)
 	}
 
-	game.deck[0] = PROPAGANDA
 	log("DECK " + game.deck.join(", "))
 
 	update_control()
@@ -2006,6 +2005,7 @@ function goto_eligible(limited) {
 
 states.eligible = {
 	disable_negotiation: true,
+	inactive: "Eligible Faction",
 	prompt() {
 		if (did_option(SOP_1ST_OP_ONLY)) {
 			view.prompt = `${data.card_title[this_card()]}: Limited Operation.`

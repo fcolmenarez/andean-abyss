@@ -60,6 +60,28 @@ main { background-color: #777; }
 #cities { position: absolute; }
 #boxes { position: absolute; }
 
+#capabilities .token {
+	position: static;
+	pointer-events: auto;
+}
+
+#capabilities {
+	display: flex;
+	justify-content: center;
+	align-content: center;
+	flex-wrap: wrap;
+	gap: 4px;
+}
+
+#insurgent_momentum {
+	pointer-events: none;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 17px;
+}
+
+/* SPACES */
+
 path { fill: transparent; stroke-width: 4; }
 path.action { fill: white; fill-opacity: 0.3; stroke: white; }
 path.action.foreign { fill: gold; stroke: lemonchiffon; }
@@ -78,28 +100,7 @@ path.tip { stroke: yellow; }
 .box.selected{border-color:yellow;}
 .box.tip { border-color: yellow; }
 
-#capabilities .token {
-	position: static;
-	pointer-events: auto;
-}
-#capabilities {
-	display: flex;
-	justify-content: center;
-	align-content: center;
-	flex-wrap: wrap;
-	gap: 4px;
-}
-#insurgent_momentum {
-	pointer-events: none;
-	display: flex;
-	flex-wrap: wrap;
-	gap: 17px;
-}
-.card.momentum {
-	width: 186px;
-	height: 261px;
-	border-radius: 12px;
-}
+/* PIECES */
 
 .piece {
 	position: absolute;
@@ -130,6 +131,30 @@ path.tip { stroke: yellow; }
 		drop-shadow(2px 0 0 yellow)
 		;
 }
+
+.cylinder { width: 44px; height: 48px; }
+.base { width: 44px; height: 38px; }
+.guerrilla { width: 29px; height: 36px; }
+.police, .troops { width: 29px; height: 36px; }
+
+.govt.cylinder { background-image: url(images/govt_cylinder.svg) }
+.govt.police { background-image: url(images/govt_police.svg) }
+.govt.troops { background-image: url(images/govt_troops.svg) }
+.govt.base { background-image: url(images/govt_base.svg) }
+.auc.cylinder { background-image: url(images/auc_cylinder.svg) }
+.auc.guerrilla { background-image: url(images/auc_guerrilla.svg) }
+.auc.guerrilla.active { background-image: url(images/auc_guerrilla_active.svg) }
+.auc.base { background-image: url(images/auc_base.svg) }
+.cartels.cylinder { background-image: url(images/cartels_cylinder.svg) }
+.cartels.guerrilla { background-image: url(images/cartels_guerrilla.svg) }
+.cartels.guerrilla.active { background-image: url(images/cartels_guerrilla_active.svg) }
+.cartels.base { background-image: url(images/cartels_base.svg) }
+.farc.cylinder { background-image: url(images/farc_cylinder.svg) }
+.farc.guerrilla { background-image: url(images/farc_guerrilla.svg) }
+.farc.guerrilla.active { background-image: url(images/farc_guerrilla_active.svg) }
+.farc.base { background-image: url(images/farc_base.svg) }
+
+/* TOKENS */
 
 .token {
 	pointer-events: none;
@@ -284,41 +309,38 @@ path.tip { stroke: yellow; }
 .token.reminder.sucumbios { background-image: url(tokens.2x/reminder_sucumbios.png) }
 }
 
-.cylinder { width: 44px; height: 48px; }
-.base { width: 44px; height: 38px; }
-.guerrilla { width: 29px; height: 36px; }
-.police, .troops { width: 29px; height: 36px; }
-
-.govt.cylinder { background-image: url(images/govt_cylinder.svg) }
-.govt.police { background-image: url(images/govt_police.svg) }
-.govt.troops { background-image: url(images/govt_troops.svg) }
-.govt.base { background-image: url(images/govt_base.svg) }
-.auc.cylinder { background-image: url(images/auc_cylinder.svg) }
-.auc.guerrilla { background-image: url(images/auc_guerrilla.svg) }
-.auc.guerrilla.active { background-image: url(images/auc_guerrilla_active.svg) }
-.auc.base { background-image: url(images/auc_base.svg) }
-.cartels.cylinder { background-image: url(images/cartels_cylinder.svg) }
-.cartels.guerrilla { background-image: url(images/cartels_guerrilla.svg) }
-.cartels.guerrilla.active { background-image: url(images/cartels_guerrilla_active.svg) }
-.cartels.base { background-image: url(images/cartels_base.svg) }
-.farc.cylinder { background-image: url(images/farc_cylinder.svg) }
-.farc.guerrilla { background-image: url(images/farc_guerrilla.svg) }
-.farc.guerrilla.active { background-image: url(images/farc_guerrilla_active.svg) }
-.farc.base { background-image: url(images/farc_base.svg) }
+/* CARDS */
 
 #card_panel {
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: center;
-	gap: 18px;
-	padding: 0 18px;
+	gap: 24px;
 	max-width: 1614px;
 	margin: 36px auto;
 }
 
-#deck_outer {
-	position: relative;
+.card {
+	width: 248px;
+	height: 348px;
+	border-radius: 16px;
+	background-color: #cde1c9;
+	background-size: cover;
+	background-repeat: no-repeat;
+	box-shadow: 0 0 0 1px #223f21, 1px 1px 4px #0008;
 }
+
+.card.action {
+	box-shadow: 0 0 0 3px white;
+}
+
+.card.momentum {
+	width: 186px;
+	height: 261px;
+	border-radius: 12px;
+}
+
+#deck_outer { position: relative; }
 #deck_size {
 	position: absolute;
 	right: 24px;
@@ -328,16 +350,57 @@ path.tip { stroke: yellow; }
 	color: white;
 }
 
-.card {
-	width: 248px;
-	height: 348px;
-	border-radius: 16px;
-	box-shadow: 1px 1px 4px #0008;
-	background-color: darkgreen;
-	background-size: cover;
-	background-repeat: no-repeat;
-	border: 1px solid #454;
+#this_card { position: relative; }
+#shaded_event {
+	position: absolute;
+	box-sizing: border-box;
 }
+#shaded_event {
+	left: 19px;
+	width: 210px;
+	bottom: 23px;
+	border-radius: 6px;
+}
+#shaded_event.action {
+	border: 3px solid white;
+}
+
+#this_card.n4c #shaded_event { height: 83px; border-top-color: transparent; }
+#this_card.n3c #shaded_event { height: 73px; border-top-color: transparent; }
+#this_card.n4 #shaded_event { height: 82px; }
+#this_card.n3 #shaded_event { height: 67px; }
+#this_card.n2 #shaded_event { height: 56px; }
+#this_card.n0 #shaded_event { display: none; }
+
+/* OPTION: tiny cards on map -
+
+#card_panel {
+	position: absolute;
+	top: 82px;
+	left: 500px;
+	width: 714px;
+	margin: 0;
+}
+
+.card {
+	width: 186px;
+	height: 261px;
+	border-radius: 12px;
+}
+
+#shaded_event {
+	left: 13px;
+	width: 159px;
+	bottom: 16px;
+}
+
+#this_card.n4c #shaded_event { height: 64px; border-top-color: transparent; }
+#this_card.n3c #shaded_event { height: 57px; border-top-color: transparent; }
+#this_card.n4 #shaded_event { height: 64px; }
+#this_card.n3 #shaded_event { height: 51px; }
+#this_card.n2 #shaded_event { height: 44px; }
+
+*/
 
 .card.card_back{background-image:url(cards.1x/card_back.jpg)}
 .card.card_1{background-image:url(cards.1x/card_01.jpg)}
@@ -412,7 +475,7 @@ path.tip { stroke: yellow; }
 .card.card_70{background-image:url(cards.1x/card_70.jpg)}
 .card.card_71{background-image:url(cards.1x/card_71.jpg)}
 .card.card_72{background-image:url(cards.1x/card_72.jpg)}
-.card.card_73, .card.card_74, .card.card_75, .card.card_76 {background-image:url(cards.1x/card_7x.jpg)}
+.card.card_73{background-image:url(cards.1x/card_7x.jpg)}
 
 @media (min-resolution: 97dpi) {
 .card.card_back{background-image:url(cards.2x/card_back.jpg)}
@@ -488,5 +551,5 @@ path.tip { stroke: yellow; }
 .card.card_70{background-image:url(cards.2x/card_70.jpg)}
 .card.card_71{background-image:url(cards.2x/card_71.jpg)}
 .card.card_72{background-image:url(cards.2x/card_72.jpg)}
-.card.card_73, .card.card_74, .card.card_75, .card.card_76 {background-image:url(cards.2x/card_7x.jpg)}
+.card.card_73{background-image:url(cards.2x/card_7x.jpg)}
 }
