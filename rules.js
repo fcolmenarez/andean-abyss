@@ -3597,12 +3597,14 @@ function goto_terror() {
 
 function vm_free_terror() {
 	init_free_operation("Terror")
+	game.op.spaces = []
 	do_terror_space(game.vm.s)
 	do_terror_piece(game.vm.p)
 }
 
 function vm_free_terror_space() {
 	init_free_operation("Terror")
+	game.op.spaces = []
 	do_terror_space(game.vm.s)
 }
 
@@ -6804,7 +6806,7 @@ const CODE = [
 // EVENT 4
 	[ vm_prompt, "Select unsabotaged pipelines." ],
 	[ vm_space, 1, 0, 3, (s)=>is_unsabotaged_pipeline(s) ],
-	[ vm_resources, GOVT, ()=>(2*data.spaces[game.vm.s].econ) ],
+	[ vm_auto_resources, GOVT, ()=>(2*data.spaces[game.vm.s].econ) ],
 	[ vm_endspace ],
 	[ vm_return ],
 // SHADED 4
@@ -6955,7 +6957,7 @@ const CODE = [
 // EVENT 16
 	[ vm_prompt, "Select each Mountain Department." ],
 	[ vm_space, 1, 0, 0, (s)=>is_mountain(s) ],
-	[ vm_resources, ()=>(faction_with_most_pieces(game.vm.s)), 5 ],
+	[ vm_auto_resources, ()=>(faction_with_most_pieces(game.vm.s)), 5 ],
 	[ vm_endspace ],
 	[ vm_return ],
 // SHADED 16
@@ -7289,7 +7291,7 @@ const CODE = [
 // SHADED 41
 	[ vm_prompt, "Select each space with AUC and Cartels pieces." ],
 	[ vm_space, 1, 0, 0, (s)=>has_auc_piece(s) && has_cartels_piece(s) ],
-	[ vm_resources, AUC, 3 ],
+	[ vm_auto_resources, AUC, 3 ],
 	[ vm_endspace ],
 	[ vm_return ],
 // EVENT 42
@@ -7513,7 +7515,7 @@ const CODE = [
 	[ vm_return ],
 // SHADED 56
 	[ vm_piece, 0, 0, 0, (p,s)=>is_cartels_piece(p) && is_city(s) ],
-	[ vm_resources, CARTELS, 2 ],
+	[ vm_auto_resources, CARTELS, 2 ],
 	[ vm_endpiece ],
 	[ vm_space, 1, 0, 2, (s)=>is_city(s) && can_stack_base(s) ],
 	[ vm_auto_place, 0, 0, CARTELS, BASE ],
@@ -7635,11 +7637,11 @@ const CODE = [
 // SHADED 64
 	[ vm_prompt, "Select each Cartels Base in a City." ],
 	[ vm_piece, 0, 0, 0, (p,s)=>is_cartels_base(p) && is_city(s) ],
-	[ vm_resources, CARTELS, 2 ],
+	[ vm_auto_resources, CARTELS, 2 ],
 	[ vm_endpiece ],
 	[ vm_prompt, "Select each Cartels Base in a Dept." ],
 	[ vm_piece, 0, 0, 0, (p,s)=>is_cartels_base(p) && is_dept(s) ],
-	[ vm_resources, CARTELS, 1 ],
+	[ vm_auto_resources, CARTELS, 1 ],
 	[ vm_endpiece ],
 	[ vm_return ],
 // EVENT 65
@@ -7684,7 +7686,7 @@ const CODE = [
 // SHADED 68
 	[ vm_prompt, "Select each Cartels piece in coastal spaces." ],
 	[ vm_piece, 0, 0, 0, (p,s)=>is_cartels_piece(p) && is_coastal_space(s) ],
-	[ vm_resources, CARTELS, 2 ],
+	[ vm_auto_resources, CARTELS, 2 ],
 	[ vm_endpiece ],
 	[ vm_return ],
 // EVENT 69
@@ -7719,8 +7721,8 @@ const CODE = [
 	[ vm_return ],
 // EVENT 70
 	[ vm_prompt, "Select each Forest without Guerrillas." ],
-	[ vm_space, 1, 0, 0, (s)=>is_forest(s) && !has_any_guerrilla(s) ],
-	[ vm_resources, GOVT, 6 ],
+	[ vm_space, 0, 0, 0, (s)=>is_forest(s) && !has_any_guerrilla(s) ],
+	[ vm_auto_resources, GOVT, 6 ],
 	[ vm_endspace ],
 	[ vm_return ],
 // SHADED 70
@@ -7728,7 +7730,7 @@ const CODE = [
 	[ vm_space, 1, 0, 0, (s)=>is_forest(s) && has_piece(s, game.current, GUERRILLA) ],
 	[ vm_piece, 0, 0, 1, (p,s)=>is_piece_in_event_space(p) && is_piece(p, game.current, GUERRILLA) ],
 	[ vm_free_terror ],
-	[ vm_resources, ()=>(game.current), 3 ],
+	[ vm_auto_resources, ()=>(game.current), 3 ],
 	[ vm_endpiece ],
 	[ vm_endspace ],
 	[ vm_terror_aid_cut ],

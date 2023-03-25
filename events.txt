@@ -30,7 +30,7 @@ SHADED 3
 EVENT 4
 	prompt "Select unsabotaged pipelines."
 	space 3 is_unsabotaged_pipeline(s)
-		resources GOVT (2*data.spaces[game.vm.s].econ)
+		auto_resources GOVT (2*data.spaces[game.vm.s].econ)
 	endspace
 
 SHADED 4
@@ -181,7 +181,7 @@ SHADED 15
 EVENT 16
 	prompt "Select each Mountain Department."
 	space 0 is_mountain(s)
-		resources (faction_with_most_pieces(game.vm.s)) 5
+		auto_resources (faction_with_most_pieces(game.vm.s)) 5
 	endspace
 
 SHADED 16
@@ -520,7 +520,7 @@ EVENT 41
 SHADED 41
 	prompt "Select each space with AUC and Cartels pieces."
 	space 0 has_auc_piece(s) && has_cartels_piece(s)
-		resources AUC 3
+		auto_resources AUC 3
 	endspace
 
 EVENT 42
@@ -747,7 +747,7 @@ EVENT 56
 
 SHADED 56
 	piece 0 is_cartels_piece(p) && is_city(s)
-		resources CARTELS 2
+		auto_resources CARTELS 2
 	endpiece
 	space 2 is_city(s) && can_stack_base(s)
 		auto_place CARTELS BASE
@@ -870,11 +870,11 @@ EVENT 64
 SHADED 64
 	prompt "Select each Cartels Base in a City."
 	piece 0 is_cartels_base(p) && is_city(s)
-		resources CARTELS 2
+		auto_resources CARTELS 2
 	endpiece
 	prompt "Select each Cartels Base in a Dept."
 	piece 0 is_cartels_base(p) && is_dept(s)
-		resources CARTELS 1
+		auto_resources CARTELS 1
 	endpiece
 
 EVENT 65
@@ -919,7 +919,7 @@ EVENT 68
 SHADED 68
 	prompt "Select each Cartels piece in coastal spaces."
 	piece 0 is_cartels_piece(p) && is_coastal_space(s)
-		resources CARTELS 2
+		auto_resources CARTELS 2
 	endpiece
 
 EVENT 69
@@ -955,8 +955,8 @@ EVENT 69
 
 EVENT 70
 	prompt "Select each Forest without Guerrillas."
-	space 0 is_forest(s) && !has_any_guerrilla(s)
-		resources GOVT 6
+	space_no_undo 0 is_forest(s) && !has_any_guerrilla(s)
+		auto_resources GOVT 6
 	endspace
 
 SHADED 70
@@ -964,7 +964,7 @@ SHADED 70
 	space 0 is_forest(s) && has_piece(s, game.current, GUERRILLA)
 		piece 1 is_piece_in_event_space(p) && is_piece(p, game.current, GUERRILLA)
 			free_terror
-			resources (game.current) 3
+			auto_resources (game.current) 3
 		endpiece
 	endspace
 	terror_aid_cut
