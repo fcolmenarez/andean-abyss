@@ -6423,7 +6423,15 @@ exports.view = function (state, role) {
 	if (game.state === "game_over") {
 		view.prompt = game.victory
 	} else if (!is_current_role(role)) {
-		let inactive = states[game.state].inactive || game.state
+		let inactive = states[game.state].inactive
+		if (!inactive) {
+			if (game.vm)
+				inactive = "Event"
+			else if (game.op)
+				inactive = game.op.type
+			else
+				inactive = game.state
+		}
 		view.prompt = `Waiting for ${faction_name[game.current]} \u2014 ${inactive}.`
 	} else {
 		view.actions = {}
