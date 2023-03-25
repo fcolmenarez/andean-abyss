@@ -94,6 +94,9 @@ for (let line of fs.readFileSync("events.txt", "utf-8").split("\n")) {
 	case "place_undo":
 		emit([ "place", 1, 0, line[1], line[2] ])
 		break
+	case "auto_place":
+		emit([ "auto_place", 0, 0, line[1], line[2] ])
+		break
 
 	case "log":
 	case "prompt":

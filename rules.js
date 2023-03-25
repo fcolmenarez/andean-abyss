@@ -565,6 +565,16 @@ function count_pieces(s, faction, type) {
 	return n
 }
 
+function count_pieces_on_map(faction, type) {
+	let first = first_piece[faction][type]
+	let last = last_piece[faction][type]
+	let n = 0
+	for (let p = first; p <= last; ++p)
+		if (piece_space(p) >= 0)
+			++n
+	return n
+}
+
 function count_faction_pieces(s, faction) {
 	switch (faction) {
 		case GOVT:
@@ -5909,6 +5919,18 @@ states.vm_shipment = {
 
 // VM: PLACE PIECE
 
+function vm_auto_place() {
+	let faction = vm_operand(3)
+	let type = vm_operand(4)
+	let p = find_piece(AVAILABLE, faction, type)
+	if (p >= 0 && can_stack_piece(game.vm.s, faction, type)) {
+		place_piece(p, game.vm.s)
+		vm_next()
+	} else {
+		vm_place()
+	}
+}
+
 function vm_place() {
 	if (can_vm_place())
 		game.state = "vm_place"
@@ -6794,27 +6816,27 @@ const CODE = [
 // EVENT 5
 	[ vm_prompt, "Place Police onto Pipelines." ],
 	[ vm_space, 1, 0, 1, (s)=>is_pipeline(s) ],
-	[ vm_place, 0, 0, GOVT, POLICE ],
+	[ vm_auto_place, 0, 0, GOVT, POLICE ],
 	[ vm_mark_space ],
 	[ vm_endspace ],
 	[ vm_space, 1, 0, 1, (s)=>is_pipeline(s) ],
-	[ vm_place, 0, 0, GOVT, POLICE ],
+	[ vm_auto_place, 0, 0, GOVT, POLICE ],
 	[ vm_mark_space ],
 	[ vm_endspace ],
 	[ vm_space, 1, 0, 1, (s)=>is_pipeline(s) ],
-	[ vm_place, 0, 0, GOVT, POLICE ],
+	[ vm_auto_place, 0, 0, GOVT, POLICE ],
 	[ vm_mark_space ],
 	[ vm_endspace ],
 	[ vm_space, 1, 0, 1, (s)=>is_pipeline(s) ],
-	[ vm_place, 0, 0, GOVT, POLICE ],
+	[ vm_auto_place, 0, 0, GOVT, POLICE ],
 	[ vm_mark_space ],
 	[ vm_endspace ],
 	[ vm_space, 1, 0, 1, (s)=>is_pipeline(s) ],
-	[ vm_place, 0, 0, GOVT, POLICE ],
+	[ vm_auto_place, 0, 0, GOVT, POLICE ],
 	[ vm_mark_space ],
 	[ vm_endspace ],
 	[ vm_space, 1, 0, 1, (s)=>is_pipeline(s) ],
-	[ vm_place, 0, 0, GOVT, POLICE ],
+	[ vm_auto_place, 0, 0, GOVT, POLICE ],
 	[ vm_mark_space ],
 	[ vm_endspace ],
 	[ vm_prompt, "Flip N Guerrillas there or adjacent to Active." ],
@@ -6905,10 +6927,10 @@ const CODE = [
 // EVENT 14
 	[ vm_current, GOVT ],
 	[ vm_space, 1, 0, 1, (s)=>is_dept(s) && !is_farc_zone(s) ],
-	[ vm_place, 0, 0, GOVT, BASE ],
-	[ vm_place, 0, 0, GOVT, TROOPS ],
-	[ vm_place, 0, 0, GOVT, TROOPS ],
-	[ vm_place, 0, 0, GOVT, TROOPS ],
+	[ vm_auto_place, 0, 0, GOVT, BASE ],
+	[ vm_auto_place, 0, 0, GOVT, TROOPS ],
+	[ vm_auto_place, 0, 0, GOVT, TROOPS ],
+	[ vm_auto_place, 0, 0, GOVT, TROOPS ],
 	[ vm_endspace ],
 	[ vm_return ],
 // SHADED 14
@@ -6991,7 +7013,7 @@ const CODE = [
 // SHADED 21
 	[ vm_resources, FARC, 6 ],
 	[ vm_space, 1, 0, 1, (s)=>(is_city(s) || is_dept(s)) && can_stack_base(s) ],
-	[ vm_place, 0, 0, FARC, BASE ],
+	[ vm_auto_place, 0, 0, FARC, BASE ],
 	[ vm_endspace ],
 	[ vm_return ],
 // EVENT 22
@@ -7082,7 +7104,7 @@ const CODE = [
 	[ vm_return ],
 // SHADED 28
 	[ vm_space, 1, 0, 1, (s)=>is_dept(s) && is_next_to_venezuela(s) && can_stack_base(s) ],
-	[ vm_place, 0, 0, FARC, BASE ],
+	[ vm_auto_place, 0, 0, FARC, BASE ],
 	[ vm_endspace ],
 	[ vm_space, 1, 0, 0, (s)=>is_loc(s) && is_adjacent(CUCUTA, s) && is_empty(s) ],
 	[ vm_sabotage ],
@@ -7157,16 +7179,16 @@ const CODE = [
 // SHADED 34
 	[ vm_current, [FARC,AUC,CARTELS] ],
 	[ vm_space, 1, 0, 1, (s)=>is_zero_pop_dept(s) ],
-	[ vm_place, 0, 0, ()=>(game.current), GUERRILLA ],
-	[ vm_place, 0, 0, ()=>(game.current), GUERRILLA ],
-	[ vm_place, 0, 0, ()=>(game.current), BASE ],
+	[ vm_auto_place, 0, 0, ()=>(game.current), GUERRILLA ],
+	[ vm_auto_place, 0, 0, ()=>(game.current), GUERRILLA ],
+	[ vm_auto_place, 0, 0, ()=>(game.current), BASE ],
 	[ vm_endspace ],
 	[ vm_return ],
 // EVENT 35
 	[ vm_space, 1, 0, 1, (s)=>is_dept(s) ],
 	[ vm_piece, 0, 0, 0, (p,s)=>is_piece_in_event_space(p) && is_cartels_base(p) ],
 	[ vm_remove ],
-	[ vm_place, 0, 0, GOVT, POLICE ],
+	[ vm_auto_place, 0, 0, GOVT, POLICE ],
 	[ vm_endpiece ],
 	[ vm_endspace ],
 	[ vm_aid, 3 ],
@@ -7220,7 +7242,7 @@ const CODE = [
 // EVENT 39
 	[ vm_prompt, "Place Police into each of 6 Departments." ],
 	[ vm_space, 1, 0, 6, (s)=>is_dept(s) && !is_farc_zone(s) ],
-	[ vm_place, 0, 0, GOVT, POLICE ],
+	[ vm_auto_place, 0, 0, GOVT, POLICE ],
 	[ vm_endspace ],
 	[ vm_return ],
 // SHADED 39
@@ -7228,7 +7250,7 @@ const CODE = [
 	[ vm_space, 1, 1, 3, (s)=>is_dept(s) && has_police(s) ],
 	[ vm_piece, 0, 0, 1, (p,s)=>is_piece_in_event_space(p) && is_police(p) ],
 	[ vm_remove ],
-	[ vm_place, 0, 0, AUC, GUERRILLA ],
+	[ vm_auto_place, 0, 0, AUC, GUERRILLA ],
 	[ vm_endpiece ],
 	[ vm_endspace ],
 	[ vm_return ],
@@ -7237,7 +7259,7 @@ const CODE = [
 	[ vm_piece, 1, 0, 3, (p,s)=>is_auc_guerrilla(p) ],
 	[ vm_set_piece_space ],
 	[ vm_remove ],
-	[ vm_place, 0, 0, GOVT, POLICE ],
+	[ vm_auto_place, 0, 0, GOVT, POLICE ],
 	[ vm_endpiece ],
 	[ vm_return ],
 // SHADED 40
@@ -7352,13 +7374,15 @@ const CODE = [
 	[ vm_current, AUC ],
 	[ vm_set_space, CUCUTA ],
 	[ vm_prompt, "Place AUC Guerrillas in Cúcuta." ],
-	[ vm_place, 0, 0, AUC, GUERRILLA ],
-	[ vm_place, 0, 0, AUC, GUERRILLA ],
+	[ vm_space, 1, 0, 1, (s)=>s === CUCUTA ],
+	[ vm_auto_place, 0, 0, AUC, GUERRILLA ],
+	[ vm_auto_place, 0, 0, AUC, GUERRILLA ],
 	[ vm_prompt, "Execute free Terror in Cúcuta." ],
 	[ vm_piece, 0, 0, 1, (p,s)=>is_piece_in_event_space(p) && is_auc_guerrilla(p) && is_underground(p) ],
 	[ vm_free_terror ],
 	[ vm_terror_aid_cut ],
 	[ vm_endpiece ],
+	[ vm_endspace ],
 	[ vm_prompt, "Flip any AUC Guerrillas Underground." ],
 	[ vm_piece, 0, 0, 2, (p,s)=>is_auc_guerrilla(p) && is_active(p) ],
 	[ vm_underground ],
@@ -7386,20 +7410,20 @@ const CODE = [
 	[ vm_return ],
 // SHADED 49
 	[ vm_space, 1, 0, 1, (s)=>is_dept(s) ],
-	[ vm_place, 0, 0, AUC, GUERRILLA ],
-	[ vm_place, 0, 0, AUC, BASE ],
+	[ vm_auto_place, 0, 0, AUC, GUERRILLA ],
+	[ vm_auto_place, 0, 0, AUC, BASE ],
 	[ vm_endspace ],
 	[ vm_return ],
 // EVENT 50
 	[ vm_current, GOVT ],
 	[ vm_space, 1, 0, 1, (s)=>is_dept(s) && !is_farc_zone(s) ],
-	[ vm_place, 0, 0, GOVT, POLICE ],
+	[ vm_auto_place, 0, 0, GOVT, POLICE ],
 	[ vm_endspace ],
-	[ vm_space, 1, 0, 1, (s)=>is_dept(s) && !is_farc_zone(s) ],
-	[ vm_place, 0, 0, GOVT, POLICE ],
+	[ vm_space, 1, 1, 1, (s)=>is_dept(s) && !is_farc_zone(s) ],
+	[ vm_auto_place, 0, 0, GOVT, POLICE ],
 	[ vm_endspace ],
-	[ vm_space, 1, 0, 1, (s)=>is_dept(s) && !is_farc_zone(s) ],
-	[ vm_place, 0, 0, GOVT, POLICE ],
+	[ vm_space, 1, 1, 1, (s)=>is_dept(s) && !is_farc_zone(s) ],
+	[ vm_auto_place, 0, 0, GOVT, POLICE ],
 	[ vm_endspace ],
 	[ vm_return ],
 // SHADED 50
@@ -7432,11 +7456,9 @@ const CODE = [
 	[ vm_return ],
 // SHADED 52
 	[ vm_space, 1, 0, 1, (s)=>has_auc_piece(s) && can_stack_base(s) ],
-	[ vm_place, 0, 0, AUC, BASE ],
+	[ vm_auto_place, 0, 0, AUC, BASE ],
 	[ vm_endspace ],
-	[ vm_piece, 0, 0, 0, (p,s)=>is_auc_base(p) ],
-	[ vm_resources, AUC, 1 ],
-	[ vm_endpiece ],
+	[ vm_resources, AUC, ()=>(count_pieces_on_map(AUC,BASE)) ],
 	[ vm_return ],
 // EVENT 53
 	[ vm_current, [FARC,AUC,CARTELS] ],
@@ -7494,7 +7516,7 @@ const CODE = [
 	[ vm_resources, CARTELS, 2 ],
 	[ vm_endpiece ],
 	[ vm_space, 1, 0, 2, (s)=>is_city(s) && can_stack_base(s) ],
-	[ vm_place, 0, 0, CARTELS, BASE ],
+	[ vm_auto_place, 0, 0, CARTELS, BASE ],
 	[ vm_endspace ],
 	[ vm_return ],
 // EVENT 57
@@ -7502,7 +7524,7 @@ const CODE = [
 	[ vm_piece, 0, 1, 3, (p,s)=>is_cartels_piece(p) ],
 	[ vm_set_piece_space ],
 	[ vm_remove ],
-	[ vm_place, 0, 0, GOVT, POLICE ],
+	[ vm_auto_place, 0, 0, GOVT, POLICE ],
 	[ vm_endpiece ],
 	[ vm_return ],
 // SHADED 57
@@ -7562,7 +7584,7 @@ const CODE = [
 // SHADED 60
 	[ vm_current, CARTELS ],
 	[ vm_space, 1, 0, 2, (s)=>is_city(s) && can_stack_base(s) ],
-	[ vm_place, 0, 0, CARTELS, BASE ],
+	[ vm_auto_place, 0, 0, CARTELS, BASE ],
 	[ vm_endspace ],
 	[ vm_space, 1, 0, 1, (s)=>is_space(s) ],
 	[ vm_free_bribe ],
@@ -7578,7 +7600,7 @@ const CODE = [
 	[ vm_return ],
 // SHADED 61
 	[ vm_space, 1, 0, 3, (s)=>!has_cartels_piece(s) && can_stack_base(s) ],
-	[ vm_place, 0, 0, CARTELS, BASE ],
+	[ vm_auto_place, 0, 0, CARTELS, BASE ],
 	[ vm_endspace ],
 	[ vm_return ],
 // EVENT 62
@@ -7588,7 +7610,7 @@ const CODE = [
 	[ vm_return ],
 // SHADED 62
 	[ vm_space, 1, 0, 3, (s)=>s === GUAINIA || s === VAUPES || s === AMAZONAS ],
-	[ vm_place, 0, 0, CARTELS, BASE ],
+	[ vm_auto_place, 0, 0, CARTELS, BASE ],
 	[ vm_endspace ],
 	[ vm_return ],
 // EVENT 63
@@ -7633,7 +7655,7 @@ const CODE = [
 	[ vm_return ],
 // SHADED 66
 	[ vm_space, 1, 0, 0, (s)=>is_forest(s) && has_cartels_base(s) && can_stack_base(s) ],
-	[ vm_place, 0, 0, CARTELS, BASE ],
+	[ vm_auto_place, 0, 0, CARTELS, BASE ],
 	[ vm_endspace ],
 	[ vm_return ],
 // EVENT 67
@@ -7723,7 +7745,7 @@ const CODE = [
 	[ vm_capability ],
 	[ vm_space, 1, 0, 1, (s)=>s === PANAMA ],
 	[ vm_place, 0, 0, ()=>(game.current), BASE ],
-	[ vm_place, 0, 0, ()=>(game.current), BASE ],
+	[ vm_place, 0, 1, ()=>(game.current), BASE ],
 	[ vm_endspace ],
 	[ vm_return ],
 // EVENT 72
@@ -7736,12 +7758,14 @@ const CODE = [
 	[ vm_return ],
 // SHADED 72
 	[ vm_prompt, "Place all available Cartels Guerrillas into spaces with Cartels Bases." ],
-	[ vm_while, ()=>has_piece(AVAILABLE, CARTELS, GUERRILLA) && count_pieces(AVAILABLE, CARTELS, BASE) < 15 ],
+	[ vm_if, ()=>count_pieces_on_map(CARTELS, BASE) > 0 ],
+	[ vm_while, ()=>has_piece(AVAILABLE, CARTELS, GUERRILLA) ],
 	[ vm_space, 1, 0, 1, (s)=>has_cartels_base(s) ],
-	[ vm_place, 0, 0, CARTELS, GUERRILLA ],
+	[ vm_auto_place, 0, 0, CARTELS, GUERRILLA ],
 	[ vm_endspace ],
 	[ vm_endwhile ],
+	[ vm_endif ],
 	[ vm_return ],
 ]
-const UCODE = [0,1,7,13,19,29,65,79,85,92,98,104,110,116,122,139,146,153,159,166,176,189,199,206,222,236,248,258,266,279,293,303,314,320,332,341,354,364,377,389,402,424,436,445,459,469,480,497,519,532,541,558,572,583,599,613,627,636,651,664,684,699,710,718,730,744,749,757,762,782,811,825,838]
-const SCODE = [0,4,10,16,24,59,70,82,90,95,101,107,113,119,130,142,151,156,162,0,183,194,203,215,227,242,253,263,272,287,300,310,318,326,334,349,0,369,383,394,409,431,441,453,464,473,0,504,528,536,552,567,576,0,0,622,629,643,656,672,691,706,714,0,735,0,753,759,777,0,816,832,845]
+const UCODE = [0,1,7,13,19,29,65,79,85,92,98,104,110,116,122,139,146,153,159,166,176,189,199,206,222,236,248,258,266,279,293,303,314,320,332,341,354,364,377,389,402,424,436,445,459,469,480,497,521,534,543,560,574,583,599,613,627,636,651,664,684,699,710,718,730,744,749,757,762,782,811,825,838]
+const SCODE = [0,4,10,16,24,59,70,82,90,95,101,107,113,119,130,142,151,156,162,0,183,194,203,215,227,242,253,263,272,287,300,310,318,326,334,349,0,369,383,394,409,431,441,453,464,473,0,504,530,538,554,569,578,0,0,622,629,643,656,672,691,706,714,0,735,0,753,759,777,0,816,832,845]

@@ -42,27 +42,27 @@ SHADED 4
 EVENT 5
 	prompt "Place Police onto Pipelines."
 	space 1 is_pipeline(s)
-		place GOVT POLICE
+		auto_place GOVT POLICE
 		mark_space
 	endspace
 	space 1 is_pipeline(s)
-		place GOVT POLICE
+		auto_place GOVT POLICE
 		mark_space
 	endspace
 	space 1 is_pipeline(s)
-		place GOVT POLICE
+		auto_place GOVT POLICE
 		mark_space
 	endspace
 	space 1 is_pipeline(s)
-		place GOVT POLICE
+		auto_place GOVT POLICE
 		mark_space
 	endspace
 	space 1 is_pipeline(s)
-		place GOVT POLICE
+		auto_place GOVT POLICE
 		mark_space
 	endspace
 	space 1 is_pipeline(s)
-		place GOVT POLICE
+		auto_place GOVT POLICE
 		mark_space
 	endspace
 	prompt "Flip N Guerrillas there or adjacent to Active."
@@ -153,10 +153,10 @@ SHADED 13
 EVENT 14
 	current GOVT
 	space 1 is_dept(s) && !is_farc_zone(s)
-		place GOVT BASE
-		place GOVT TROOPS
-		place GOVT TROOPS
-		place GOVT TROOPS
+		auto_place GOVT BASE
+		auto_place GOVT TROOPS
+		auto_place GOVT TROOPS
+		auto_place GOVT TROOPS
 	endspace
 
 SHADED 14
@@ -241,7 +241,7 @@ EVENT 21
 SHADED 21
 	resources FARC 6
 	space 1 (is_city(s) || is_dept(s)) && can_stack_base(s)
-		place FARC BASE
+		auto_place FARC BASE
 	endspace
 
 EVENT 22
@@ -332,7 +332,7 @@ EVENT 28
 
 SHADED 28
 	space 1 is_dept(s) && is_next_to_venezuela(s) && can_stack_base(s)
-		place FARC BASE
+		auto_place FARC BASE
 	endspace
 	space 0 is_loc(s) && is_adjacent(CUCUTA, s) && is_empty(s)
 		sabotage
@@ -408,16 +408,16 @@ EVENT 34
 SHADED 34
 	current [FARC,AUC,CARTELS]
 	space 1 is_zero_pop_dept(s)
-		place (game.current) GUERRILLA
-		place (game.current) GUERRILLA
-		place (game.current) BASE
+		auto_place (game.current) GUERRILLA
+		auto_place (game.current) GUERRILLA
+		auto_place (game.current) BASE
 	endspace
 
 EVENT 35
 	space 1 is_dept(s)
 		piece 0 is_piece_in_event_space(p) && is_cartels_base(p)
 			remove
-			place GOVT POLICE
+			auto_place GOVT POLICE
 		endpiece
 	endspace
 	aid 3
@@ -472,7 +472,7 @@ EVENT 39
 	prompt "Place Police into each of 6 Departments."
 	# TODO: can_place
 	space 6 is_dept(s) && !is_farc_zone(s)
-		place GOVT POLICE
+		auto_place GOVT POLICE
 	endspace
 
 SHADED 39
@@ -481,7 +481,7 @@ SHADED 39
 	space_opt 3 is_dept(s) && has_police(s)
 		piece 1 is_piece_in_event_space(p) && is_police(p)
 			remove
-			place AUC GUERRILLA
+			auto_place AUC GUERRILLA
 		endpiece
 	endspace
 
@@ -490,7 +490,7 @@ EVENT 40
 	piece_undo 3 is_auc_guerrilla(p)
 		set_piece_space
 		remove
-		place GOVT POLICE
+		auto_place GOVT POLICE
 	endpiece
 
 SHADED 40
@@ -605,15 +605,15 @@ SHADED 47
 	current AUC
 	set_space CUCUTA
 	prompt "Place AUC Guerrillas in Cúcuta."
-	# space 1 s === CUCUTA
-		place AUC GUERRILLA
-		place AUC GUERRILLA
+	space 1 s === CUCUTA
+		auto_place AUC GUERRILLA
+		auto_place AUC GUERRILLA
 		prompt "Execute free Terror in Cúcuta."
 		piece 1 is_piece_in_event_space(p) && is_auc_guerrilla(p) && is_underground(p)
 			free_terror
 			terror_aid_cut
 		endpiece
-	# endspace
+	endspace
 	prompt "Flip any AUC Guerrillas Underground."
 	piece 2 is_auc_guerrilla(p) && is_active(p)
 		underground
@@ -641,21 +641,21 @@ EVENT 49
 
 SHADED 49
 	space 1 is_dept(s)
-		place AUC GUERRILLA
-		place AUC BASE
+		auto_place AUC GUERRILLA
+		auto_place AUC BASE
 	endspace
 
 EVENT 50
 	# UPTO
 	current GOVT
 	space 1 is_dept(s) && !is_farc_zone(s)
-		place GOVT POLICE
+		auto_place GOVT POLICE
 	endspace
-	space 1 is_dept(s) && !is_farc_zone(s)
-		place GOVT POLICE
+	space_opt 1 is_dept(s) && !is_farc_zone(s)
+		auto_place GOVT POLICE
 	endspace
-	space 1 is_dept(s) && !is_farc_zone(s)
-		place GOVT POLICE
+	space_opt 1 is_dept(s) && !is_farc_zone(s)
+		auto_place GOVT POLICE
 	endspace
 
 SHADED 50
@@ -689,11 +689,9 @@ EVENT 52
 
 SHADED 52
 	space 1 has_auc_piece(s) && can_stack_base(s)
-		place AUC BASE
+		auto_place AUC BASE
 	endspace
-	piece 0 is_auc_base(p)
-		resources AUC 1
-	endpiece
+	resources AUC (count_pieces_on_map(AUC,BASE))
 
 EVENT 53
 	current [FARC,AUC,CARTELS]
@@ -752,7 +750,7 @@ SHADED 56
 		resources CARTELS 2
 	endpiece
 	space 2 is_city(s) && can_stack_base(s)
-		place CARTELS BASE
+		auto_place CARTELS BASE
 	endspace
 
 EVENT 57
@@ -760,7 +758,7 @@ EVENT 57
 	piece_opt 3 is_cartels_piece(p)
 		set_piece_space
 		remove
-		place GOVT POLICE
+		auto_place GOVT POLICE
 	endpiece
 
 SHADED 57
@@ -820,7 +818,7 @@ EVENT 60
 SHADED 60
 	current CARTELS
 	space 2 is_city(s) && can_stack_base(s)
-		place CARTELS BASE
+		auto_place CARTELS BASE
 	endspace
 	# TODO: can_bribe
 	space 1 is_space(s)
@@ -837,7 +835,7 @@ EVENT 61
 
 SHADED 61
 	space 3 !has_cartels_piece(s) && can_stack_base(s)
-		place CARTELS BASE
+		auto_place CARTELS BASE
 	endspace
 
 EVENT 62
@@ -847,7 +845,7 @@ EVENT 62
 
 SHADED 62
 	space 3 s === GUAINIA || s === VAUPES || s === AMAZONAS
-		place CARTELS BASE
+		auto_place CARTELS BASE
 	endspace
 
 EVENT 63
@@ -892,7 +890,7 @@ EVENT 66
 
 SHADED 66
 	space 0 is_forest(s) && has_cartels_base(s) && can_stack_base(s)
-		place CARTELS BASE
+		auto_place CARTELS BASE
 	endspace
 
 EVENT 67
@@ -983,7 +981,7 @@ SHADED 71
 	capability
 	space 1 s === PANAMA
 		place (game.current) BASE
-		place (game.current) BASE
+		place_opt (game.current) BASE
 	endspace
 
 EVENT 72
@@ -996,9 +994,10 @@ EVENT 72
 
 SHADED 72
 	prompt "Place all available Cartels Guerrillas into spaces with Cartels Bases."
-	while has_piece(AVAILABLE, CARTELS, GUERRILLA) && count_pieces(AVAILABLE, CARTELS, BASE) < 15
-		space 1 has_cartels_base(s)
-			# asm setup_piece(CARTELS, GUERRILLA, 1, game.vm.s)
-			place CARTELS GUERRILLA
-		endspace
-	endwhile
+	if count_pieces_on_map(CARTELS, BASE) > 0
+		while has_piece(AVAILABLE, CARTELS, GUERRILLA)
+			space 1 has_cartels_base(s)
+				auto_place CARTELS GUERRILLA
+			endspace
+		endwhile
+	endif
