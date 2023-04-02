@@ -997,9 +997,9 @@ function is_with_or_adjacent_to_farc_guerrilla(s) {
 	return false
 }
 
-function is_adjacent_to_support(s) {
+function is_adjacent_to_sabotage(s) {
 	for (let x of data.spaces[s].adjacent)
-		if (is_support(x))
+		if (has_sabotage(x))
 			return true
 	return false
 }
@@ -1284,33 +1284,31 @@ function auto_transfer_dropped_shipment_imp(sh) {
 
 // === ITERATORS AND ACTION GENERATORS ===
 
-function can_stack_base(s) {
-	// TODO: faction for ECUADOR check
-	return count_bases(s) < 2
-}
-
-function can_stack_piece(s, faction, type) {
-	if (faction === GOVT)
-		if (is_farc_zone(s))
-			return false
-	if (type === BASE)
-		if (!can_stack_base(s))
-			return false
+function can_stack_any(s, faction) {
 	if (s === PANAMA)
 		return set_has(game.capabilities, EVT_DARIEN)
-	if (s === ECUADOR) {
-		if (set_has(game.capabilities, EVT_SUCUMBIOS))
-			return count_faction_pieces(s, faction) < 2
-		else
-			return false
-	}
+	if (s === ECUADOR)
+		return set_has(game.capabilities, EVT_SUCUMBIOS) && count_faction_pieces(s, faction) < 2
+	if (faction === GOVT)
+		return !is_farc_zone(s)
 	return true
 }
 
-function can_place_any_available_piece(s, faction) {
-	if (can_stack_base(s) && has_piece(AVAILABLE, faction, BASE))
+function can_stack_base(s, faction) {
+	return can_stack_any(s, faction) && count_bases(s) < 2
+}
+
+function can_stack_piece(s, faction, type) {
+	if (can_stack_any(s, faction)) {
+		if (type === BASE)
+			return count_bases(s) < 2
 		return true
-	return can_stack_piece(s, faction, GUERRILLA) && has_piece(AVAILABLE, faction, GUERRILLA)
+	}
+	return false
+}
+
+function can_place_piece(s, faction, type) {
+	return can_stack_piece(s, faction, type) && has_piece(AVAILABLE, faction, type)
 }
 
 function did_maximum_damage(targeted) {
@@ -1336,10 +1334,10 @@ function gen_piece_in_space(space, faction, type) {
 }
 
 function gen_place_piece(space, faction, type) {
+	if (!can_stack_piece(space, faction, type))
+		return true
 	let p0 = first_piece[faction][type]
 	let p1 = last_piece[faction][type]
-	if (type === BASE && !can_stack_base(space))
-		return true
 	let can_place = false
 	for (let p = p0; p <= p1; ++p) {
 		if (piece_space(p) === AVAILABLE) {
@@ -2164,7 +2162,7 @@ function can_govt_train_place(s) {
 }
 
 function can_govt_train_base(s) {
-	return can_stack_base(s) && count_cubes(s) >= 3
+	return can_stack_piece(s, GOVT, BASE) && count_cubes(s) >= 3
 }
 
 function can_govt_train_civic(s) {
@@ -4235,7 +4233,7 @@ states.kidnap_space = {
 		log("Rolled " + die + ".")
 		transfer_resources(faction, game.current, die)
 
-		if (die === 6 && can_place_any_available_piece(game.sa.where, AUC)) {
+		if (die === 6 && (can_place_piece(game.sa.where, AUC, BASE) || can_place_piece(game.sa.where, AUC, GUERRILLA))) {
 			game.current = AUC
 			game.state = "kidnap_place"
 		} else {
@@ -4259,7 +4257,7 @@ states.kidnap_drug_ransom = {
 states.kidnap_place = {
 	prompt() {
 		view.prompt = `Kidnap in ${space_name[game.sa.where]}: Place an AUC piece.`
-		if (can_stack_base(game.sa.where))
+		if (can_stack_piece(game.sa.where, AUC, BASE))
 			gen_piece_in_space(AVAILABLE, AUC, BASE)
 		if (can_stack_piece(game.sa.where, AUC, GUERRILLA))
 			gen_piece_in_space(AVAILABLE, AUC, GUERRILLA)
@@ -4382,9 +4380,9 @@ function goto_cultivate() {
 
 states.cultivate = {
 	prompt() {
-		view.prompt = "Cultivate: Select Department or City."
+		view.prompt = "Cultivate: Select Department or City to place or relocate Base."
 		for (let s = first_pop; s <= last_pop; ++s)
-			if (can_stack_base(s))
+			if (can_stack_piece(s, CARTELS, BASE))
 				if (count_pieces(s, CARTELS, GUERRILLA) > count_pieces(s, GOVT, POLICE))
 					gen_action_space(s)
 	},
@@ -4910,7 +4908,7 @@ states.drug_profits = {
 
 states.drug_profits_space = {
 	prompt() {
-		if (can_stack_base(game.transfer) && has_piece(AVAILABLE, game.current, BASE)) {
+		if (can_place_piece(game.transfer, game.current, BASE)) {
 			view.prompt = "Drug Profits: Place Base or +6 Resources."
 			gen_place_piece(game.transfer, game.current, BASE)
 		} else {
@@ -5948,7 +5946,7 @@ function vm_place() {
 }
 
 function can_vm_place_imp(s, faction, type) {
-	if (type === BASE && !can_stack_base(s))
+	if (!can_stack_piece(s, faction, type))
 		return false
 	if (game.current === faction)
 		return true
@@ -6081,7 +6079,7 @@ states.vm_place_or_remove_shipment = {
 
 function vm_place_or_remove_insurgent_base() {
 	let s = game.vm.s
-	if (can_stack_base(s) && (has_piece(AVAILABLE, BASE) || has_piece(AVAILABLE, AUC, BASE) || has_piece(AVAILABLE, CARTELS, BASE)))
+	if (can_place_piece(s, FARC, BASE) || can_place_piece(s, AUC, BASE) || can_place_piece(s, CARTELS, BASE))
 		game.state = "vm_place_or_remove_insurgent_base"
 	else if (has_piece(s, FARC, BASE) || has_piece(s, AUC, BASE) || has_piece(s, CARTELS, BASE))
 		game.state = "vm_place_or_remove_insurgent_base"
@@ -6095,11 +6093,9 @@ states.vm_place_or_remove_insurgent_base = {
 		gen_piece_in_space(game.vm.s, FARC, BASE)
 		gen_piece_in_space(game.vm.s, AUC, BASE)
 		gen_piece_in_space(game.vm.s, CARTELS, BASE)
-		if (can_stack_base(game.vm.s)) {
-			gen_place_piece(game.vm.s, FARC, BASE)
-			gen_place_piece(game.vm.s, AUC, BASE)
-			gen_place_piece(game.vm.s, CARTELS, BASE)
-		}
+		gen_place_piece(game.vm.s, FARC, BASE)
+		gen_place_piece(game.vm.s, AUC, BASE)
+		gen_place_piece(game.vm.s, CARTELS, BASE)
 	},
 	piece(p) {
 		if (piece_space(p) === AVAILABLE)
@@ -6862,13 +6858,13 @@ const CODE = [
 	[ vm_return ],
 // EVENT 6
 	[ vm_prompt, "Select Opposition or Neutral Departments adjacent to Sabotage." ],
-	[ vm_space, 1, 0, 2, (s)=>(!is_support(s) && is_adjacent_to_support(s)) ],
+	[ vm_space, 1, 0, 2, (s)=>(!is_support(s) && is_adjacent_to_sabotage(s)) ],
 	[ vm_set_passive_support ],
 	[ vm_endspace ],
 	[ vm_return ],
 // SHADED 6
 	[ vm_prompt, "Sabotage a pipeline." ],
-	[ vm_space, 1, 0, 1, (s)=>is_pipeline(s) ],
+	[ vm_space, 1, 0, 1, (s)=>is_pipeline(s) && !has_sabotage(s) ],
 	[ vm_sabotage ],
 	[ vm_endspace ],
 	[ vm_prompt, "Shift an Adjacent Department." ],
@@ -7021,7 +7017,7 @@ const CODE = [
 	[ vm_return ],
 // SHADED 21
 	[ vm_resources, FARC, 6 ],
-	[ vm_space, 1, 0, 1, (s)=>(is_city(s) || is_dept(s)) && can_stack_base(s) ],
+	[ vm_space, 1, 0, 1, (s)=>(is_city(s) || is_dept(s)) && can_stack_base(s, FARC) ],
 	[ vm_auto_place, 0, 0, FARC, BASE ],
 	[ vm_endspace ],
 	[ vm_return ],
@@ -7112,7 +7108,7 @@ const CODE = [
 	[ vm_endspace ],
 	[ vm_return ],
 // SHADED 28
-	[ vm_space, 1, 0, 1, (s)=>is_dept(s) && is_next_to_venezuela(s) && can_stack_base(s) ],
+	[ vm_space, 1, 0, 1, (s)=>is_dept(s) && is_next_to_venezuela(s) && can_stack_base(s, FARC) ],
 	[ vm_auto_place, 0, 0, FARC, BASE ],
 	[ vm_endspace ],
 	[ vm_space, 1, 0, 0, (s)=>is_loc(s) && is_adjacent(CUCUTA, s) && is_empty(s) ],
@@ -7464,7 +7460,7 @@ const CODE = [
 	[ vm_endspace ],
 	[ vm_return ],
 // SHADED 52
-	[ vm_space, 1, 0, 1, (s)=>has_auc_piece(s) && can_stack_base(s) ],
+	[ vm_space, 1, 0, 1, (s)=>has_auc_piece(s) && can_stack_base(s, AUC) ],
 	[ vm_auto_place, 0, 0, AUC, BASE ],
 	[ vm_endspace ],
 	[ vm_resources, AUC, ()=>(count_pieces_on_map(AUC,BASE)) ],
@@ -7524,7 +7520,7 @@ const CODE = [
 	[ vm_piece, 0, 0, 0, (p,s)=>is_cartels_piece(p) && is_city(s) ],
 	[ vm_auto_resources, CARTELS, 2 ],
 	[ vm_endpiece ],
-	[ vm_space, 1, 0, 2, (s)=>is_city(s) && can_stack_base(s) ],
+	[ vm_space, 1, 0, 2, (s)=>is_city(s) && can_stack_base(s, CARTELS) ],
 	[ vm_auto_place, 0, 0, CARTELS, BASE ],
 	[ vm_endspace ],
 	[ vm_return ],
@@ -7592,7 +7588,7 @@ const CODE = [
 	[ vm_return ],
 // SHADED 60
 	[ vm_current, CARTELS ],
-	[ vm_space, 1, 0, 2, (s)=>is_city(s) && can_stack_base(s) ],
+	[ vm_space, 1, 0, 2, (s)=>is_city(s) && can_stack_base(s, CARTELS) ],
 	[ vm_auto_place, 0, 0, CARTELS, BASE ],
 	[ vm_endspace ],
 	[ vm_space, 1, 0, 1, (s)=>is_space(s) ],
@@ -7608,7 +7604,7 @@ const CODE = [
 	[ vm_resources, CARTELS, -6 ],
 	[ vm_return ],
 // SHADED 61
-	[ vm_space, 1, 0, 3, (s)=>!has_cartels_piece(s) && can_stack_base(s) ],
+	[ vm_space, 1, 0, 3, (s)=>!has_cartels_piece(s) && can_stack_base(s, CARTELS) ],
 	[ vm_auto_place, 0, 0, CARTELS, BASE ],
 	[ vm_endspace ],
 	[ vm_return ],
@@ -7663,7 +7659,7 @@ const CODE = [
 	[ vm_endpiece ],
 	[ vm_return ],
 // SHADED 66
-	[ vm_space, 1, 0, 0, (s)=>is_forest(s) && has_cartels_base(s) && can_stack_base(s) ],
+	[ vm_space, 1, 0, 0, (s)=>is_forest(s) && has_cartels_base(s) && can_stack_base(s, CARTELS) ],
 	[ vm_auto_place, 0, 0, CARTELS, BASE ],
 	[ vm_endspace ],
 	[ vm_return ],

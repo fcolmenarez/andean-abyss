@@ -79,13 +79,13 @@ SHADED 5
 
 EVENT 6
 	prompt "Select Opposition or Neutral Departments adjacent to Sabotage."
-	space 2 (!is_support(s) && is_adjacent_to_support(s))
+	space 2 (!is_support(s) && is_adjacent_to_sabotage(s))
 		set_passive_support
 	endspace
 
 SHADED 6
 	prompt "Sabotage a pipeline."
-	space 1 is_pipeline(s)
+	space 1 is_pipeline(s) && !has_sabotage(s)
 		sabotage
 	endspace
 	prompt "Shift an Adjacent Department."
@@ -240,7 +240,7 @@ EVENT 21
 
 SHADED 21
 	resources FARC 6
-	space 1 (is_city(s) || is_dept(s)) && can_stack_base(s)
+	space 1 (is_city(s) || is_dept(s)) && can_stack_base(s, FARC)
 		auto_place FARC BASE
 	endspace
 
@@ -331,7 +331,7 @@ EVENT 28
 	endspace
 
 SHADED 28
-	space 1 is_dept(s) && is_next_to_venezuela(s) && can_stack_base(s)
+	space 1 is_dept(s) && is_next_to_venezuela(s) && can_stack_base(s, FARC)
 		auto_place FARC BASE
 	endspace
 	space 0 is_loc(s) && is_adjacent(CUCUTA, s) && is_empty(s)
@@ -688,7 +688,7 @@ EVENT 52
 	endspace
 
 SHADED 52
-	space 1 has_auc_piece(s) && can_stack_base(s)
+	space 1 has_auc_piece(s) && can_stack_base(s, AUC)
 		auto_place AUC BASE
 	endspace
 	resources AUC (count_pieces_on_map(AUC,BASE))
@@ -749,7 +749,7 @@ SHADED 56
 	piece 0 is_cartels_piece(p) && is_city(s)
 		auto_resources CARTELS 2
 	endpiece
-	space 2 is_city(s) && can_stack_base(s)
+	space 2 is_city(s) && can_stack_base(s, CARTELS)
 		auto_place CARTELS BASE
 	endspace
 
@@ -817,7 +817,7 @@ EVENT 60
 
 SHADED 60
 	current CARTELS
-	space 2 is_city(s) && can_stack_base(s)
+	space 2 is_city(s) && can_stack_base(s, CARTELS)
 		auto_place CARTELS BASE
 	endspace
 	# TODO: can_bribe
@@ -834,7 +834,7 @@ EVENT 61
 	resources CARTELS -6
 
 SHADED 61
-	space 3 !has_cartels_piece(s) && can_stack_base(s)
+	space 3 !has_cartels_piece(s) && can_stack_base(s, CARTELS)
 		auto_place CARTELS BASE
 	endspace
 
@@ -889,7 +889,7 @@ EVENT 66
 	endpiece
 
 SHADED 66
-	space 0 is_forest(s) && has_cartels_base(s) && can_stack_base(s)
+	space 0 is_forest(s) && has_cartels_base(s) && can_stack_base(s, CARTELS)
 		auto_place CARTELS BASE
 	endspace
 
