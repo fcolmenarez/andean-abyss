@@ -315,7 +315,8 @@ path.tip { stroke: yellow; }
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: center;
-	gap: 24px;
+	gap: 18px;
+	padding: 0 18px;
 	max-width: 1614px;
 	margin: 36px auto;
 }
@@ -351,56 +352,69 @@ path.tip { stroke: yellow; }
 }
 
 #this_card { position: relative; }
+#shaded_event, #unshaded_event { display: none; }
+#shaded_event.action, #unshaded_event.action { display: block; }
+
+#this_card.c #shaded_event { border-top-color: transparent; }
+#this_card.c #unshaded_event { border-image: radial-gradient(100px 30px at bottom, transparent 65%, white) 3 }
+
+#unshaded_event {
+	position: absolute;
+	box-sizing: border-box;
+	//border-radius: 8px;
+	border: 3px solid white;
+	left: 13px;
+	right: 13px;
+	top: 186px;
+}
+
 #shaded_event {
 	position: absolute;
 	box-sizing: border-box;
-}
-#shaded_event {
-	left: 19px;
-	width: 210px;
-	bottom: 23px;
-	border-radius: 6px;
-}
-#shaded_event.action {
+	//border-radius: 8px;
 	border: 3px solid white;
+	left: 19px;
+	right: 19px;
+	bottom: 23px;
 }
 
-#this_card.n4c #shaded_event { height: 83px; border-top-color: transparent; }
-#this_card.n3c #shaded_event { height: 73px; border-top-color: transparent; }
-#this_card.n4 #shaded_event { height: 82px; }
-#this_card.n3 #shaded_event { height: 67px; }
-#this_card.n2 #shaded_event { height: 56px; }
-#this_card.n0 #shaded_event { display: none; }
+#this_card.u2 #unshaded_event { height: 45px; }
+#this_card.u3 #unshaded_event { height: 60px; }
+#this_card.u4 #unshaded_event { height: 77px; }
 
-/* OPTION: tiny cards on map -
+#this_card.card_8 #unshaded_event { top: 212px; }
+#this_card.card_25 #unshaded_event { top: 201px; }
+#this_card.card_37 #unshaded_event { top: 168px; height: 78px; }
 
-#card_panel {
-	position: absolute;
-	top: 82px;
-	left: 500px;
-	width: 714px;
-	margin: 0;
-}
+#this_card.s2 #shaded_event { height: 56px; }
+#this_card.s3 #shaded_event { height: 65px; }
+#this_card.s4 #shaded_event { height: 82px; }
 
-.card {
-	width: 186px;
-	height: 261px;
-	border-radius: 12px;
-}
+#this_card.s3.u4 #shaded_event { height: 67px; }
+#this_card.s3.card_14 #shaded_event { height: 71px; }
+#this_card.s3.card_15 #shaded_event { height: 71px; }
+#this_card.s3.card_31 #shaded_event { height: 68px; }
+#this_card.s3.card_38 #shaded_event { height: 65px; }
+#this_card.s3.card_49 #shaded_event { height: 68px; }
+#this_card.s3.card_58 #shaded_event { height: 67px; }
+#this_card.s3.card_62 #shaded_event { height: 67px; }
+#this_card.s3.card_68 #shaded_event { height: 67px; }
 
-#shaded_event {
-	left: 13px;
-	width: 159px;
-	bottom: 16px;
-}
+#this_card.s3.u4 #unshaded_event { height: 75px; }
+#this_card.s3.card_38 #unshaded_event { height: 77px; }
 
-#this_card.n4c #shaded_event { height: 64px; border-top-color: transparent; }
-#this_card.n3c #shaded_event { height: 57px; border-top-color: transparent; }
-#this_card.n4 #shaded_event { height: 64px; }
-#this_card.n3 #shaded_event { height: 51px; }
-#this_card.n2 #shaded_event { height: 44px; }
+#this_card.s3.c #unshaded_event { height: 69px; }
+#this_card.s3.c #shaded_event { height: 73px; }
+#this_card.s4.c #shaded_event { height: 83px; }
 
-*/
+#this_card.card_9.c #unshaded_event { top: 204px; height: 51px; }
+#this_card.card_10.c #unshaded_event { height: 59px; }
+#this_card.card_11.c #unshaded_event { top: 200px; height: 55px; }
+
+
+/* shaded box is off-center on card 61 */
+#this_card.card_61 #shaded_event { left: 16px; right: 23px; }
+#this_card.card_61 #unshaded_event { left: 10px; right: 17px; }
 
 .card.card_back{background-image:url(cards.1x/card_back.jpg)}
 .card.card_1{background-image:url(cards.1x/card_01.jpg)}

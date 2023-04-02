@@ -111,6 +111,7 @@ let ui = {
 	next_card: document.getElementById("next_card"),
 	this_card: document.getElementById("this_card"),
 	shaded_event: document.getElementById("shaded_event"),
+	unshaded_event: document.getElementById("unshaded_event"),
 	deck_size: document.getElementById("deck_size"),
 	tokens: {
 		aid: document.getElementById("token_aid"),
@@ -319,6 +320,7 @@ function on_blur_event() {
 
 function init_ui() {
 	register_action(ui.this_card, "event", undefined)
+	register_action(ui.unshaded_event, "unshaded", undefined)
 	register_action(ui.shaded_event, "shaded", undefined)
 	register_action(ui.tokens.aid, "aid", undefined)
 	register_action(ui.resources[GOVT], "resources", GOVT)
@@ -800,6 +802,13 @@ function layout_shipments(s, list, xc, yc) {
 	}
 }
 
+function make_card_class_name(c) {
+	if (set_has([1,2,3,7,9,10,11,13], view.deck[0]))
+		return "card card_" + c + " u" + data.card_unshaded_lines[c] + " s" + data.card_shaded_lines[c] + " c"
+	else
+		return "card card_" + c + " u" + data.card_unshaded_lines[c] + " s" + data.card_shaded_lines[c]
+}
+
 function on_update() {
 	switch (player) {
 	case "Government": ui.favicon.href = "images/icon_govt.png"; break
@@ -865,15 +874,13 @@ function on_update() {
 		ui.tokens.propaganda.style.left = "1029px"
 	}
 
-	if (set_has([1,2,3,7,9,10,11,13], view.deck[0]))
-		ui.this_card.className = "card card_" + view.deck[0] + " n" + data.card_lines[view.deck[0]] + "c"
-	else
-		ui.this_card.className = "card card_" + view.deck[0] + " n" + data.card_lines[view.deck[0]]
+	ui.this_card.className = make_card_class_name(view.deck[0])
 	ui.next_card.className = "card card_" + view.deck[1]
 	ui.deck_size.textContent = view.deck[2]
 
 	ui.this_card.classList.toggle("action", !!(view.actions && view.actions.event === 1))
 	ui.shaded_event.classList.toggle("action", !!(view.actions && view.actions.shaded === 1))
+	ui.unshaded_event.classList.toggle("action", !!(view.actions && view.actions.unshaded === 1))
 
 	layout_sop()
 	layout_score()

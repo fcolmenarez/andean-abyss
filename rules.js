@@ -2041,6 +2041,7 @@ states.eligible = {
 	attack: goto_attack,
 	terror: goto_terror,
 	event() { goto_event(0) },
+	unshaded() { goto_event(0) },
 	shaded() { goto_event(1) },
 	pass: goto_pass,
 }
@@ -2095,7 +2096,7 @@ function gen_any_event() {
 	if (set_has(single_events, this_card())) {
 		view.actions.event = 1
 	} else {
-		view.actions.event = 1
+		view.actions.unshaded = 1
 		view.actions.shaded = 1
 	}
 }
