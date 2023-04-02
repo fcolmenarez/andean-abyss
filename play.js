@@ -296,7 +296,13 @@ function on_focus_next_event() {
 		ui.status.textContent = data.card_title[c]
 }
 
-function on_focus_event() {
+function on_focus_this_event() {
+	let c = view.deck[0]
+	if (c > 0)
+		ui.status.textContent = data.card_title[c]
+}
+
+function on_focus_unshaded_event() {
 	let c = view.deck[0]
 	if (c > 0) {
 		let f = data.card_flavor[c]
@@ -328,10 +334,12 @@ function init_ui() {
 	register_action(ui.resources[AUC], "resources", AUC)
 	register_action(ui.resources[CARTELS], "resources", CARTELS)
 
-	ui.this_card.onmouseenter = on_focus_event
+	ui.this_card.onmouseenter = on_focus_this_event
 	ui.this_card.onmouseleave = on_blur_event
 	ui.shaded_event.onmouseenter = on_focus_shaded_event
-	ui.shaded_event.onmouseleave = on_focus_event
+	ui.shaded_event.onmouseleave = on_focus_this_event
+	ui.unshaded_event.onmouseenter = on_focus_unshaded_event
+	ui.unshaded_event.onmouseleave = on_focus_this_event
 	ui.next_card.onmouseenter = on_focus_next_event
 	ui.next_card.onmouseleave = on_blur_event
 
@@ -1063,10 +1071,6 @@ function on_update() {
 
 	action_button("support", "Support")
 	action_button("opposition", "Opposition")
-
-	action_button("limop", "LimOp")
-	// action_button("event", "Event")
-	// action_button("shaded", "Shaded")
 
 	action_button("skip", "Skip")
 	action_button("next", "Next")
