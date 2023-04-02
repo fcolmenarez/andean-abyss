@@ -2173,9 +2173,31 @@ function can_govt_train(s) {
 	return can_govt_train_place(s) || can_govt_train_base(s) || can_govt_train_civic(s)
 }
 
+function can_govt_train_base_any() {
+	for (let s = first_city; s <= last_city; ++s)
+		if (can_govt_train_base(s))
+			return true
+	for (let s = first_dept; s <= last_dept; ++s)
+		if (can_govt_train_base(s))
+			return true
+	return false
+}
+
+function can_govt_train_civic_any() {
+	if (game.resources[game.current] < 3)
+		return false
+	for (let s = first_city; s <= last_city; ++s)
+		if (can_govt_train_civic(s))
+			return true
+	for (let s = first_dept; s <= last_dept; ++s)
+		if (can_govt_train_civic(s))
+			return true
+	return false
+}
+
 states.train = {
 	prompt() {
-		view.prompt = "Train: Select City or Department."
+		view.prompt = "Train: Select City or Department to place cubes."
 
 		if (game.sa) {
 			view.actions.air_lift = 1
@@ -2190,7 +2212,10 @@ states.train = {
 						gen_action_space(s)
 		}
 
-		view.actions.next = 1
+		if (game.op.spaces.length > 0 || can_govt_train_base_any() || can_govt_train_civic_any())
+			view.actions.next = 1
+		else
+			view.actions.next = 0
 	},
 	space(s) {
 		push_undo()
@@ -2245,9 +2270,12 @@ states.train_base_or_civic = {
 	prompt() {
 		view.prompt = "Train: Build Base or buy Civic Action in one selected space?"
 
-		view.actions.base = 1
+		if (can_govt_train_base_any())
+			view.actions.base = 1
+		else
+			view.actions.base = 0
 
-		if (game.resources[game.current] >= 3)
+		if (can_govt_train_civic_any())
 			view.actions.civic = 1
 		else
 			view.actions.civic = 0
@@ -2301,6 +2329,7 @@ states.train_base = {
 			remove_piece(p)
 		else
 			place_piece(p, game.op.where)
+		// TODO: auto_place BASE
 		--game.op.count
 	},
 	end_train: end_operation,
@@ -2684,13 +2713,17 @@ function vm_free_sweep_farc() {
 	do_sweep_activate()
 }
 
-function can_sweep_move(here) {
+function can_sweep_select(here) {
 	if (has_piece(here, GOVT, TROOPS) || has_piece(here, GOVT, POLICE))
 		return true
-
 	if (is_dept(here) && has_momentum(MOM_MADRID_DONORS))
 		return false
+	return can_sweep_move_cubes(here)
+}
 
+function can_sweep_move_cubes(here) {
+	if (!can_stack_any(here, GOVT))
+		return false
 	let ndsc = has_capability(CAP_NDSC)
 	for (let next of data.spaces[here].adjacent) {
 		if (!is_selected_op_space(next)) {
@@ -2715,8 +2748,9 @@ function can_sweep_move(here) {
 	return false
 }
 
-function gen_sweep_move(here) {
-	// TODO: only unmoved pieces (can't move twice)
+function gen_sweep_move_cubes(here) {
+	if (!can_stack_any(here, GOVT))
+		return
 	for (let next of data.spaces[here].adjacent) {
 		if (!is_selected_op_space(next)) {
 			if (game.op.ndsc)
@@ -2751,9 +2785,7 @@ states.sweep = {
 			for (let s = first_space; s <= last_dept; ++s) {
 				if (is_selected_op_space(s))
 					continue
-				if (is_farc_zone(s))
-					continue
-				if (can_sweep_move(s))
+				if (can_sweep_select(s))
 					gen_action_space(s)
 			}
 		}
@@ -2793,7 +2825,7 @@ states.sweep_move = {
 
 		gen_govt_special_activity()
 
-		gen_sweep_move(game.op.where)
+		gen_sweep_move_cubes(game.op.where)
 
 		view.actions.next = 1
 		view.actions.end_sweep = 0
@@ -3162,7 +3194,9 @@ states.rally = {
 					if (game.support[s] < 0)
 						continue
 
-				gen_action_space(s)
+				// Check Ecuador/Panama
+				if (is_space(s))
+					gen_action_space(s)
 			}
 		}
 
@@ -3209,7 +3243,8 @@ states.rally_space = {
 		view.actions.end_rally = 0
 
 		if (game.op.count > 0)
-			gen_place_piece(game.op.where, game.current, GUERRILLA)
+			if (can_stack_piece(s, game.current, GUERRILLA))
+				gen_place_piece(game.op.where, game.current, GUERRILLA)
 	},
 	piece(p) {
 		place_piece(p, game.op.where)
@@ -3257,6 +3292,7 @@ states.rally_base = {
 		if (game.op.count > 0) {
 			remove_piece(p)
 			--game.op.count
+			// TODO: auto_place BASE
 		} else {
 			place_piece(p, game.op.where)
 			resume_rally()
@@ -3273,7 +3309,8 @@ states.rally_move = {
 
 		for_each_piece(game.current, GUERRILLA, p => {
 			if (piece_space(p) !== game.op.where && piece_space(p) >= 0)
-				gen_action_piece(p)
+				if (can_stack_any(game.op.where, game.current))
+					gen_action_piece(p)
 		})
 
 		view.actions.flip = 1
@@ -3314,9 +3351,10 @@ function vm_free_march() {
 }
 
 function can_march_to(to) {
-	for (let from of data.spaces[to].adjacent)
-		if (has_piece(from, game.current, GUERRILLA))
-			return true
+	if (can_stack_any(to, game.current))
+		for (let from of data.spaces[to].adjacent)
+			if (has_piece(from, game.current, GUERRILLA))
+				return true
 	return false
 }
 
@@ -3414,7 +3452,8 @@ states.march_move = {
 
 			let s = piece_space(p)
 			if (is_adjacent(game.op.where, s))
-				gen_action_piece(p)
+				if (can_stack_any(game.op.where, game.current))
+					gen_action_piece(p)
 		})
 
 		if (game.op.march.length > 0)
@@ -3527,7 +3566,7 @@ states.attack_space = {
 		let die = random(6) + 1
 		log("Rolled " + die + ".")
 
-		if (die === 1) {
+		if (die === 1 && can_stack_any(game.op.where, game.current)) {
 			game.state = "attack_place"
 		} else if (die <= count_pieces(game.op.where, game.current, GUERRILLA)) {
 			game.state = "attack_remove"
@@ -3846,7 +3885,7 @@ states.air_lift_to = {
 		view.where = game.sa.from
 		let manpad = has_momentum(MOM_MISIL_ANTIAEREO)
 		for (let s = first_space; s <= last_space; ++s)
-			if (s !== game.sa.from && !is_farc_zone(s))
+			if (s !== game.sa.from && can_stack_any(s, GOVT))
 				if (!manpad || !has_any_guerrilla(s))
 					gen_action_space(s)
 	},
@@ -3868,7 +3907,7 @@ states.air_lift_move = {
 	piece(p) {
 		push_undo()
 		move_piece(p, game.sa.to)
-		if (--game.sa.count === 0 || count_cubes(game.sa.from) === 0)
+		if (--game.sa.count === 0 || count_cubes(game.sa.from) === 0 || !can_stack_any(game.sa.to))
 			end_special_activity()
 	},
 	end_air_lift() {
@@ -3925,6 +3964,7 @@ function goto_eradicate() {
 		save: game.state,
 		where: -1,
 	}
+	// TODO: automatic aid +4?
 	game.state = "eradicate_aid"
 }
 
@@ -3987,7 +4027,7 @@ function can_eradicate_shift() {
 	for (let s of data.spaces[game.sa.where].adjacent)
 		if (is_pop(s) && game.support[s] > -2)
 			return true
-	return has_piece(AVAILABLE, FARC, GUERRILLA)
+	return can_place_piece(game.sa.where, FARC, GUERRILLA)
 }
 
 states.eradicate_shift = {
@@ -4051,6 +4091,12 @@ states.ambush = {
 	piece(p) {
 		set_active(p)
 		game.state = "attack_place"
+		if (can_stack_any(game.op.where, game.current)) {
+			game.state = "attack_place"
+		} else {
+			game.state = "attack_remove"
+			game.op.count = 2
+		}
 	}
 }
 
