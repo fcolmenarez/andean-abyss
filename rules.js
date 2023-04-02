@@ -181,6 +181,7 @@ exports.scenarios = [
 	"2P Standard",
 	"2P Short",
 	"2P Quick",
+	"Test",
 ]
 
 function load_game(state) {
@@ -282,6 +283,13 @@ exports.setup = function (seed, scenario, options) {
 			setup_deck(4, 10, 5)
 		else
 			setup_deck(4, 0, 15)
+	}
+
+	if (scenario === "Test") {
+		game.deck = []
+		for (let i = 1; i < PROPAGANDA; ++i)
+			if (i !== 1 && i !== 2 && i !== 3 && i !== 7 && i !== 9 && i !== 10 && i !== 11 && i !== 13)
+				game.deck.push(i)
 	}
 
 	log("DECK " + game.deck.join(", "))
@@ -5304,8 +5312,6 @@ function end_event() {
 	game.vm = null
 	resume_event_card()
 }
-
-// EVENT VM
 
 function is_piece_in_event_space(p) {
 	return piece_space(p) === game.vm.s
