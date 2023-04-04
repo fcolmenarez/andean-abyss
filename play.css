@@ -352,27 +352,28 @@ path.tip { stroke: yellow; }
 }
 
 #this_card { position: relative; }
-#shaded_event, #unshaded_event { display: none; }
-#shaded_event.action, #unshaded_event.action { display: block; }
 
 #this_card.c #shaded_event { border-top-color: transparent; }
 #this_card.c #unshaded_event { border-image: radial-gradient(100px 30px at bottom, transparent 65%, white) 3 }
 
-#unshaded_event {
+#unshaded_event, #shaded_event {
+	display: none;
 	position: absolute;
 	box-sizing: border-box;
-	//border-radius: 8px;
 	border: 3px solid white;
+}
+
+#shaded_event.action, #unshaded_event.action {
+	display: block;
+}
+
+#unshaded_event {
 	left: 13px;
 	right: 13px;
 	top: 186px;
 }
 
 #shaded_event {
-	position: absolute;
-	box-sizing: border-box;
-	//border-radius: 8px;
-	border: 3px solid white;
 	left: 19px;
 	right: 19px;
 	bottom: 23px;

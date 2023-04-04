@@ -1072,6 +1072,7 @@ function on_update() {
 	action_button("support", "Support")
 	action_button("opposition", "Opposition")
 
+	action_button("roll", "Roll")
 	action_button("skip", "Skip")
 	action_button("next", "Next")
 	action_button("pass", "Pass")

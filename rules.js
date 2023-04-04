@@ -111,6 +111,14 @@ const NEUTRAL = 0
 const PASSIVE_OPPOSITION = -1
 const ACTIVE_OPPOSITION = -2
 
+const support_level_name = {
+	[-2]: "Active Opposition",
+	[-1]: "Passive Opposition",
+	[0]: "Neutral",
+	[1]: "Passive Support",
+	[2]: "Active Support"
+}
+
 const SAMPER = 1
 const PASTRANA = 2
 const URIBE = 3
@@ -292,6 +300,7 @@ exports.setup = function (seed, scenario, options) {
 				game.deck.push(i)
 	}
 
+	game.deck[0]=15
 	log("DECK " + game.deck.join(", "))
 
 	update_control()
@@ -2045,8 +2054,8 @@ states.eligible = {
 }
 
 function end_operation() {
-	push_undo()
 	if (game.op.ship && is_any_shipment_held()) {
+		push_undo()
 		game.state = "ship"
 	} else {
 		game.op = null
@@ -2809,11 +2818,17 @@ states.sweep = {
 
 		select_op_space(s, cost)
 
-		game.state = "sweep_move"
 		game.op.where = s
 
 		if (has_capability(CAP_NDSC))
 			game.op.ndsc = 1
+
+		// TODO: skip directly to assault if move is not possible?
+		game.state = "sweep_move"
+		// if (can_sweep_move_cubes(s))
+		//	game.state = "sweep_move"
+		// else
+		//	do_sweep_activate()
 	},
 	end_sweep: end_operation,
 }
@@ -3243,7 +3258,7 @@ states.rally_space = {
 		view.actions.end_rally = 0
 
 		if (game.op.count > 0)
-			if (can_stack_piece(s, game.current, GUERRILLA))
+			if (can_stack_piece(game.op.where, game.current, GUERRILLA))
 				gen_place_piece(game.op.where, game.current, GUERRILLA)
 	},
 	piece(p) {
@@ -3754,7 +3769,8 @@ function do_terror_piece(p) {
 	if (game.sa && game.sa.kidnap) {
 		resume_kidnap_2()
 	} else if (game.vm) {
-		game.vm.m++
+		if (game.current === AUC)
+			game.vm.m++
 		end_operation()
 	} else {
 		game.state = "terror"
@@ -3776,7 +3792,7 @@ states.terror_aid_cut = {
 }
 
 function vm_terror_aid_cut() {
-	if (game.vm.m > 0)
+	if (game.current === AUC && game.vm.m > 0)
 		game.state = "vm_terror_aid_cut"
 	else
 		vm_next()
@@ -5474,8 +5490,19 @@ function vm_endwhile() {
 
 
 function vm_prompt() {
+	if (game.vm.prompt)
+		game.vm._prompt = game.vm.prompt
 	game.vm.prompt = game.vm.pc
 	vm_next()
+}
+
+function pop_vm_prompt() {
+	if (game.vm._prompt) {
+		game.vm.prompt = game.vm._prompt
+		delete game.vm._prompt
+	} else {
+		game.vm.prompt = 0
+	}
 }
 
 function vm_log() {
@@ -5588,50 +5615,74 @@ function vm_underground() {
 	vm_next()
 }
 
+function log_support_shift(s) {
+	log("S" + s + " to " + support_level_name[game.support[s]] + ".")
+}
+
 function vm_set_neutral() {
 	game.support[game.vm.s] = NEUTRAL
+	log_support_shift(game.vm.s)
 	vm_next()
 }
 
 function vm_set_active_support() {
 	game.support[game.vm.s] = ACTIVE_SUPPORT
+	log_support_shift(game.vm.s)
 	vm_next()
 }
 
 function vm_set_passive_support() {
 	game.support[game.vm.s] = PASSIVE_SUPPORT
+	log_support_shift(game.vm.s)
 	vm_next()
 }
 
 function vm_set_active_opposition() {
 	game.support[game.vm.s] = ACTIVE_OPPOSITION
+	log_support_shift(game.vm.s)
 	vm_next()
 }
 
 function vm_set_passive_opposition() {
 	game.support[game.vm.s] = PASSIVE_OPPOSITION
+	log_support_shift(game.vm.s)
 	vm_next()
 }
 
 function vm_shift_support() {
-	if (game.support[game.vm.s] < 2)
+	log("S" + game.vm.s + " to Passive Opposition.")
+	if (game.support[game.vm.s] < 2) {
 		game.support[game.vm.s] ++
+		log_support_shift(game.vm.s)
+	}
 	vm_next()
 }
 
 function vm_shift_opposition() {
-	if (game.support[game.vm.s] > -2)
+	if (game.support[game.vm.s] > -2) {
 		game.support[game.vm.s] --
+		log_support_shift(game.vm.s)
+	}
 	vm_next()
 }
 
 // VM: SIMPLE USER ACTIONS
 
 function vm_roll() {
-	// TODO: pause for button "Roll" ?
-	game.vm.die = random(6) + 1
-	log("Rolled " + game.vm.m + ".")
-	vm_next()
+	game.state = "vm_roll"
+}
+
+states.vm_roll = {
+	prompt() {
+		event_prompt("Roll a die.")
+		view.actions.roll = 1
+	},
+	roll() {
+		clear_undo()
+		game.vm.die = random(6) + 1
+		log("Rolled " + game.vm.die + ".")
+		vm_next()
+	},
 }
 
 function vm_current() {
@@ -5806,6 +5857,7 @@ function vm_space() {
 	if (can_vm_space()) {
 		game.state = "vm_space"
 	} else {
+		pop_vm_prompt()
 		game.vm.ss = []
 		game.vm.s = -1
 		vm_goto(vm_endspace, vm_space, 1, 1)
@@ -5861,6 +5913,7 @@ function vm_piece() {
 	if (can_vm_piece()) {
 		game.state = "vm_piece"
 	} else {
+		pop_vm_prompt()
 		game.vm.pp = []
 		game.vm.p = -1
 		vm_goto(vm_endpiece, vm_piece, 1, 1)
@@ -5914,10 +5967,12 @@ states.vm_piece = {
 // VM: SHIPMENT ITERATOR
 
 function vm_shipment() {
-	if (can_vm_shipment())
+	if (can_vm_shipment()) {
 		game.state = "vm_shipment"
-	else
+	} else {
+		pop_vm_prompt()
 		vm_goto(vm_endshipment, vm_shipment, 1, 1)
+	}
 }
 
 function vm_endshipment() {
@@ -6582,6 +6637,7 @@ function clear_undo() {
 }
 
 function push_undo() {
+try{throw new Error("push_undo")}catch(e){console.log(e)}
 	let copy = {}
 	for (let k in game) {
 		let v = game[k]
@@ -6999,7 +7055,7 @@ const CODE = [
 	[ vm_resources, GOVT, ()=>(game.vm.die*4) ],
 	[ vm_return ],
 // SHADED 15
-	[ vm_space, 1, 0, 1, (s)=>is_city() && (is_neutral(s) || is_passive_support(s)) ],
+	[ vm_space, 1, 0, 1, (s)=>is_city(s) && (is_neutral(s) || is_passive_support(s)) ],
 	[ vm_set_passive_opposition ],
 	[ vm_endspace ],
 	[ vm_return ],
@@ -7666,10 +7722,13 @@ const CODE = [
 	[ vm_return ],
 // EVENT 63
 	[ vm_current, CARTELS ],
+	[ vm_prompt, "In each space with Cartels Guerrillas." ],
 	[ vm_space, 1, 0, 0, (s)=>has_cartels_guerrilla(s) ],
+	[ vm_prompt, "Remove all but one Cartels Guerrilla." ],
 	[ vm_piece, 0, 0, 0, (p,s)=>is_piece_in_event_space(p) && is_cartels_guerrilla(p) && count_pieces(s, CARTELS, GUERRILLA) > 1 ],
 	[ vm_remove ],
 	[ vm_endpiece ],
+	[ vm_prompt, "Free Terror with remaining Cartels Guerrilla." ],
 	[ vm_piece, 0, 0, 1, (p,s)=>is_piece_in_event_space(p) && is_cartels_guerrilla(p) ],
 	[ vm_free_terror ],
 	[ vm_endpiece ],
@@ -7818,5 +7877,5 @@ const CODE = [
 	[ vm_endif ],
 	[ vm_return ],
 ]
-const UCODE = [0,1,7,13,19,29,65,79,85,92,98,104,110,116,122,139,146,153,159,166,176,189,199,206,222,236,248,258,266,279,293,303,314,320,332,341,354,364,377,389,402,424,436,445,459,469,480,497,521,534,543,560,574,583,599,613,627,636,651,664,684,699,710,718,730,744,749,757,762,782,811,825,838]
-const SCODE = [0,4,10,16,24,59,70,82,90,95,101,107,113,119,130,142,151,156,162,0,183,194,203,215,227,242,253,263,272,287,300,310,318,326,334,349,0,369,383,394,409,431,441,453,464,473,0,504,530,538,554,569,578,0,0,622,629,643,656,672,691,706,714,0,735,0,753,759,777,0,816,832,845]
+const UCODE = [0,1,7,13,19,29,65,79,85,92,98,104,110,116,122,139,146,153,159,166,176,189,199,206,222,236,248,258,266,279,293,303,314,320,332,341,354,364,377,389,402,424,436,445,459,469,480,497,521,534,543,560,574,583,599,613,627,636,651,664,684,699,710,718,733,747,752,760,765,785,814,828,841]
+const SCODE = [0,4,10,16,24,59,70,82,90,95,101,107,113,119,130,142,151,156,162,0,183,194,203,215,227,242,253,263,272,287,300,310,318,326,334,349,0,369,383,394,409,431,441,453,464,473,0,504,530,538,554,569,578,0,0,622,629,643,656,672,691,706,714,0,738,0,756,762,780,0,819,835,848]

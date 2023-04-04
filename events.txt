@@ -174,7 +174,7 @@ EVENT 15
 	resources GOVT (game.vm.die*4)
 
 SHADED 15
-	space 1 is_city() && (is_neutral(s) || is_passive_support(s))
+	space 1 is_city(s) && (is_neutral(s) || is_passive_support(s))
 		set_passive_opposition
 	endspace
 
@@ -851,10 +851,12 @@ SHADED 62
 EVENT 63
 	current CARTELS
 	space 0 has_cartels_guerrilla(s)
-		piece 0 is_piece_in_event_space(p) && is_cartels_guerrilla(p) && count_pieces(s, CARTELS, GUERRILLA) > 1
+		prompt "Remove all but one Cartels Guerrilla."
+		piece_no_undo 0 is_piece_in_event_space(p) && is_cartels_guerrilla(p) && count_pieces(s, CARTELS, GUERRILLA) > 1
 			remove
 		endpiece
-		piece 1 is_piece_in_event_space(p) && is_cartels_guerrilla(p)
+		prompt "Free Terror with remaining Cartels Guerrilla."
+		piece_no_undo 1 is_piece_in_event_space(p) && is_cartels_guerrilla(p)
 			free_terror
 		endpiece
 	endspace
