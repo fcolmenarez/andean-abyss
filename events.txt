@@ -307,7 +307,7 @@ EVENT 26
 	current CARTELS
 	prompt "All Cartels Guerrillas free Attack FARC."
 	space 0 has_cartels_guerrilla(s) && has_farc_piece(s)
-		free_attack
+		free_attack_farc
 	endspace
 
 SHADED 26
@@ -330,7 +330,8 @@ SHADED 27
 EVENT 28
 	prompt "Remove up to 3 Insurgent pieces from a space next to Venezuela."
 	space 1 is_next_to_venezuela(s) && has_insurgent_piece(s)
-		# TODO: maximum damage?
+		# Note: up to negates requirement for maxiumum damage
+		prompt "Remove up to 3 Insurgent pieces."
 		piece_opt 3 is_piece_in_event_space(p) && is_insurgent_piece(p)
 			remove
 		endpiece
@@ -349,8 +350,8 @@ SHADED 28
 EVENT 29
 	current GOVT
 	prompt "Activate all FARC and free Assault in 1 space."
-	# TODO: only in spaces where can assault?
-	space 1 has_farc_piece(s)
+	# TODO: Madrid Donors, Senado & Camara, etc
+	space 1 has_underground_guerrilla(s, FARC) || ( assault_kill_count(s) > 0 && (has_farc_piece(s) || has_exposed_piece(s, AUC) || has_exposed_piece(s, CARTELS)) )
 		prompt "Activate all FARC."
 		piece 0 is_piece_in_event_space(p) && is_farc_guerrilla(p) && is_underground(p)
 			activate
@@ -360,13 +361,15 @@ EVENT 29
 
 SHADED 29
 	current [FARC,AUC]
-	# TODO: pick 2 separate spaces?
-	# TODO: pick 2 separate pieces?
-	prompt "Execute 2 free Ambushes with any Guerrilla without Activating."
-	piece_undo 2 is_piece(p, game.current, GUERRILLA) && has_enemy_piece(s)
-		free_ambush
-		underground
-	endpiece
+	prompt "Execute 2 free Ambushes in 1 space."
+	space 1 has_piece(s, game.current, GUERRILLA) && has_enemy_piece(s)
+		repeat 2
+			prompt "Execute 2 free Ambushes with any Guerrillas without Activating."
+			piece_undo 1 is_piece_in_event_space(p) && is_piece(p, game.current, GUERRILLA) && has_enemy_piece(s)
+				free_ambush_without_activating
+			endpiece
+		endrepeat
+	endspace
 
 EVENT 30
 	prompt "Remove 1 FARC Zone and 1 FARC Base there."

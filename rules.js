@@ -3045,27 +3045,28 @@ function has_assault_target(s, target) {
 		return has_piece(s, CARTELS, BASE)
 	}
 
+	// TODO: which has precedence - Madrid Donors (no assault in dept) vs High Mtn Bns (dept is city) ?
 	// Card 17: Madrid Donors - no Assault in Depts
 	// Card 9: Assault treats Mountain as City
 	let dept = is_dept(s)
 	if (is_mountain(s) && has_capability(CAP_MTN_BNS))
 		dept = false
-
 	if (dept && has_momentum(MOM_MADRID_DONORS))
 		return false
 
 	for (let faction = 1; faction < 4; ++faction) {
 		if (game.senado === faction)
 			continue
-		if (has_piece(s, faction, GUERRILLA)) {
-			if (has_active_guerrilla(s, faction))
-				return true
-		} else {
-			if (has_piece(s, faction, BASE))
-				return true
-		}
+		if (has_exposed_piece(s, faction))
+			return true
 	}
 	return false
+}
+
+function has_exposed_piece(s, faction) {
+	if (has_piece(s, faction, GUERRILLA))
+		return has_active_guerrilla(s, faction)
+	return has_piece(s, faction, BASE)
 }
 
 function gen_exposed_piece(s, faction) {
@@ -3560,6 +3561,19 @@ function vm_free_attack() {
 	do_attack_space(game.vm.s)
 }
 
+function vm_free_attack_farc() {
+	init_free_operation("Attack")
+	game.op.spaces = []
+	game.op.faction = FARC
+	do_attack_space(game.vm.s)
+}
+
+function has_attack_target(s) {
+	if (game.op.faction)
+		return has_piece(s, game.current, GUERRILLA) && has_faction_piece(s, game.op.faction)
+	return has_piece(s, game.current, GUERRILLA) && has_enemy_piece(s, game.current)
+}
+
 function can_attack(s) {
 	return has_piece(s, game.current, GUERRILLA) && has_enemy_piece(s, game.current)
 }
@@ -3637,7 +3651,10 @@ states.attack_space = {
 
 		if (die === 1 && can_stack_any(game.op.where, game.current)) {
 			game.state = "attack_place"
-		} else if (die <= count_pieces(game.op.where, game.current, GUERRILLA)) {
+		} else if (
+			die <= count_pieces(game.op.where, game.current, GUERRILLA) &&
+			has_attack_target(game.op.where)
+		) {
 			game.state = "attack_remove"
 			game.op.count = 2
 		} else {
@@ -3673,13 +3690,17 @@ states.attack_remove = {
 		view.prompt = `Attack in ${space_name[game.op.where]}: Remove ${game.op.count} enemy pieces.`
 		view.where = game.op.where
 
-		gen_attack_piece(game.op.where, GOVT)
-		if (game.current !== FARC)
-			gen_attack_piece(game.op.where, FARC)
-		if (game.current !== AUC)
-			gen_attack_piece(game.op.where, AUC)
-		if (game.current !== CARTELS)
-			gen_attack_piece(game.op.where, CARTELS)
+		if (game.op.faction) {
+			gen_attack_piece(game.op.where, game.op.faction)
+		} else {
+			gen_attack_piece(game.op.where, GOVT)
+			if (game.current !== FARC)
+				gen_attack_piece(game.op.where, FARC)
+			if (game.current !== AUC)
+				gen_attack_piece(game.op.where, AUC)
+			if (game.current !== CARTELS)
+				gen_attack_piece(game.op.where, CARTELS)
+		}
 
 		if (did_maximum_damage(game.op.targeted))
 			view.actions.next = 1
@@ -3691,7 +3712,7 @@ states.attack_remove = {
 		game.op.targeted |= target_faction(p)
 		remove_piece(p)
 
-		if (--game.op.count === 0 || !has_enemy_piece(game.op.where)) {
+		if (--game.op.count === 0 || !has_attack_target(game.op.where)) {
 			do_attack_next()
 			transfer_or_remove_shipments()
 		}
@@ -4146,6 +4167,12 @@ function vm_free_ambush() {
 	init_free_operation("Attack")
 	game.state = "attack_place"
 	set_active(game.vm.p)
+	game.op.where = piece_space(game.vm.p)
+}
+
+function vm_free_ambush_without_activating() {
+	init_free_operation("Attack")
+	game.state = "attack_place"
 	game.op.where = piece_space(game.vm.p)
 }
 
@@ -7270,7 +7297,7 @@ const CODE = [
 	[ vm_current, CARTELS ],
 	[ vm_prompt, "All Cartels Guerrillas free Attack FARC." ],
 	[ vm_space, 1, 0, 0, (s)=>has_cartels_guerrilla(s) && has_farc_piece(s) ],
-	[ vm_free_attack ],
+	[ vm_free_attack_farc ],
 	[ vm_endspace ],
 	[ vm_return ],
 // SHADED 26
@@ -7292,6 +7319,7 @@ const CODE = [
 // EVENT 28
 	[ vm_prompt, "Remove up to 3 Insurgent pieces from a space next to Venezuela." ],
 	[ vm_space, 1, 0, 1, (s)=>is_next_to_venezuela(s) && has_insurgent_piece(s) ],
+	[ vm_prompt, "Remove up to 3 Insurgent pieces." ],
 	[ vm_piece, 0, 1, 3, (p,s)=>is_piece_in_event_space(p) && is_insurgent_piece(p) ],
 	[ vm_remove ],
 	[ vm_endpiece ],
@@ -7310,7 +7338,7 @@ const CODE = [
 // EVENT 29
 	[ vm_current, GOVT ],
 	[ vm_prompt, "Activate all FARC and free Assault in 1 space." ],
-	[ vm_space, 1, 0, 1, (s)=>has_farc_piece(s) ],
+	[ vm_space, 1, 0, 1, (s)=>has_underground_guerrilla(s, FARC) || ( assault_kill_count(s) > 0 && (has_farc_piece(s) || has_exposed_piece(s, AUC) || has_exposed_piece(s, CARTELS)) ) ],
 	[ vm_prompt, "Activate all FARC." ],
 	[ vm_piece, 0, 0, 0, (p,s)=>is_piece_in_event_space(p) && is_farc_guerrilla(p) && is_underground(p) ],
 	[ vm_activate ],
@@ -7320,11 +7348,15 @@ const CODE = [
 	[ vm_return ],
 // SHADED 29
 	[ vm_current, [FARC,AUC] ],
-	[ vm_prompt, "Execute 2 free Ambushes with any Guerrilla without Activating." ],
-	[ vm_piece, 1, 0, 2, (p,s)=>is_piece(p, game.current, GUERRILLA) && has_enemy_piece(s) ],
-	[ vm_free_ambush ],
-	[ vm_underground ],
+	[ vm_prompt, "Execute 2 free Ambushes in 1 space." ],
+	[ vm_space, 1, 0, 1, (s)=>has_piece(s, game.current, GUERRILLA) && has_enemy_piece(s) ],
+	[ vm_repeat, 2 ],
+	[ vm_prompt, "Execute 2 free Ambushes with any Guerrillas without Activating." ],
+	[ vm_piece, 1, 0, 1, (p,s)=>is_piece_in_event_space(p) && is_piece(p, game.current, GUERRILLA) && has_enemy_piece(s) ],
+	[ vm_free_ambush_without_activating ],
 	[ vm_endpiece ],
+	[ vm_endrepeat ],
+	[ vm_endspace ],
 	[ vm_return ],
 // EVENT 30
 	[ vm_prompt, "Remove 1 FARC Zone and 1 FARC Base there." ],
@@ -7975,5 +8007,5 @@ const CODE = [
 	[ vm_endif ],
 	[ vm_return ],
 ]
-const UCODE = [0,1,7,13,19,29,47,61,67,74,80,86,92,98,104,125,133,140,146,153,165,181,193,201,221,239,254,265,273,289,306,318,332,339,351,361,374,384,397,409,422,444,456,465,479,489,500,517,541,554,563,580,594,603,619,633,647,656,671,684,704,719,730,738,752,766,771,779,784,804,833,847,859]
-const SCODE = [0,4,10,16,24,41,52,64,72,77,83,89,95,101,113,128,138,143,149,0,174,187,198,213,227,247,260,270,280,299,315,327,337,346,353,369,0,389,403,414,429,451,461,473,484,493,0,524,550,558,574,589,598,0,0,642,649,663,676,692,711,726,734,0,757,0,775,781,799,0,838,854,866]
+const UCODE = [0,1,7,13,19,29,47,61,67,74,80,86,92,98,104,125,133,140,146,153,165,181,193,201,221,239,254,265,273,290,311,323,337,344,356,366,379,389,402,414,427,449,461,470,484,494,505,522,546,559,568,585,599,608,624,638,652,661,676,689,709,724,735,743,757,771,776,784,789,809,838,852,864]
+const SCODE = [0,4,10,16,24,41,52,64,72,77,83,89,95,101,113,128,138,143,149,0,174,187,198,213,227,247,260,270,281,300,320,332,342,351,358,374,0,394,408,419,434,456,466,478,489,498,0,529,555,563,579,594,603,0,0,647,654,668,681,697,716,731,739,0,762,0,780,786,804,0,843,859,871]
