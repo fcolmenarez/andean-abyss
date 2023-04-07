@@ -1,7 +1,7 @@
 # Events for Andean Abyss.
 
 EVENT 1
-	log "1 Civic Action space each Support Phase requires Govt Control and any cube."
+	log "1 Civic Action space each Support Phase requires Government Control and any cube."
 	capability CAP_1ST_DIV
 
 SHADED 1
@@ -73,7 +73,7 @@ SHADED 6
 	endspace
 
 EVENT 7
-	log "Each Sabotage phase, Govt may remove 1-3 Terror or Sabotage."
+	log "Each Sabotage phase, Government may remove 1-3 Terror or Sabotage."
 	capability CAP_7TH_SF
 
 SHADED 7
@@ -177,7 +177,7 @@ EVENT 17
 	aid 6
 
 SHADED 17
-	log "No Sweep or Assault in Depts until next Propaganda."
+	log "No Sweep or Assault in Departments until next Propaganda."
 	momentum MOM_MADRID_DONORS
 
 EVENT 18
@@ -192,7 +192,7 @@ SHADED 18
 EVENT 19
 	if game.current === GOVT
 		prompt "Free Sweep or Assault in each space possible."
-		space 0 can_sweep_without_movement(s) || can_assault_any(s)
+		space 0 can_sweep_activate(s) || can_assault_any(s)
 			free_sweep_assault
 		endspace
 	else
@@ -241,7 +241,7 @@ EVENT 22
 	endspace
 
 SHADED 22
-	log "May Agitate also in up to 3 spaces with FARC piece and no Govt Control."
+	log "May Agitate also in up to 3 spaces with FARC piece and no Government Control."
 	momentum MOM_ALFONSO_CANO
 
 EVENT 23
@@ -324,7 +324,7 @@ EVENT 27
 	free_govt_special_activity
 
 SHADED 27
-	log "Until next Propaganda, no Govt Special Activities where Guerrilla."
+	log "Until next Propaganda, no Government Special Activities where Guerrilla."
 	momentum MOM_MISIL_ANTIAEREO
 
 EVENT 28
@@ -386,11 +386,11 @@ SHADED 30
 	place_farc_zone
 
 EVENT 31
-	prompt "Shift 2 Cities toward Active Support."
+	prompt "Shift 2 Cities 1 level toward Active Support."
 	space 2 is_city(s) && can_shift_support(s)
 		shift_support
 	endspace
-	prompt "Shift 1 Department toward Active Support."
+	prompt "Shift 1 Department 1 level toward Active Support."
 	space 1 is_dept(s) && can_shift_support(s)
 		shift_support
 	endspace
@@ -443,7 +443,9 @@ SHADED 34
 	endspace
 
 EVENT 35
-	space 1 is_dept(s)
+	prompt "Replace Cartels Bases in 1 Department with Police."
+	space 1 is_dept(s) && has_cartels_base(s)
+		prompt "Replace Cartels Bases with Police."
 		piece 0 is_piece_in_event_space(p) && is_cartels_base(p)
 			remove
 			auto_place GOVT POLICE
@@ -452,7 +454,8 @@ EVENT 35
 	aid 3
 
 SHADED 35
-	space 1 is_dept(s) && has_cartels_base(s)
+	prompt "Shift a Department with a Cartels Base 2 levels toward Active Opposition."
+	space 1 is_dept(s) && has_cartels_base(s) && can_shift_opposition(s)
 		shift_opposition
 		shift_opposition
 	endspace
@@ -463,35 +466,42 @@ EVENT 36
 	current GOVT
 	place_farc_zone
 	asm game.current = game.vm.m
-	prompt "Shift adjacent spaces toward Active Support."
-	space 2 is_pop(s) && !is_active_support(s) && is_adjacent(game.vm.farc_zone, s)
+	prompt "Shift 2 adjacent spaces 1 level toward Active Support."
+	space 2 is_pop(s) && is_adjacent(game.vm.farc_zone, s) && can_shift_support(s)
 		shift_support
 	endspace
 
 EVENT 37
 	current GOVT
-	space 0 has_cube(s) && has_farc_piece(s)
+	prompt "Free Sweep or Assault FARC within each space; AUC Guerrillas act as Troops."
+	space 0 can_sweep_activate(s, FARC) || can_assault(s, FARC)
 		free_sweep_assault_farc
 	endspace
 
 SHADED 37
 	current AUC
 	free_march
-	space 1 set_has(game.vm.m, s) && has_underground_guerrilla(s, AUC)
+	prompt "Free Ambush at any 1 destination."
+	space 1 set_has(game.vm.m, s) && has_underground_guerrilla(s, AUC) && has_enemy_piece(s)
+		prompt "Free Ambush."
 		piece 1 is_piece_in_event_space(p) && is_auc_guerrilla(p) && is_underground(p)
 			free_ambush
 		endpiece
 	endspace
 
 EVENT 38
+	prompt "Remove all Active AUC Guerrillas from up to 3 spaces with cubes or Support."
 	space_opt 3 (has_cube(s) || is_support(s)) && has_active_guerrilla(s, AUC)
+		prompt "Remove all AUC Guerrillas."
 		piece 0 is_piece_in_event_space(p) && is_active_guerrilla(p, AUC)
 			remove
 		endpiece
 	endspace
 
 SHADED 38
-	space 0 has_cube(s) || is_support(s)
+	prompt "All AUC Guerrillas in spaces with cubes or Support to Underground."
+	space 0 (has_cube(s) || is_support(s)) && has_active_guerrilla(s, AUC)
+		prompt "All AUC Guerrillas to Underground."
 		piece 0 is_piece_in_event_space(p) && is_active_guerrilla(p, AUC)
 			underground
 		endpiece
@@ -499,15 +509,14 @@ SHADED 38
 
 EVENT 39
 	prompt "Place Police into each of 6 Departments."
-	# TODO: can_place
-	space 6 is_dept(s) && !is_farc_zone(s)
+	space 6 is_dept(s) && can_stack_any(s, GOVT) && has_available_piece(GOVT, POLICE)
 		auto_place GOVT POLICE
 	endspace
 
 SHADED 39
-	# UPTO
-	prompt "In up to 3 Depts, replace 1 Police with AUC Guerrilla."
+	prompt "In up to 3 Departments, replace 1 Police with AUC Guerrilla."
 	space_opt 3 is_dept(s) && has_police(s)
+		prompt "Replace 1 Police with AUC Guerrilla."
 		piece 1 is_piece_in_event_space(p) && is_police(p)
 			remove
 			auto_place AUC GUERRILLA
@@ -523,56 +532,64 @@ EVENT 40
 	endpiece
 
 SHADED 40
+	prompt "Move all cubes in a Department with AUC to any Cities."
 	space 1 is_dept(s) && has_auc_piece(s) && has_cube(s)
 		prompt "Move all cubes to any Cities."
 		piece_no_undo 0 is_piece_in_event_space(p) && is_cube(p)
 			save_space
+			prompt "Move cube to any City."
 			space_no_undo 1 is_city(s)
 				move
 			endspace
 			restore_space
 		endpiece
 	endspace
-	prompt "Place AUC pieces in Cities."
+	prompt "Place 1 AUC piece in each of 2 Cities."
 	space 2 is_city(s)
 		place AUC [BASE,GUERRILLA]
 	endspace
 
 EVENT 41
 	resources AUC -6
+	prompt "Remove all AUC pieces from 1 space."
 	space 1 has_auc_piece(s)
+		prompt "Remove all AUC pieces."
 		piece 0 is_piece_in_event_space(p) && is_auc_piece(p)
 			remove
 		endpiece
 	endspace
 
 SHADED 41
-	prompt "Select each space with AUC and Cartels pieces."
+	prompt "AUC Resources +3 for each space with AUC and Cartels pieces."
 	space 0 has_auc_piece(s) && has_cartels_piece(s)
 		auto_resources AUC 3
 	endspace
 
 EVENT 42
+	prompt "Shift 2 Neutral spaces to Passive Support."
 	space 2 is_neutral(s)
 		set_passive_support
 	endspace
 	resources GOVT 3
 
 SHADED 42
-	log (`No Sweep or Assault against ${faction_name[game.current]} until next Propaganda.`)
+	log `No Sweep or Assault against ${faction_name[game.current]} until next Propaganda.`
 	asm game.senado = game.current
 	momentum MOM_SENADO_CAMARA
 
 EVENT 43
+	prompt "Place 2 Terror and remove all FARC Bases from a Department with Troops."
 	space 1 is_dept(s) && has_troops(s)
 		terror
 		terror
+		prompt "Remove all FARC Bases."
 		piece 0 is_piece_in_event_space(p) && is_farc_base(p)
 			remove
 		endpiece
 	endspace
 
 SHADED 43
+	prompt "Place 2 Terror in a Department with Troops."
 	space 1 is_dept(s) && has_troops(s)
 		terror
 		terror
@@ -580,26 +597,30 @@ SHADED 43
 	aid -9
 
 EVENT 44
-	space 1 is_city(s) && !is_opposition(s)
+	prompt "Shift a non-Opposition City to Active Support."
+	space 1 is_city(s) && !is_opposition(s) && can_shift_support(s)
 		set_active_support
 	endspace
 	resources GOVT 3
 
 SHADED 44
+	prompt "Shift a City from Support to Neutral."
 	space 1 is_city(s) && is_support(s)
 		set_neutral
 	endspace
 	resources GOVT -3
 
 EVENT 45
-	space 0 has_cube(s) && has_terror(s)
+	prompt "Shift each space with cubes and Terror 1 level toward Active Support."
+	space 0 has_cube(s) && has_terror(s) && can_shift_support(s)
 		shift_support
 	endspace
 
 SHADED 45
-	prompt "Select each space with AUC pieces."
+	# TODO: sum and manual aid once?
+	prompt "Aid -1 for each space with AUC pieces."
 	space 0 has_auc_piece(s)
-		aid -1
+		auto_aid -1
 	endspace
 	roll
 	resources GOVT (-game.vm.die)
@@ -614,7 +635,7 @@ EVENT 46
 			terror_aid_cut
 		endpiece
 		prompt "Remove enemy pieces."
-		piece 2 is_piece_in_event_space(p) && is_enemy_piece(p)
+		piece_undo 2 is_piece_in_event_space(p) && is_enemy_piece(p)
 			remove
 		endpiece
 		if is_pop(game.vm.s)
@@ -623,12 +644,15 @@ EVENT 46
 	endspace
 
 EVENT 47
+	prompt "All AUC Guerrillas to Active."
 	piece 0 is_auc_guerrilla(p) && is_underground(p)
 		activate
 	endpiece
+	prompt "All Police free Assault AUC as if Troops."
 	space 0 has_police(s) && has_auc_piece(s)
+		# TODO: test this
 		free_assault_auc
-	endpiece
+	endspace
 
 SHADED 47
 	current AUC
@@ -766,7 +790,7 @@ EVENT 55
 	aid 3
 
 SHADED 55
-	prompt "Shift N spaces with Cartels pieces 1 level toward Active Opposition."
+	prompt "Shift 3 spaces with Cartels pieces 1 level toward Active Opposition."
 	space 3 can_shift_opposition(s) && has_cartels_piece(s)
 		shift_opposition
 	endspace
@@ -903,7 +927,7 @@ SHADED 64
 	piece 0 is_cartels_base(p) && is_city(s)
 		auto_resources CARTELS 2
 	endpiece
-	prompt "Select each Cartels Base in a Dept."
+	prompt "Select each Cartels Base in a Department."
 	piece 0 is_cartels_base(p) && is_dept(s)
 		auto_resources CARTELS 1
 	endpiece
