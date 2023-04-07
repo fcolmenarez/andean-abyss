@@ -300,7 +300,6 @@ exports.setup = function (seed, scenario, options) {
 				game.deck.push(i)
 	}
 
-	game.deck[0]=15
 	log("DECK " + game.deck.join(", "))
 
 	update_control()
@@ -716,6 +715,10 @@ function has_faction_piece(s, faction) {
 	return has_piece(s, faction, BASE) || has_piece(s, faction, GUERRILLA)
 }
 
+function has_insurgent_piece(s) {
+	return has_farc_piece(s) || has_auc_piece(s) || has_cartels_piece(s)
+}
+
 function is_empty(s) {
 	return !(
 		has_faction_piece(s, GOVT) ||
@@ -891,6 +894,18 @@ function is_active_opposition(s) {
 	return is_pop(s) && game.support[s] === ACTIVE_OPPOSITION
 }
 
+function can_shift_support(s) {
+	return is_pop(s) && !is_active_support(s)
+}
+
+function can_shift_opposition(s) {
+	return is_pop(s) && !is_active_opposition(s)
+}
+
+function can_shift_neutral(s) {
+	return is_pop(s) && !is_neutral(s)
+}
+
 function is_support(s) {
 	return is_pop(s) && game.support[s] > 0
 }
@@ -941,7 +956,7 @@ function is_possible_farc_zone(s) {
 
 function is_highest_value_pipeline_without_cubes(s) {
 	let max = 0
-	if (has_cube(s))
+	if (!is_pipeline(s) || has_cube(s))
 		return false
 	for (let x = first_loc; x <= last_loc; ++x) {
 		if (is_unsabotaged_pipeline(x) && !has_cube(x)) {
@@ -1314,6 +1329,12 @@ function can_stack_piece(s, faction, type) {
 		return true
 	}
 	return false
+}
+
+function has_available_piece(faction, type) {
+	if (game.current === faction)
+		return true
+	return has_piece(AVAILABLE, faction, type)
 }
 
 function can_place_piece(s, faction, type) {
@@ -2121,6 +2142,7 @@ function is_selected_op_space(s) {
 }
 
 function select_op_space(s, cost) {
+	console.log("game.op", game.op)
 	set_add(game.op.spaces, s)
 	if (!game.op.free)
 		game.resources[game.current] -= cost
@@ -2723,11 +2745,23 @@ function vm_free_sweep_farc() {
 }
 
 function can_sweep_select(here) {
-	if (has_piece(here, GOVT, TROOPS) || has_piece(here, GOVT, POLICE))
-		return true
 	if (is_dept(here) && has_momentum(MOM_MADRID_DONORS))
 		return false
+	if (has_piece(here, GOVT, TROOPS) || has_piece(here, GOVT, POLICE))
+		return true
 	return can_sweep_move_cubes(here)
+}
+
+function can_sweep_without_movement(s) {
+	if (is_dept(s) && has_momentum(MOM_MADRID_DONORS))
+		return false
+	if (has_piece(s, GOVT, TROOPS) || has_piece(s, GOVT, POLICE))
+		return (
+			(game.senado !== FARC && has_underground_guerrilla(s, FARC)) ||
+			(game.senado !== AUC && has_underground_guerrilla(s, AUC)) ||
+			(game.senado !== CARTELS && has_underground_guerrilla(s, CARTELS))
+		)
+	return false
 }
 
 function can_sweep_move_cubes(here) {
@@ -2972,7 +3006,7 @@ function vm_free_assault_cartels() {
 	game.op.count = assault_kill_count(game.vm.s, CARTELS)
 }
 
-function can_assault_any(s, target) {
+function can_assault_any(s) {
 	return can_assault(s, FARC) || can_assault(s, AUC) || can_assault(s, CARTELS)
 }
 
@@ -3002,7 +3036,13 @@ function has_assault_target(s, target) {
 		return has_piece(s, CARTELS, BASE)
 	}
 
-	if (is_dept(s) && has_momentum(MOM_MADRID_DONORS))
+	// Card 17: Madrid Donors - no Assault in Depts
+	// Card 9: Assault treats Mountain as City
+	let dept = is_dept(s)
+	if (is_mountain(s) && has_capability(CAP_MTN_BNS))
+		dept = false
+
+	if (dept && has_momentum(MOM_MADRID_DONORS))
 		return false
 
 	for (let faction = 1; faction < 4; ++faction) {
@@ -3507,7 +3547,12 @@ function goto_attack() {
 
 function vm_free_attack() {
 	init_free_operation("Attack")
+	game.op.spaces = []
 	do_attack_space(game.vm.s)
+}
+
+function can_attack(s) {
+	return has_piece(s, game.current, GUERRILLA) && has_enemy_piece(s, game.current)
 }
 
 states.attack = {
@@ -3524,7 +3569,7 @@ states.attack = {
 			for (let s = first_space; s <= last_space; ++s) {
 				if (is_selected_op_space(s))
 					continue
-				if (has_piece(s, game.current, GUERRILLA) && has_enemy_piece(s, game.current))
+				if (can_attack_any(s))
 					gen_action_space(s)
 			}
 		}
@@ -3557,7 +3602,7 @@ states.attack_space = {
 	prompt() {
 		view.prompt = `Attack in ${space_name[game.op.where]}.`
 		view.where = game.op.where
-		view.actions.resolve = 1
+		view.actions.roll = 1
 		view.actions.end_attack = 0
 
 		// Ambush activity modifies Attack action intead of being a stand-alone activity.
@@ -3569,7 +3614,7 @@ states.attack_space = {
 					view.actions.ambush = 0
 		}
 	},
-	resolve() {
+	roll() {
 		clear_undo()
 
 		for_each_piece(game.current, GUERRILLA, p => {
@@ -3669,6 +3714,10 @@ function vm_free_terror_space() {
 	do_terror_space(game.vm.s)
 }
 
+function can_terror(s) {
+	return has_underground_guerrilla(s, game.current)
+}
+
 states.terror = {
 	prompt() {
 		view.prompt = "Terror: Select space with Underground Guerrilla."
@@ -3694,7 +3743,7 @@ states.terror = {
 			for (let s = first_loc; s <= last_loc; ++s) {
 				if (is_selected_op_space(s))
 					continue
-				if (has_underground_guerrilla(s, game.current))
+				if (can_terror(s))
 					gen_action_space(s)
 			}
 		}
@@ -4245,7 +4294,7 @@ states.kidnap = {
 function transfer_resources(from, to, n) {
 	if (n > game.resources[from])
 		n = game.resources[from]
-	game.resources[from] -= n
+	add_resources(from, -n)
 	add_resources(to, n)
 }
 
@@ -5393,6 +5442,8 @@ function goto_vm(start) {
 }
 
 function event_prompt(str, n0, n) {
+	if (typeof str === "function")
+		str = str()
 	if (n0 === 0) {
 		str = str.replace(/\bN\b/, "each")
 		str = str.replace("(s)", "")
@@ -5488,6 +5539,17 @@ function vm_endwhile() {
 	vm_goto(vm_while, vm_endwhile, -1, 0)
 }
 
+function vm_repeat() {
+	game.vm.n = vm_operand(1)
+	vm_next()
+}
+
+function vm_endrepeat() {
+	if (--game.vm.n === 0)
+		vm_next()
+	else
+		vm_goto(vm_repeat, vm_endrepeat, -1, 1)
+}
 
 function vm_prompt() {
 	if (game.vm.prompt)
@@ -5511,17 +5573,17 @@ function vm_log() {
 }
 
 function vm_momentum() {
-	set_add(game.momentum, this_card())
+	set_add(game.momentum, vm_operand(1))
 	vm_next()
 }
 
 function vm_capability() {
-	set_add(game.capabilities, this_card())
+	set_add(game.capabilities, vm_operand(1))
 	vm_next()
 }
 
 function vm_shaded_capability() {
-	set_add(game.capabilities, -this_card())
+	set_add(game.capabilities, -vm_operand(1))
 	vm_next()
 }
 
@@ -5781,6 +5843,14 @@ states.vm_resources = {
 	},
 }
 
+function vm_auto_transfer() {
+	let from = vm_operand(1)
+	let to = vm_operand(2)
+	let n = vm_operand(3)
+	transfer_resources(from, to, n)
+	vm_next()
+}
+
 function vm_transfer() {
 	game.state = "vm_transfer"
 }
@@ -5883,12 +5953,13 @@ states.vm_space = {
 	prompt() {
 		let n = CODE[game.vm.pc][3]
 		let f = CODE[game.vm.pc][4]
+		view.who = game.vm.p
 		if (game.vm.prompt)
 			event_prompt(CODE[game.vm.prompt][1])
 		else
 			event_prompt("Select space.")
 		for (let s = first_space; s <= last_space; ++s)
-			if (!set_has(game.vm.ss, s) && f(s))
+			if (is_space(s) && !set_has(game.vm.ss, s) && f(s))
 				gen_action_space(s)
 		if (CODE[game.vm.pc][2])
 			view.actions.skip = 1
@@ -6886,30 +6957,30 @@ const CODE = [
 	[ vm_return ],
 // EVENT 1
 	[ vm_log, "1 Civic Action space each Support Phase requires Govt Control and any cube." ],
-	[ vm_capability ],
+	[ vm_capability, CAP_1ST_DIV ],
 	[ vm_return ],
 // SHADED 1
 	[ vm_log, "Civic Action requires at least 2 Troops and 2 Police." ],
-	[ vm_shaded_capability ],
+	[ vm_shaded_capability, CAP_1ST_DIV ],
 	[ vm_return ],
 // EVENT 2
 	[ vm_log, "Sweep costs 1 Resource per space." ],
-	[ vm_capability ],
+	[ vm_capability, CAP_OSPINA ],
 	[ vm_return ],
 // SHADED 2
 	[ vm_log, "Sweep Operations may target only 1 space per card." ],
-	[ vm_shaded_capability ],
+	[ vm_shaded_capability, CAP_OSPINA ],
 	[ vm_return ],
 // EVENT 3
 	[ vm_log, "Assault costs 1 Resource per space." ],
-	[ vm_capability ],
+	[ vm_capability, CAP_TAPIAS ],
 	[ vm_return ],
 // SHADED 3
 	[ vm_log, "Assault Operations may target only 1 space per card." ],
-	[ vm_shaded_capability ],
+	[ vm_shaded_capability, CAP_TAPIAS ],
 	[ vm_return ],
 // EVENT 4
-	[ vm_prompt, "Select unsabotaged pipelines." ],
+	[ vm_prompt, "Add twice Econ of unsabotaged pipelines to Government Resources." ],
 	[ vm_space, 1, 0, 3, (s)=>is_unsabotaged_pipeline(s) ],
 	[ vm_auto_resources, GOVT, ()=>(2*data.spaces[game.vm.s].econ) ],
 	[ vm_endspace ],
@@ -6922,45 +6993,27 @@ const CODE = [
 	[ vm_return ],
 // EVENT 5
 	[ vm_prompt, "Place Police onto Pipelines." ],
-	[ vm_space, 1, 0, 1, (s)=>is_pipeline(s) ],
+	[ vm_repeat, 6 ],
+	[ vm_space, 1, 0, 1, (s)=>is_pipeline(s) && has_available_piece(GOVT, POLICE) ],
 	[ vm_auto_place, 0, 0, GOVT, POLICE ],
 	[ vm_mark_space ],
 	[ vm_endspace ],
-	[ vm_space, 1, 0, 1, (s)=>is_pipeline(s) ],
-	[ vm_auto_place, 0, 0, GOVT, POLICE ],
-	[ vm_mark_space ],
-	[ vm_endspace ],
-	[ vm_space, 1, 0, 1, (s)=>is_pipeline(s) ],
-	[ vm_auto_place, 0, 0, GOVT, POLICE ],
-	[ vm_mark_space ],
-	[ vm_endspace ],
-	[ vm_space, 1, 0, 1, (s)=>is_pipeline(s) ],
-	[ vm_auto_place, 0, 0, GOVT, POLICE ],
-	[ vm_mark_space ],
-	[ vm_endspace ],
-	[ vm_space, 1, 0, 1, (s)=>is_pipeline(s) ],
-	[ vm_auto_place, 0, 0, GOVT, POLICE ],
-	[ vm_mark_space ],
-	[ vm_endspace ],
-	[ vm_space, 1, 0, 1, (s)=>is_pipeline(s) ],
-	[ vm_auto_place, 0, 0, GOVT, POLICE ],
-	[ vm_mark_space ],
-	[ vm_endspace ],
-	[ vm_prompt, "Flip N Guerrillas there or adjacent to Active." ],
+	[ vm_endrepeat ],
+	[ vm_prompt, "Flip 3 Guerrillas there or adjacent to Active." ],
 	[ vm_piece, 0, 0, 3, (p,s)=>is_any_guerrilla(p) && is_underground(p) && is_with_or_adjacent_to_mark(s, game.vm.m) ],
 	[ vm_activate ],
 	[ vm_endpiece ],
 	[ vm_return ],
 // SHADED 5
 	[ vm_prompt, "Shift space adjacent to a 3-Econ LoC by 2 levels toward Active Opposition." ],
-	[ vm_space, 1, 0, 1, (s)=>is_adjacent_to_3econ_loc(s) ],
+	[ vm_space, 1, 0, 1, (s)=>can_shift_opposition(s) && is_adjacent_to_3econ_loc(s) ],
 	[ vm_shift_opposition ],
 	[ vm_shift_opposition ],
 	[ vm_endspace ],
 	[ vm_return ],
 // EVENT 6
 	[ vm_prompt, "Select Opposition or Neutral Departments adjacent to Sabotage." ],
-	[ vm_space, 1, 0, 2, (s)=>(!is_support(s) && is_adjacent_to_sabotage(s)) ],
+	[ vm_space, 1, 0, 2, (s)=>is_pop(s) && !is_support(s) && is_adjacent_to_sabotage(s) ],
 	[ vm_set_passive_support ],
 	[ vm_endspace ],
 	[ vm_return ],
@@ -6970,17 +7023,17 @@ const CODE = [
 	[ vm_sabotage ],
 	[ vm_endspace ],
 	[ vm_prompt, "Shift an Adjacent Department." ],
-	[ vm_space, 1, 0, 1, (s)=>is_pop(s) && is_dept(s) && is_adjacent(s, game.vm.s) ],
+	[ vm_space, 1, 0, 1, (s)=>can_shift_opposition(s) && is_dept(s) && is_adjacent(s, game.vm.s) ],
 	[ vm_shift_opposition ],
 	[ vm_endspace ],
 	[ vm_return ],
 // EVENT 7
 	[ vm_log, "Each Sabotage phase, Govt may remove 1-3 Terror or Sabotage." ],
-	[ vm_capability ],
+	[ vm_capability, CAP_7TH_SF ],
 	[ vm_return ],
 // SHADED 7
 	[ vm_log, "Sabotage phase - Sabotage LoCs with any Guerrillas equal to cubes." ],
-	[ vm_shaded_capability ],
+	[ vm_shaded_capability, CAP_7TH_SF ],
 	[ vm_return ],
 // EVENT 8
 	[ vm_current, GOVT ],
@@ -6993,27 +7046,27 @@ const CODE = [
 	[ vm_return ],
 // EVENT 9
 	[ vm_log, "Assault treats Mountain as City." ],
-	[ vm_capability ],
+	[ vm_capability, CAP_MTN_BNS ],
 	[ vm_return ],
 // SHADED 9
 	[ vm_log, "Assault in Mountain removes only 1 piece for 4 Troops." ],
-	[ vm_shaded_capability ],
+	[ vm_shaded_capability, CAP_MTN_BNS ],
 	[ vm_return ],
 // EVENT 10
 	[ vm_log, "Air Lift moves any number of Troops." ],
-	[ vm_capability ],
+	[ vm_capability, CAP_BLACK_HAWKS ],
 	[ vm_return ],
 // SHADED 10
 	[ vm_log, "Air Lift moves only 1 Troops cube." ],
-	[ vm_shaded_capability ],
+	[ vm_shaded_capability, CAP_BLACK_HAWKS ],
 	[ vm_return ],
 // EVENT 11
 	[ vm_log, "1 Police may enter each Sweep space." ],
-	[ vm_capability ],
+	[ vm_capability, CAP_NDSC ],
 	[ vm_return ],
 // SHADED 11
 	[ vm_log, "Operation Activates Guerrillas via Troops or Police, not both." ],
-	[ vm_shaded_capability ],
+	[ vm_shaded_capability, CAP_NDSC ],
 	[ vm_return ],
 // EVENT 12
 	[ vm_resources, GOVT, ()=>(Math.min(game.aid,20)) ],
@@ -7021,31 +7074,35 @@ const CODE = [
 	[ vm_return ],
 // SHADED 12
 	[ vm_log, "No Air Strike or Activation by Patrlo until next Propaganda." ],
-	[ vm_momentum ],
+	[ vm_momentum, MOM_PLAN_COLOMBIA ],
 	[ vm_return ],
 // EVENT 13
 	[ vm_log, "Patrol conducts a free Assault in each LoC." ],
-	[ vm_capability ],
+	[ vm_capability, CAP_METEORO ],
 	[ vm_return ],
 // SHADED 13
 	[ vm_log, "Patrols do not conduct a free Assault." ],
-	[ vm_shaded_capability ],
+	[ vm_shaded_capability, CAP_METEORO ],
 	[ vm_return ],
 // EVENT 14
 	[ vm_current, GOVT ],
-	[ vm_space, 1, 0, 1, (s)=>is_dept(s) && !is_farc_zone(s) ],
-	[ vm_auto_place, 0, 0, GOVT, BASE ],
-	[ vm_auto_place, 0, 0, GOVT, TROOPS ],
-	[ vm_auto_place, 0, 0, GOVT, TROOPS ],
-	[ vm_auto_place, 0, 0, GOVT, TROOPS ],
+	[ vm_prompt, "Place 1 Base and 3 Troops into any Department." ],
+	[ vm_space, 1, 0, 1, (s)=>is_dept(s) && can_stack_any(s, GOVT) ],
+	[ vm_place, 0, 0, GOVT, BASE ],
+	[ vm_place, 0, 0, GOVT, TROOPS ],
+	[ vm_place, 0, 0, GOVT, TROOPS ],
+	[ vm_place, 0, 0, GOVT, TROOPS ],
 	[ vm_endspace ],
 	[ vm_return ],
 // SHADED 14
-	[ vm_space, 1, 0, 1, (s)=>is_dept(s) ],
+	[ vm_prompt, "Remove 1 Government Base and 1 cube from a Department." ],
+	[ vm_space, 1, 0, 1, (s)=>is_dept(s) && has_faction_piece(s, GOVT) ],
+	[ vm_prompt, ()=>`Remove Government Base from ${space_name[game.vm.s]}.` ],
 	[ vm_piece, 0, 0, 1, (p,s)=>is_piece_in_event_space(p) && is_govt_base(p) ],
 	[ vm_remove ],
 	[ vm_endpiece ],
-	[ vm_piece, 0, 0, 1, (p,s)=>is_piece_in_event_space(p) && (is_troops(p) || is_police(p)) ],
+	[ vm_prompt, ()=>`Remove cube from ${space_name[game.vm.s]}.` ],
+	[ vm_piece, 0, 0, 1, (p,s)=>is_piece_in_event_space(p) && is_cube(p) ],
 	[ vm_remove ],
 	[ vm_endpiece ],
 	[ vm_endspace ],
@@ -7055,12 +7112,13 @@ const CODE = [
 	[ vm_resources, GOVT, ()=>(game.vm.die*4) ],
 	[ vm_return ],
 // SHADED 15
+	[ vm_prompt, "Shift a City from Neutral or Passive Support to Passive Opposition." ],
 	[ vm_space, 1, 0, 1, (s)=>is_city(s) && (is_neutral(s) || is_passive_support(s)) ],
 	[ vm_set_passive_opposition ],
 	[ vm_endspace ],
 	[ vm_return ],
 // EVENT 16
-	[ vm_prompt, "Select each Mountain Department." ],
+	[ vm_prompt, "Each Mountain, +5 Resources to Faction with most pieces." ],
 	[ vm_space, 1, 0, 0, (s)=>is_mountain(s) ],
 	[ vm_auto_resources, ()=>(faction_with_most_pieces(game.vm.s)), 5 ],
 	[ vm_endspace ],
@@ -7074,7 +7132,7 @@ const CODE = [
 	[ vm_return ],
 // SHADED 17
 	[ vm_log, "No Sweep or Assault in Depts until next Propaganda." ],
-	[ vm_momentum ],
+	[ vm_momentum, MOM_MADRID_DONORS ],
 	[ vm_return ],
 // EVENT 18
 	[ vm_resources, GOVT, ()=>(Math.min(game.aid,20)) ],
@@ -7087,19 +7145,23 @@ const CODE = [
 	[ vm_return ],
 // EVENT 19
 	[ vm_if, ()=>game.current === GOVT ],
-	[ vm_space, 1, 0, 0, (s)=>has_cube(s) && has_enemy_piece(s) ],
+	[ vm_prompt, "Free Sweep or Assault in each space possible." ],
+	[ vm_space, 1, 0, 0, (s)=>can_sweep_without_movement(s) || can_assault_any(s) ],
 	[ vm_free_sweep_assault ],
 	[ vm_endspace ],
 	[ vm_else ],
-	[ vm_space, 1, 0, 0, (s)=>has_piece(s, game.current, GUERRILLA) ],
+	[ vm_prompt, "Free Attack or Terror in each space possible." ],
+	[ vm_space, 1, 0, 0, (s)=>can_terror(s) || can_attack(s) ],
 	[ vm_free_attack_terror ],
 	[ vm_endspace ],
 	[ vm_endif ],
 	[ vm_return ],
 // EVENT 20
 	[ vm_current, GOVT ],
+	[ vm_prompt, "Move up to 6 FARC Guerillas into adjacent spaces." ],
 	[ vm_piece, 1, 1, 6, (p,s)=>is_farc_guerrilla(p) ],
-	[ vm_space, 0, 0, 1, (s)=>is_adjacent(s, piece_space(game.vm.p)) ],
+	[ vm_prompt, "Move FARC Guerilla into an adjacent space." ],
+	[ vm_space, 0, 0, 1, (s)=>is_adjacent(s, piece_space(game.vm.p)) && can_stack_any(s, game.current) ],
 	[ vm_move ],
 	[ vm_endspace ],
 	[ vm_endpiece ],
@@ -7107,36 +7169,43 @@ const CODE = [
 // SHADED 20
 	[ vm_current, FARC ],
 	[ vm_free_march ],
+	[ vm_prompt, "Flip up to 3 FARC Guerrillas Underground." ],
 	[ vm_piece, 1, 1, 3, (p,s)=>is_farc_guerrilla(p) && is_active(p) ],
 	[ vm_underground ],
 	[ vm_endpiece ],
 	[ vm_return ],
 // EVENT 21
 	[ vm_resources, FARC, -6 ],
+	[ vm_prompt, "Remove 1 FARC Base." ],
 	[ vm_piece, 1, 0, 1, (p,s)=>is_farc_base(p) ],
 	[ vm_remove ],
 	[ vm_endpiece ],
 	[ vm_return ],
 // SHADED 21
 	[ vm_resources, FARC, 6 ],
+	[ vm_prompt, "Place a FARC Base in a City or Department" ],
 	[ vm_space, 1, 0, 1, (s)=>(is_city(s) || is_dept(s)) && can_stack_base(s, FARC) ],
 	[ vm_auto_place, 0, 0, FARC, BASE ],
 	[ vm_endspace ],
 	[ vm_return ],
 // EVENT 22
+	[ vm_prompt, "Shift an Opposition space to Neutral." ],
 	[ vm_space, 1, 0, 1, (s)=>is_opposition(s) ],
 	[ vm_set_neutral ],
 	[ vm_endspace ],
 	[ vm_return ],
 // SHADED 22
 	[ vm_log, "May Agitate also in up to 3 spaces with FARC piece and no Govt Control." ],
-	[ vm_momentum ],
+	[ vm_momentum, MOM_ALFONSO_CANO ],
 	[ vm_return ],
 // EVENT 23
-	[ vm_space, 1, 0, 1, (s)=>is_dept(s) ],
+	[ vm_prompt, "In a Department, Activate all Guerrillas and remove all Cartels Bases." ],
+	[ vm_space, 1, 0, 1, (s)=>is_dept(s) && (has_any_underground_guerrilla(s) || has_cartels_base(s)) ],
+	[ vm_prompt, "Activate all Guerrillas." ],
 	[ vm_piece, 0, 0, 0, (p,s)=>is_piece_in_event_space(p) && is_any_guerrilla(p) && is_underground(p) ],
 	[ vm_activate ],
 	[ vm_endpiece ],
+	[ vm_prompt, "Remove all Cartels Bases." ],
 	[ vm_piece, 0, 0, 0, (p,s)=>is_piece_in_event_space(p) && is_cartels_base(p) ],
 	[ vm_remove ],
 	[ vm_endpiece ],
@@ -7144,6 +7213,7 @@ const CODE = [
 	[ vm_return ],
 // SHADED 23
 	[ vm_current, GOVT ],
+	[ vm_prompt, "Remove 3 Troops." ],
 	[ vm_piece, 1, 0, 3, (p,s)=>is_troops(p) ],
 	[ vm_remove ],
 	[ vm_endpiece ],
@@ -7151,29 +7221,36 @@ const CODE = [
 	[ vm_ineligible, FARC ],
 	[ vm_return ],
 // EVENT 24
-	[ vm_space, 1, 0, 1, (s)=>is_city(s) ],
+	[ vm_prompt, "Shift a City to Active Support." ],
+	[ vm_space, 1, 0, 1, (s)=>is_city(s) && can_shift_support(s) ],
 	[ vm_set_active_support ],
 	[ vm_endspace ],
 	[ vm_ineligible, FARC ],
 	[ vm_return ],
 // SHADED 24
-	[ vm_space, 1, 0, 1, (s)=>has_farc_piece(s) ],
+	[ vm_prompt, "Remove 2 Troops from a space with FARC pieces." ],
+	[ vm_space, 1, 0, 1, (s)=>has_farc_piece(s) && has_troops(s) ],
+	[ vm_prompt, "Remove 2 Troops." ],
 	[ vm_piece, 0, 0, 2, (p,s)=>is_piece_in_event_space(p) && is_troops(p) ],
 	[ vm_remove ],
 	[ vm_endpiece ],
 	[ vm_endspace ],
+	[ vm_prompt, "Shift a City with Support to Neutral." ],
 	[ vm_space, 1, 0, 1, (s)=>is_city(s) && is_support(s) ],
 	[ vm_set_neutral ],
 	[ vm_endspace ],
 	[ vm_return ],
 // EVENT 25
-	[ vm_space, 1, 0, 1, (s)=>is_mountain(s) ],
+	[ vm_prompt, "Remove all FARC pieces from 1 Mountain." ],
+	[ vm_space, 1, 0, 1, (s)=>is_mountain(s) && has_faction_piece(s, FARC) ],
+	[ vm_prompt, "Remove all FARC pieces." ],
 	[ vm_piece, 0, 0, 0, (p,s)=>is_piece_in_event_space(p) && is_farc_piece(p) ],
 	[ vm_remove ],
 	[ vm_endpiece ],
 	[ vm_endspace ],
 	[ vm_return ],
 // SHADED 25
+	[ vm_prompt, "Place 3 FARC pieces into Antioquia or an adjacent Department." ],
 	[ vm_space, 1, 0, 1, (s)=>s === ANTIOQUIA || (is_dept(s) && is_adjacent(ANTIOQUIA, s)) ],
 	[ vm_place, 0, 0, FARC, [BASE,GUERRILLA] ],
 	[ vm_place, 0, 0, FARC, [BASE,GUERRILLA] ],
@@ -7182,14 +7259,15 @@ const CODE = [
 	[ vm_return ],
 // EVENT 26
 	[ vm_current, CARTELS ],
+	[ vm_prompt, "All Cartels Guerrillas free Attack FARC." ],
 	[ vm_space, 1, 0, 0, (s)=>has_cartels_guerrilla(s) && has_farc_piece(s) ],
 	[ vm_free_attack ],
 	[ vm_endspace ],
 	[ vm_return ],
 // SHADED 26
-	[ vm_prompt, "Transfer 6 Resources from Cartels to FARC for each space with CB and FG." ],
-	[ vm_space, 1, 0, 0, (s)=>has_cartels_base(s) && has_farc_guerrilla(s) ],
-	[ vm_transfer, CARTELS, FARC, 6 ],
+	[ vm_prompt, "Transfer 6 Resources from Cartels to FARC for each space with Cartels Base and FARC Guerrilla." ],
+	[ vm_space, 1, 0, 0, (s)=>has_cartels_base(s) && has_farc_guerrilla(s) && game.resources[CARTELS] > 0 ],
+	[ vm_auto_transfer, CARTELS, FARC, 6 ],
 	[ vm_endspace ],
 	[ vm_return ],
 // EVENT 27
@@ -7200,10 +7278,11 @@ const CODE = [
 	[ vm_return ],
 // SHADED 27
 	[ vm_log, "Until next Propaganda, no Govt Special Activities where Guerrilla." ],
-	[ vm_momentum ],
+	[ vm_momentum, MOM_MISIL_ANTIAEREO ],
 	[ vm_return ],
 // EVENT 28
-	[ vm_space, 1, 0, 1, (s)=>is_next_to_venezuela(s) ],
+	[ vm_prompt, "Remove up to 3 Insurgent pieces from a space next to Venezuela." ],
+	[ vm_space, 1, 0, 1, (s)=>is_next_to_venezuela(s) && has_insurgent_piece(s) ],
 	[ vm_piece, 0, 1, 3, (p,s)=>is_piece_in_event_space(p) && is_insurgent_piece(p) ],
 	[ vm_remove ],
 	[ vm_endpiece ],
@@ -7408,7 +7487,7 @@ const CODE = [
 // SHADED 42
 	[ vm_log, ()=>(`No Sweep or Assault against ${faction_name[game.current]} until next Propaganda.`) ],
 	[ vm_asm, ()=>game.senado = game.current ],
-	[ vm_momentum ],
+	[ vm_momentum, MOM_SENADO_CAMARA ],
 	[ vm_return ],
 // EVENT 43
 	[ vm_space, 1, 0, 1, (s)=>is_dept(s) && has_troops(s) ],
@@ -7611,7 +7690,7 @@ const CODE = [
 	[ vm_return ],
 // SHADED 55
 	[ vm_prompt, "Shift N spaces with Cartels pieces 1 level toward Active Opposition." ],
-	[ vm_space, 1, 0, 3, (s)=>has_cartels_piece(s) && !is_active_opposition(s) ],
+	[ vm_space, 1, 0, 3, (s)=>can_shift_opposition(s) && has_cartels_piece(s) ],
 	[ vm_shift_opposition ],
 	[ vm_endspace ],
 	[ vm_return ],
@@ -7653,7 +7732,7 @@ const CODE = [
 	[ vm_current, CARTELS ],
 	[ vm_prompt, "Relocate up to 4 Police to any spaces." ],
 	[ vm_piece, 0, 1, 4, (p,s)=>is_police(p) ],
-	[ vm_space, 1, 0, 1, (s)=>is_space(s) ],
+	[ vm_space, 1, 0, 1, (s)=>can_stack_piece(s, GOVT, POLICE) ],
 	[ vm_move ],
 	[ vm_endspace ],
 	[ vm_endpiece ],
@@ -7675,7 +7754,7 @@ const CODE = [
 	[ vm_endpiece ],
 	[ vm_prompt, "Relocate Cartels Guerrillas anywhere." ],
 	[ vm_piece, 0, 1, 3, (p,s)=>is_cartels_guerrilla(p) ],
-	[ vm_space, 1, 0, 1, (s)=>is_space(s) ],
+	[ vm_space, 1, 0, 1, (s)=>can_stack_piece(s, CARTELS, GUERRILLA) ],
 	[ vm_move ],
 	[ vm_endspace ],
 	[ vm_endpiece ],
@@ -7722,7 +7801,6 @@ const CODE = [
 	[ vm_return ],
 // EVENT 63
 	[ vm_current, CARTELS ],
-	[ vm_prompt, "In each space with Cartels Guerrillas." ],
 	[ vm_space, 1, 0, 0, (s)=>has_cartels_guerrilla(s) ],
 	[ vm_prompt, "Remove all but one Cartels Guerrilla." ],
 	[ vm_piece, 0, 0, 0, (p,s)=>is_piece_in_event_space(p) && is_cartels_guerrilla(p) && count_pieces(s, CARTELS, GUERRILLA) > 1 ],
@@ -7773,7 +7851,7 @@ const CODE = [
 	[ vm_return ],
 // SHADED 67
 	[ vm_log, "This Resources phase, Cartels add Resources equal to 4 x Bases." ],
-	[ vm_momentum ],
+	[ vm_momentum, MOM_MEXICAN_TRAFFICKERS ],
 	[ vm_return ],
 // EVENT 68
 	[ vm_prompt, "Remove 2 Cartels pieces or up to 2 Shipments in coastal spaces." ],
@@ -7877,5 +7955,5 @@ const CODE = [
 	[ vm_endif ],
 	[ vm_return ],
 ]
-const UCODE = [0,1,7,13,19,29,65,79,85,92,98,104,110,116,122,139,146,153,159,166,176,189,199,206,222,236,248,258,266,279,293,303,314,320,332,341,354,364,377,389,402,424,436,445,459,469,480,497,521,534,543,560,574,583,599,613,627,636,651,664,684,699,710,718,733,747,752,760,765,785,814,828,841]
-const SCODE = [0,4,10,16,24,59,70,82,90,95,101,107,113,119,130,142,151,156,162,0,183,194,203,215,227,242,253,263,272,287,300,310,318,326,334,349,0,369,383,394,409,431,441,453,464,473,0,504,530,538,554,569,578,0,0,622,629,643,656,672,691,706,714,0,738,0,756,762,780,0,819,835,848]
+const UCODE = [0,1,7,13,19,29,47,61,67,74,80,86,92,98,104,125,133,140,146,153,165,181,193,201,221,239,254,265,273,287,301,311,322,328,340,349,362,372,385,397,410,432,444,453,467,477,488,505,529,542,551,568,582,591,607,621,635,644,659,672,692,707,718,726,740,754,759,767,772,792,821,835,848]
+const SCODE = [0,4,10,16,24,41,52,64,72,77,83,89,95,101,113,128,138,143,149,0,174,187,198,213,227,247,260,270,280,295,308,318,326,334,342,357,0,377,391,402,417,439,449,461,472,481,0,512,538,546,562,577,586,0,0,630,637,651,664,680,699,714,722,0,745,0,763,769,787,0,826,842,855]

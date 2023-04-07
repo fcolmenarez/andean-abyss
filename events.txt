@@ -5,30 +5,30 @@
 
 EVENT 1
 	log "1 Civic Action space each Support Phase requires Govt Control and any cube."
-	capability
+	capability CAP_1ST_DIV
 
 SHADED 1
 	log "Civic Action requires at least 2 Troops and 2 Police."
-	shaded_capability
+	shaded_capability CAP_1ST_DIV
 
 EVENT 2
 	log "Sweep costs 1 Resource per space."
-	capability
+	capability CAP_OSPINA
 
 SHADED 2
 	log "Sweep Operations may target only 1 space per card."
-	shaded_capability
+	shaded_capability CAP_OSPINA
 
 EVENT 3
 	log "Assault costs 1 Resource per space."
-	capability
+	capability CAP_TAPIAS
 
 SHADED 3
 	log "Assault Operations may target only 1 space per card."
-	shaded_capability
+	shaded_capability CAP_TAPIAS
 
 EVENT 4
-	prompt "Select unsabotaged pipelines."
+	prompt "Add twice Econ of unsabotaged pipelines to Government Resources."
 	space 3 is_unsabotaged_pipeline(s)
 		auto_resources GOVT (2*data.spaces[game.vm.s].econ)
 	endspace
@@ -41,45 +41,27 @@ SHADED 4
 
 EVENT 5
 	prompt "Place Police onto Pipelines."
-	space 1 is_pipeline(s)
-		auto_place GOVT POLICE
-		mark_space
-	endspace
-	space 1 is_pipeline(s)
-		auto_place GOVT POLICE
-		mark_space
-	endspace
-	space 1 is_pipeline(s)
-		auto_place GOVT POLICE
-		mark_space
-	endspace
-	space 1 is_pipeline(s)
-		auto_place GOVT POLICE
-		mark_space
-	endspace
-	space 1 is_pipeline(s)
-		auto_place GOVT POLICE
-		mark_space
-	endspace
-	space 1 is_pipeline(s)
-		auto_place GOVT POLICE
-		mark_space
-	endspace
-	prompt "Flip N Guerrillas there or adjacent to Active."
+	repeat 6
+		space 1 is_pipeline(s) && has_available_piece(GOVT, POLICE)
+			auto_place GOVT POLICE
+			mark_space
+		endspace
+	endrepeat
+	prompt "Flip 3 Guerrillas there or adjacent to Active."
 	piece 3 is_any_guerrilla(p) && is_underground(p) && is_with_or_adjacent_to_mark(s, game.vm.m)
 		activate
 	endpiece
 
 SHADED 5
 	prompt "Shift space adjacent to a 3-Econ LoC by 2 levels toward Active Opposition."
-	space 1 is_adjacent_to_3econ_loc(s)
+	space 1 can_shift_opposition(s) && is_adjacent_to_3econ_loc(s)
 		shift_opposition
 		shift_opposition
 	endspace
 
 EVENT 6
 	prompt "Select Opposition or Neutral Departments adjacent to Sabotage."
-	space 2 (!is_support(s) && is_adjacent_to_sabotage(s))
+	space 2 is_pop(s) && !is_support(s) && is_adjacent_to_sabotage(s)
 		set_passive_support
 	endspace
 
@@ -89,17 +71,17 @@ SHADED 6
 		sabotage
 	endspace
 	prompt "Shift an Adjacent Department."
-	space 1 is_pop(s) && is_dept(s) && is_adjacent(s, game.vm.s)
+	space 1 can_shift_opposition(s) && is_dept(s) && is_adjacent(s, game.vm.s)
 		shift_opposition
 	endspace
 
 EVENT 7
 	log "Each Sabotage phase, Govt may remove 1-3 Terror or Sabotage."
-	capability
+	capability CAP_7TH_SF
 
 SHADED 7
 	log "Sabotage phase - Sabotage LoCs with any Guerrillas equal to cubes."
-	shaded_capability
+	shaded_capability CAP_7TH_SF
 
 EVENT 8
 	current GOVT
@@ -112,27 +94,27 @@ SHADED 8
 
 EVENT 9
 	log "Assault treats Mountain as City."
-	capability
+	capability CAP_MTN_BNS
 
 SHADED 9
 	log "Assault in Mountain removes only 1 piece for 4 Troops."
-	shaded_capability
+	shaded_capability CAP_MTN_BNS
 
 EVENT 10
 	log "Air Lift moves any number of Troops."
-	capability
+	capability CAP_BLACK_HAWKS
 
 SHADED 10
 	log "Air Lift moves only 1 Troops cube."
-	shaded_capability
+	shaded_capability CAP_BLACK_HAWKS
 
 EVENT 11
 	log "1 Police may enter each Sweep space."
-	capability
+	capability CAP_NDSC
 
 SHADED 11
 	log "Operation Activates Guerrillas via Troops or Police, not both."
-	shaded_capability
+	shaded_capability CAP_NDSC
 
 EVENT 12
 	resources GOVT (Math.min(game.aid,20))
@@ -140,31 +122,36 @@ EVENT 12
 
 SHADED 12
 	log "No Air Strike or Activation by Patrlo until next Propaganda."
-	momentum
+	momentum MOM_PLAN_COLOMBIA
 
 EVENT 13
 	log "Patrol conducts a free Assault in each LoC."
-	capability
+	capability CAP_METEORO
 
 SHADED 13
 	log "Patrols do not conduct a free Assault."
-	shaded_capability
+	shaded_capability CAP_METEORO
 
 EVENT 14
 	current GOVT
-	space 1 is_dept(s) && !is_farc_zone(s)
-		auto_place GOVT BASE
-		auto_place GOVT TROOPS
-		auto_place GOVT TROOPS
-		auto_place GOVT TROOPS
+	prompt "Place 1 Base and 3 Troops into any Department."
+	space 1 is_dept(s) && can_stack_any(s, GOVT)
+		# TODO auto or manual ?
+		place GOVT BASE
+		place GOVT TROOPS
+		place GOVT TROOPS
+		place GOVT TROOPS
 	endspace
 
 SHADED 14
-	space 1 is_dept(s)
+	prompt "Remove 1 Government Base and 1 cube from a Department."
+	space 1 is_dept(s) && has_faction_piece(s, GOVT)
+		prompt `Remove Government Base from ${space_name[game.vm.s]}.`
 		piece 1 is_piece_in_event_space(p) && is_govt_base(p)
 			remove
 		endpiece
-		piece 1 is_piece_in_event_space(p) && (is_troops(p) || is_police(p))
+		prompt `Remove cube from ${space_name[game.vm.s]}.`
+		piece 1 is_piece_in_event_space(p) && is_cube(p)
 			remove
 		endpiece
 	endspace
@@ -174,12 +161,13 @@ EVENT 15
 	resources GOVT (game.vm.die*4)
 
 SHADED 15
+	prompt "Shift a City from Neutral or Passive Support to Passive Opposition."
 	space 1 is_city(s) && (is_neutral(s) || is_passive_support(s))
 		set_passive_opposition
 	endspace
 
 EVENT 16
-	prompt "Select each Mountain Department."
+	prompt "Each Mountain, +5 Resources to Faction with most pieces."
 	space 0 is_mountain(s)
 		auto_resources (faction_with_most_pieces(game.vm.s)) 5
 	endspace
@@ -193,7 +181,7 @@ EVENT 17
 
 SHADED 17
 	log "No Sweep or Assault in Depts until next Propaganda."
-	momentum
+	momentum MOM_MADRID_DONORS
 
 EVENT 18
 	resources GOVT (Math.min(game.aid,20))
@@ -206,21 +194,23 @@ SHADED 18
 
 EVENT 19
 	if game.current === GOVT
-		# TODO: can_sweep || can_assault
-		space 0 has_cube(s) && has_enemy_piece(s)
+		prompt "Free Sweep or Assault in each space possible."
+		space 0 can_sweep_without_movement(s) || can_assault_any(s)
 			free_sweep_assault
 		endspace
 	else
-		# TODO: can_attack || can_terror
-		space 0 has_piece(s, game.current, GUERRILLA)
+		prompt "Free Attack or Terror in each space possible."
+		space 0 can_terror(s) || can_attack(s)
 			free_attack_terror
 		endspace
 	endif
 
 EVENT 20
 	current GOVT
+	prompt "Move up to 6 FARC Guerillas into adjacent spaces."
 	piece_undo_opt 6 is_farc_guerrilla(p)
-		space_no_undo 1 is_adjacent(s, piece_space(game.vm.p))
+		prompt "Move FARC Guerilla into an adjacent space."
+		space_no_undo 1 is_adjacent(s, piece_space(game.vm.p)) && can_stack_any(s, game.current)
 			move
 		endspace
 	endpiece
@@ -228,36 +218,43 @@ EVENT 20
 SHADED 20
 	current FARC
 	free_march
+	prompt "Flip up to 3 FARC Guerrillas Underground."
 	piece_undo_opt 3 is_farc_guerrilla(p) && is_active(p)
 		underground
 	endpiece
 
 EVENT 21
 	resources FARC -6
+	prompt "Remove 1 FARC Base."
 	piece_undo 1 is_farc_base(p)
 		remove
 	endpiece
 
 SHADED 21
 	resources FARC 6
+	prompt "Place a FARC Base in a City or Department"
 	space 1 (is_city(s) || is_dept(s)) && can_stack_base(s, FARC)
 		auto_place FARC BASE
 	endspace
 
 EVENT 22
+	prompt "Shift an Opposition space to Neutral."
 	space 1 is_opposition(s)
 		set_neutral
 	endspace
 
 SHADED 22
 	log "May Agitate also in up to 3 spaces with FARC piece and no Govt Control."
-	momentum
+	momentum MOM_ALFONSO_CANO
 
 EVENT 23
-	space 1 is_dept(s)
+	prompt "In a Department, Activate all Guerrillas and remove all Cartels Bases."
+	space 1 is_dept(s) && (has_any_underground_guerrilla(s) || has_cartels_base(s))
+		prompt "Activate all Guerrillas."
 		piece 0 is_piece_in_event_space(p) && is_any_guerrilla(p) && is_underground(p)
 			activate
 		endpiece
+		prompt "Remove all Cartels Bases."
 		piece 0 is_piece_in_event_space(p) && is_cartels_base(p)
 			remove
 		endpiece
@@ -265,6 +262,7 @@ EVENT 23
 
 SHADED 23
 	current GOVT
+	prompt "Remove 3 Troops."
 	piece_undo 3 is_troops(p)
 		remove
 	endpiece
@@ -272,29 +270,36 @@ SHADED 23
 	ineligible FARC
 
 EVENT 24
-	space 1 is_city(s)
+	prompt "Shift a City to Active Support."
+	space 1 is_city(s) && can_shift_support(s)
 		set_active_support
 	endspace
 	ineligible FARC
 
 SHADED 24
-	space 1 has_farc_piece(s)
+	prompt "Remove 2 Troops from a space with FARC pieces."
+	space 1 has_farc_piece(s) && has_troops(s)
+		prompt "Remove 2 Troops."
 		piece 2 is_piece_in_event_space(p) && is_troops(p)
 			remove
 		endpiece
 	endspace
+	prompt "Shift a City with Support to Neutral."
 	space 1 is_city(s) && is_support(s)
 		set_neutral
 	endspace
 
 EVENT 25
-	space 1 is_mountain(s)
+	prompt "Remove all FARC pieces from 1 Mountain."
+	space 1 is_mountain(s) && has_faction_piece(s, FARC)
+		prompt "Remove all FARC pieces."
 		piece 0 is_piece_in_event_space(p) && is_farc_piece(p)
 			remove
 		endpiece
 	endspace
 
 SHADED 25
+	prompt "Place 3 FARC pieces into Antioquia or an adjacent Department."
 	space 1 s === ANTIOQUIA || (is_dept(s) && is_adjacent(ANTIOQUIA, s))
 		place FARC [BASE,GUERRILLA]
 		place FARC [BASE,GUERRILLA]
@@ -303,14 +308,16 @@ SHADED 25
 
 EVENT 26
 	current CARTELS
+	prompt "All Cartels Guerrillas free Attack FARC."
 	space 0 has_cartels_guerrilla(s) && has_farc_piece(s)
 		free_attack
 	endspace
 
 SHADED 26
-	prompt "Transfer 6 Resources from Cartels to FARC for each space with CB and FG."
-	space 0 has_cartels_base(s) && has_farc_guerrilla(s)
-		transfer CARTELS FARC 6
+	prompt "Transfer 6 Resources from Cartels to FARC for each space with Cartels Base and FARC Guerrilla."
+	# prompt "Transfer 6 Resources from Cartels to FARC for each space with both."
+	space 0 has_cartels_base(s) && has_farc_guerrilla(s) && game.resources[CARTELS] > 0
+		auto_transfer CARTELS FARC 6
 	endspace
 
 EVENT 27
@@ -321,10 +328,12 @@ EVENT 27
 
 SHADED 27
 	log "Until next Propaganda, no Govt Special Activities where Guerrilla."
-	momentum
+	momentum MOM_MISIL_ANTIAEREO
 
 EVENT 28
-	space 1 is_next_to_venezuela(s)
+	prompt "Remove up to 3 Insurgent pieces from a space next to Venezuela."
+	space 1 is_next_to_venezuela(s) && has_insurgent_piece(s)
+		# TODO: maximum damage?
 		piece_opt 3 is_piece_in_event_space(p) && is_insurgent_piece(p)
 			remove
 		endpiece
@@ -532,7 +541,7 @@ EVENT 42
 SHADED 42
 	log (`No Sweep or Assault against ${faction_name[game.current]} until next Propaganda.`)
 	asm game.senado = game.current
-	momentum
+	momentum MOM_SENADO_CAMARA
 
 EVENT 43
 	space 1 is_dept(s) && has_troops(s)
@@ -738,7 +747,7 @@ EVENT 55
 
 SHADED 55
 	prompt "Shift N spaces with Cartels pieces 1 level toward Active Opposition."
-	space 3 has_cartels_piece(s) && !is_active_opposition(s)
+	space 3 can_shift_opposition(s) && has_cartels_piece(s)
 		shift_opposition
 	endspace
 
@@ -780,7 +789,7 @@ SHADED 58
 	current CARTELS
 	prompt "Relocate up to 4 Police to any spaces."
 	piece_opt 4 is_police(p)
-		space 1 is_space(s)
+		space 1 can_stack_piece(s, GOVT, POLICE)
 			move
 		endspace
 	endpiece
@@ -802,7 +811,7 @@ SHADED 59
 	endpiece
 	prompt "Relocate Cartels Guerrillas anywhere."
 	piece_opt 3 is_cartels_guerrilla(p)
-		space 1 is_space(s)
+		space 1 can_stack_piece(s, CARTELS, GUERRILLA)
 			move
 		endspace
 	endpiece
@@ -900,7 +909,7 @@ EVENT 67
 
 SHADED 67
 	log "This Resources phase, Cartels add Resources equal to 4 x Bases."
-	momentum
+	momentum MOM_MEXICAN_TRAFFICKERS
 
 EVENT 68
 	prompt "Remove 2 Cartels pieces or up to 2 Shipments in coastal spaces."

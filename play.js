@@ -7,7 +7,6 @@ const GOVT = 0
 const FARC = 1
 const AUC = 2
 const CARTELS = 3
-
 const GOVT_AUC = 4
 const FARC_CARTELS = 5
 const AUC_CARTELS = 6
@@ -1059,9 +1058,6 @@ function on_update() {
 	action_button("cultivate", "Cultivate")
 	action_button("process", "Process")
 	action_button("bribe", "Bribe")
-
-	// Attack sub-actions
-	action_button("resolve", "Resolve!")
 
 	// Train/Rally sub-actions
 	action_button("move", "Move")

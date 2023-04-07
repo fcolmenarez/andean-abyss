@@ -12,6 +12,8 @@ function emit(line) {
 	for (let i = 1; i < line.length; ++i) {
 		if (typeof line[i] === "string" && line[i][0] === "(" && !line[i].match(/\)=>/))
 			line[i] = "()=>" + line[i]
+		if (typeof line[i] === "string" && line[i][0] === "`")
+			line[i] = "()=>" + line[i]
 	}
 	console.log("\t[ " + line.join(", ") + " ],")
 }
