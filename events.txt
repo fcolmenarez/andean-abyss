@@ -1,7 +1,4 @@
-# TODO: has_available_piece and can_stack_piece helpers for place/replace/move space/piece loops
-# TODO: can_place_available(s, faction, type)
-
-# TODO: disallow picking spaces with no effect (must remove if able)
+# Events for Andean Abyss.
 
 EVENT 1
 	log "1 Civic Action space each Support Phase requires Govt Control and any cube."
@@ -136,11 +133,11 @@ EVENT 14
 	current GOVT
 	prompt "Place 1 Base and 3 Troops into any Department."
 	space 1 is_dept(s) && can_stack_any(s, GOVT)
-		# TODO auto or manual ?
-		place GOVT BASE
-		place GOVT TROOPS
-		place GOVT TROOPS
-		place GOVT TROOPS
+		# TODO: auto or manual ?
+		auto_place GOVT BASE
+		auto_place GOVT TROOPS
+		auto_place GOVT TROOPS
+		auto_place GOVT TROOPS
 	endspace
 
 SHADED 14
@@ -340,16 +337,21 @@ EVENT 28
 	endspace
 
 SHADED 28
+	prompt "Place FARC Base in a Department next to Venezuela."
 	space 1 is_dept(s) && is_next_to_venezuela(s) && can_stack_base(s, FARC)
 		auto_place FARC BASE
 	endspace
-	space 0 is_loc(s) && is_adjacent(CUCUTA, s) && is_empty(s)
+	prompt "Sabotage each empty LoC touching Cúcuta."
+	space 0 is_loc(s) && is_adjacent(CUCUTA, s) && is_empty(s) && !has_sabotage(s)
 		sabotage
 	endspace
 
 EVENT 29
 	current GOVT
-	space 1 has_farc_piece(s) && has_govt_piece(s)
+	prompt "Activate all FARC and free Assault in 1 space."
+	# TODO: only in spaces where can assault?
+	space 1 has_farc_piece(s)
+		prompt "Activate all FARC."
 		piece 0 is_piece_in_event_space(p) && is_farc_guerrilla(p) && is_underground(p)
 			activate
 		endpiece
@@ -358,14 +360,19 @@ EVENT 29
 
 SHADED 29
 	current [FARC,AUC]
+	# TODO: pick 2 separate spaces?
+	# TODO: pick 2 separate pieces?
+	prompt "Execute 2 free Ambushes with any Guerrilla without Activating."
 	piece_undo 2 is_piece(p, game.current, GUERRILLA) && has_enemy_piece(s)
 		free_ambush
 		underground
 	endpiece
 
 EVENT 30
+	prompt "Remove 1 FARC Zone and 1 FARC Base there."
 	space 1 is_farc_zone(s)
 		remove_farc_zone
+		prompt "Remove 1 FARC Base."
 		piece 1 is_piece_in_event_space(p) && is_farc_base(p)
 			remove
 		endpiece
@@ -376,19 +383,23 @@ SHADED 30
 	place_farc_zone
 
 EVENT 31
-	space 2 is_city(s)
+	prompt "Shift 2 Cities toward Active Support."
+	space 2 is_city(s) && can_shift_support(s)
 		shift_support
 	endspace
-	space 1 is_dept(s)
+	prompt "Shift 1 Department toward Active Support."
+	space 1 is_dept(s) && can_shift_support(s)
 		shift_support
 	endspace
 
 SHADED 31
+	prompt "Shift 3 spaces from Passive Opposition to Active Opposition."
 	space 3 is_passive_opposition(s)
 		set_active_opposition
 	endspace
 
 EVENT 32
+	prompt "Shift 2 spaces from Neutral or Passive Opposition to Passive Support."
 	space 2 is_neutral(s) || is_passive_opposition(s)
 		set_passive_support
 	endspace
@@ -397,18 +408,22 @@ SHADED 32
 	resources FARC 12
 
 EVENT 33
-	space 1 is_next_to_ecuador(s)
+	prompt "Remove up to 3 Insurgent pieces from a space bordering Ecuador."
+	space 1 is_next_to_ecuador(s) && has_insurgent_piece(s)
 		piece_opt 3 is_piece_in_event_space(p) && is_insurgent_piece(p)
 			remove
 		endpiece
 	endspace
 
 SHADED 33
-	capability
-	space 1 s === ECUADOR
+	capability EVT_SUCUMBIOS
+	# TODO: auto or manual select Ecuador ?
+	set_space ECUADOR
+	# prompt "Place 2 pieces in Ecuador."
+	# space 1 s === ECUADOR
 		place (game.current) [BASE,GUERRILLA,TROOPS,POLICE]
 		place (game.current) [BASE,GUERRILLA,TROOPS,POLICE]
-	endspace
+	# endspace
 
 EVENT 34
 	# -1 = all insurgent factions
@@ -416,7 +431,9 @@ EVENT 34
 
 SHADED 34
 	current [FARC,AUC,CARTELS]
-	space 1 is_zero_pop_dept(s)
+	prompt "Place 2 Guerrillas and 1 Base into a 0 Population Department."
+	space 1 is_zero_pop_dept(s) && can_stack_any(s, game.current)
+		# TODO: auto or manual ?
 		auto_place (game.current) GUERRILLA
 		auto_place (game.current) GUERRILLA
 		auto_place (game.current) BASE
@@ -989,11 +1006,14 @@ EVENT 71
 	endpiece
 
 SHADED 71
-	capability
-	space 1 s === PANAMA
+	capability EVT_DARIEN
+	# TODO: auto or manual select Ecuador ?
+	set_space PANAMA
+	# prompt "Place 1-2 Bases in Panamá."
+	# space 1 s === PANAMA
 		place (game.current) BASE
 		place_opt (game.current) BASE
-	endspace
+	# endspace
 
 EVENT 72
 	space 2 has_cartels_guerrilla(s)
