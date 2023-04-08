@@ -233,7 +233,7 @@ SHADED 18
 EVENT 19
 	if game.current === GOVT
 		prompt "Free Sweep or Assault in each space possible."
-		space all can_sweep_activate(s) || can_assault_any(s)
+		space all can_sweep_activate(s) || can_assault_in_space(s)
 			free_sweep_assault
 		endspace
 	else
@@ -468,8 +468,7 @@ EVENT 33
 
 SHADED 33
 	capability EVT_SUCUMBIOS
-	# TODO: auto or manual
-	if true
+	if AUTOMATIC
 		set_space ECUADOR
 		place (game.current) ANY_PIECE
 		place (game.current) ANY_PIECE
@@ -534,7 +533,7 @@ EVENT 36
 EVENT 37
 	current GOVT
 	prompt "Free Sweep or Assault FARC within each space; AUC Guerrillas act as Troops."
-	space all can_sweep_activate(s, FARC) || can_assault(s, FARC)
+	space all can_sweep_activate(s, FARC) || can_assault_in_space_faction(s, FARC)
 		free_sweep_assault_farc
 	endspace
 
@@ -684,8 +683,7 @@ EVENT 45
 	endspace
 
 SHADED 45
-	# TODO: auto or manual
-	if true
+	if AUTOMATIC
 		aid (-count_matching_spaces(s=>has_faction_piece(s,AUC)))
 	else
 		prompt "Aid -1 for each space with AUC pieces."
@@ -840,8 +838,7 @@ SHADED 52
 	space 1 has_auc_piece(s) && can_stack_base(s, AUC)
 		auto_place AUC BASE
 	endspace
-	# TODO: auto or manual
-	if true
+	if AUTOMATIC
 		resources AUC (count_pieces_on_map(AUC,BASE))
 	else
 		prompt "AUC Resources +1 per AUC Base."
@@ -979,7 +976,7 @@ EVENT 59
 		activate
 	endpiece
 	prompt "Free Assault against Cartels in each space."
-	space all can_assault(s, CARTELS)
+	space all can_assault_in_space_faction(s, CARTELS)
 		free_assault_cartels
 	endspace
 
@@ -1195,8 +1192,7 @@ EVENT 71
 
 SHADED 71
 	capability EVT_DARIEN
-	# TODO: auto or manual
-	if true
+	if AUTOMATIC
 		set_space PANAMA
 		place (game.current) BASE
 		place_opt (game.current) BASE

@@ -4,13 +4,12 @@
 
 // TODO: rules material - reference 6.3.3 Drug Profits to 5.2.2 should be 4.5.3
 
-// TODO: Automatic "All done" message. (limited / no more resources / no more available options).
-// TODO: auto-next at end of Special Activity / operation space ?
-// TODO: resume_...activity - end automatically when no more possible
 // TODO: clean up init_free_operation and transitions
 // OP in a space -> next() transition handler to deal with ops/events/elite-backing in a common way
 
-// TODO: auto_place Attack/Ambush guerrilla, Train base, Rally base, etc.
+// TODO: game.op.free is not used - remove
+
+const AUTOMATIC = true
 
 let states = {}
 let game = null
@@ -249,7 +248,6 @@ exports.setup = function (seed, scenario, options) {
 		sa: null,
 		vm: null,
 
-		// TODO: pack into one memory array
 		scenario: 4,
 		president: 0,
 		senado: 0,
@@ -312,8 +310,8 @@ exports.setup = function (seed, scenario, options) {
 				game.deck.push(i)
 	}
 
-	game.deck[0] =
-		/* TEST */ 36
+//	game.deck[0] =
+//		/* TEST */ 36
 	log("DECK " + game.deck.join(", "))
 
 	update_control()
@@ -1208,7 +1206,7 @@ function remove_piece(p) {
 }
 
 function place_terror(s) {
-	log(`Placed Terror in S${s}.`)
+	log(`Terror in S${s}.`)
 	if (count_terror_and_sabotage() < 40)
 		map_set(game.terror, s, map_get(game.terror, s, 0) + 1)
 }
@@ -1222,7 +1220,7 @@ function remove_terror(s) {
 }
 
 function place_sabotage(s) {
-	log(`Placed Sabotage in S${s}.`)
+	log(`Sabotage in S${s}.`)
 	if (count_terror_and_sabotage() < 40)
 		set_add(game.sabotage, s)
 }
@@ -1235,7 +1233,7 @@ function remove_sabotage(s) {
 // === SHIPMENT QUERIES AND COMMANDS ===
 
 function place_shipment(sh, p) {
-	log(`Placed Shipment with ${piece_name(p)} in S${piece_space(p)}.`)
+	log(`Shipment with ${piece_name(p)} in S${piece_space(p)}.`)
 	game.shipments[sh] = p << 2
 }
 
@@ -1373,10 +1371,12 @@ function auto_transfer_dropped_shipment_imp(sh) {
 // === ITERATORS AND ACTION GENERATORS ===
 
 function auto_place_piece(s, faction, type) {
-	let p = find_piece(AVAILABLE, faction, type)
-	if (p >= 0) {
-		place_piece(p, s)
-		return true
+	if (can_place_piece(s, faction, type)) {
+		let p = find_piece(AVAILABLE, faction, type)
+		if (p >= 0) {
+			place_piece(p, s)
+			return true
+		}
 	}
 	return false
 }
@@ -2182,21 +2182,15 @@ function goto_pass() {
 
 function gen_any_operation() {
 	if (game.current === GOVT) {
-		view.actions.train = 1
-		view.actions.patrol = 1
-		if (is_final_event_card())
-			view.actions.sweep = 0
-		else
-			view.actions.sweep = 1
-		view.actions.assault = 1
+		view.actions.train = can_train() ? 1 : 0
+		view.actions.patrol = can_patrol() ? 1 : 0
+		view.actions.sweep = can_sweep() ? 1 : 0
+		view.actions.assault = can_assault() ? 1 : 0
 	} else {
-		view.actions.rally = 1
-		if (is_final_event_card())
-			view.actions.march = 0
-		else
-			view.actions.march = 1
-		view.actions.attack = 1
-		view.actions.terror = 1
+		view.actions.rally = can_rally() ? 1 : 0
+		view.actions.march = can_march() ? 1 : 0
+		view.actions.attack = can_attack() ? 1 : 0
+		view.actions.terror = can_terror() ? 1 : 0
 	}
 }
 
@@ -2265,6 +2259,15 @@ function vm_free_train() {
 function goto_train() {
 	init_operation("Train")
 	game.state = "train"
+}
+
+function can_train() {
+	if (game.sa)
+		return true
+	for (let s = first_space; s <= last_dept; ++s)
+		if (can_govt_train(s))
+			return true
+	return false
 }
 
 function can_govt_train_place(s) {
@@ -2547,13 +2550,34 @@ function goto_patrol2() {
 	game.op.who = -1
 }
 
+function can_patrol() {
+	if (game.sa)
+		return true
+	if (game.op.limited) {
+		for (let s = first_city; s <= last_city; ++s)
+			if (can_patrol_to(s))
+				return true
+		for (let s = first_loc; s <= last_loc; ++s)
+			if (can_patrol_to(s))
+				return true
+	} else {
+		// TODO
+		return true
+	}
+	return false
+}
+
+function can_patrol_to(s) {
+	// TODO
+	return true
+}
+
 states.patrol_limop = {
 	prompt() {
 		view.prompt = "Patrol: Select destination City or LoC."
 
 		gen_govt_special_activity()
 
-		// TODO: check that destination can be reached by any cubes
 		for (let s = first_city; s <= last_city; ++s)
 			gen_action_space(s)
 		for (let s = first_loc; s <= last_loc; ++s)
@@ -2859,6 +2883,17 @@ function vm_free_sweep_farc() {
 	do_sweep_activate()
 }
 
+function can_sweep() {
+	if (is_final_event_card())
+		return false
+	if (game.sa)
+		return true
+	for (let s = first_space; s <= last_dept; ++s)
+		if (can_sweep_select(s))
+			return true
+	return false
+}
+
 function can_sweep_select(here) {
 	if (is_dept(here) && has_momentum(MOM_MADRID_DONORS))
 		return false
@@ -2982,12 +3017,10 @@ states.sweep = {
 		if (has_capability(CAP_NDSC))
 			game.op.ndsc = 1
 
-		// TODO: skip directly to assault if move is not possible?
-		game.state = "sweep_move"
-		// if (can_sweep_move_cubes(s))
-		//	game.state = "sweep_move"
-		// else
-		//	do_sweep_activate()
+		if (can_sweep_move_cubes(s))
+			game.state = "sweep_move"
+		else
+			do_sweep_activate()
 	},
 	end_sweep: end_operation,
 }
@@ -3121,11 +3154,20 @@ function vm_free_assault_cartels() {
 	game.op.count = assault_kill_count(game.vm.s, CARTELS)
 }
 
-function can_assault_any(s) {
-	return can_assault(s, FARC) || can_assault(s, AUC) || can_assault(s, CARTELS)
+function can_assault() {
+	if (game.sa)
+		return true
+	for (let s = first_space; s <= last_space; ++s)
+		if (can_assault_in_space(s))
+			return true
+	return false
 }
 
-function can_assault(s, target) {
+function can_assault_in_space(s) {
+	return can_assault_in_space_faction(s, FARC) || can_assault_in_space_faction(s, AUC) || can_assault_in_space_faction(s, CARTELS)
+}
+
+function can_assault_in_space_faction(s, target) {
 	return has_assault_target(s, target) && assault_kill_count(s, target) > 0
 }
 
@@ -3151,7 +3193,6 @@ function has_assault_target(s, target) {
 		return has_piece(s, CARTELS, BASE)
 	}
 
-	// TODO: which has precedence - Madrid Donors (no assault in dept) vs High Mtn Bns (dept is city) ?
 	// Card 17: Madrid Donors - no Assault in Depts
 	// Card 9: Assault treats Mountain as City
 	let dept = is_dept(s)
@@ -3332,6 +3373,27 @@ function rally_count() {
 	return 1
 }
 
+function can_rally() {
+	for (let s = first_space; s <= last_dept; ++s)
+		if (can_rally_in_space(s))
+			return true
+	return false
+}
+
+function can_rally_in_space(s) {
+	if (is_city(s) || is_dept(s)) {
+		switch (game.current) {
+			case FARC:
+				return !is_support(s)
+			case AUC:
+				return !is_opposition(s)
+			case CARTELS:
+				return true
+		}
+	}
+	return false
+}
+
 states.rally = {
 	prompt() {
 		if (game.current === FARC)
@@ -3344,7 +3406,7 @@ states.rally = {
 		if (game.sa) {
 			gen_special(FARC, "extort", can_extort)
 			gen_special(AUC, "extort", can_extort)
-			gen_special(CARTELS, "cultivate")
+			gen_special(CARTELS, "cultivate", can_cultivate)
 			gen_special(CARTELS, "process", can_process)
 			gen_special(CARTELS, "bribe", can_bribe)
 		}
@@ -3354,19 +3416,7 @@ states.rally = {
 			for (let s = first_space; s <= last_dept; ++s) {
 				if (is_selected_op_space(s))
 					continue
-
-				// FARC: without Support
-				if (game.current === FARC)
-					if (is_support(s))
-						continue
-
-				// AUC: without Opposition
-				if (game.current === AUC)
-					if (is_opposition(s))
-						continue
-
-				// Check Ecuador/Panama
-				if (is_space(s))
+				if (can_rally_in_space(s))
 					gen_action_space(s)
 			}
 		}
@@ -3548,6 +3598,15 @@ function vm_free_march() {
 	game.vm.m = []
 }
 
+function can_march() {
+	if (is_final_event_card())
+		return false
+	for (let s = first_space; s <= last_space; ++s)
+		if (can_march_to(s))
+			return true
+	return false
+}
+
 function can_march_to(to) {
 	if (can_stack_any(to, game.current))
 		for (let from of data.spaces[to].adjacent)
@@ -3701,13 +3760,20 @@ function vm_free_attack_farc() {
 	do_attack_space(game.vm.s)
 }
 
+function can_attack() {
+	for (let s = first_space; s <= last_space; ++s)
+		if (can_attack_in_space(s))
+			return true
+	return false
+}
+
 function has_attack_target(s) {
 	if (game.op.faction)
 		return has_piece(s, game.current, GUERRILLA) && has_faction_piece(s, game.op.faction)
 	return has_piece(s, game.current, GUERRILLA) && has_enemy_piece(s, game.current)
 }
 
-function can_attack(s) {
+function can_attack_in_space(s) {
 	return has_piece(s, game.current, GUERRILLA) && has_enemy_piece(s, game.current)
 }
 
@@ -3725,7 +3791,7 @@ states.attack = {
 			for (let s = first_space; s <= last_space; ++s) {
 				if (is_selected_op_space(s))
 					continue
-				if (can_attack_any(s))
+				if (can_attack_in_space(s))
 					gen_action_space(s)
 			}
 		}
@@ -3747,9 +3813,7 @@ states.attack = {
 
 function do_attack_space(s) {
 	log(`Attack in S${s}.`)
-
 	select_op_space(s, 1)
-
 	game.state = "attack_space"
 	game.op.where = s
 }
@@ -3878,7 +3942,14 @@ function vm_free_terror_space() {
 	do_terror_space(game.vm.s)
 }
 
-function can_terror(s) {
+function can_terror() {
+	for (let s = first_space; s <= last_space; ++s)
+		if (can_terror_in_space(s))
+			return true
+	return false
+}
+
+function can_terror_in_space(s) {
 	return has_underground_guerrilla(s, game.current)
 }
 
@@ -3907,7 +3978,7 @@ states.terror = {
 			for (let s = first_loc; s <= last_loc; ++s) {
 				if (is_selected_op_space(s))
 					continue
-				if (can_terror(s))
+				if (can_terror_in_space(s))
 					gen_action_space(s)
 			}
 		}
@@ -3935,7 +4006,6 @@ states.terror = {
 }
 
 function do_terror_space(s) {
-	log(`Terror in S${s}.`)
 	if (is_loc(s)) {
 		select_op_space(s, 0)
 	} else {
@@ -4055,6 +4125,7 @@ function gen_govt_special_activity() {
 }
 
 function end_special_activity() {
+	log_br()
 	if (game.vm) {
 		vm_next()
 		return
@@ -4188,8 +4259,12 @@ function goto_eradicate() {
 		save: game.state,
 		where: -1,
 	}
-	// TODO: automatic aid +4?
-	game.state = "eradicate_aid"
+	if (AUTOMATIC) {
+		add_aid(4)
+		game.state = "eradicate"
+	} else {
+		game.state = "eradicate_aid"
+	}
 }
 
 states.eradicate_aid = {
@@ -4199,7 +4274,6 @@ states.eradicate_aid = {
 	},
 	aid() {
 		push_undo()
-		log("+4 Aid.")
 		add_aid(4)
 		game.state = "eradicate"
 	}
@@ -4221,7 +4295,7 @@ states.eradicate = {
 		if (has_piece(s, CARTELS, BASE))
 			game.state = "eradicate_base"
 		else
-			game.state = "eradicate_shift"
+			goto_eradicate_shift()
 	}
 }
 
@@ -4336,15 +4410,23 @@ states.ambush = {
 
 function can_extort() {
 	if (game.current === FARC)
-		return can_extort_farc()
+		return can_extort_farc(null)
 	if (game.current === AUC)
-		return can_extort_auc()
+		return can_extort_auc(null)
 	return false
 }
 
-function can_extort_farc() {
+function can_extort_again() {
+	if (game.current === FARC)
+		return can_extort_farc(game.sa.spaces)
+	if (game.current === AUC)
+		return can_extort_auc(game.sa.spaces)
+	return false
+}
+
+function can_extort_farc(ss) {
 	for (let s = first_space; s <= last_space; ++s) {
-		if (game.sa && set_has(game.sa.spaces, s))
+		if (ss && set_has(ss, s))
 			continue
 		if (has_farc_control(s) && has_underground_guerrilla(s, FARC))
 			return true
@@ -4352,9 +4434,9 @@ function can_extort_farc() {
 	return false
 }
 
-function can_extort_auc() {
+function can_extort_auc(ss) {
 	for (let s = first_space; s <= last_space; ++s) {
-		if (game.sa && set_has(game.sa.spaces, s))
+		if (ss && set_has(ss, s))
 			continue
 		if (has_auc_control(s) && has_underground_guerrilla(s, AUC))
 			return true
@@ -4400,14 +4482,13 @@ states.extort = {
 		set_active(p)
 		add_resources(game.current, 1)
 		game.sa.where = -1
-		if (!can_extort())
+		if (!can_extort_again())
 			end_special_activity()
 	},
 	space(s) {
 		push_undo()
 		game.sa.where = s
 		set_add(game.sa.spaces, s)
-		log(`S${s}.`)
 	},
 	end_extort() {
 		push_undo()
@@ -4469,7 +4550,7 @@ function can_kidnap_in_space(s) {
 
 states.kidnap = {
 	prompt() {
-		view.prompt = "Kidnap: Select City, LoC, or Cartels Base space where Terror."
+		view.prompt = "Kidnap: Select up to 3 Cartels Base, City, LoC spaces where Terror."
 
 		if (game.sa.spaces.length < 3) {
 			for (let s = first_space; s <= last_space; ++s) {
@@ -4484,7 +4565,6 @@ states.kidnap = {
 	},
 	space(s) {
 		push_undo()
-		log(`S${s}.`)
 		set_add(game.sa.spaces, s)
 		game.sa.where = s
 		game.state = "kidnap_space"
@@ -4600,7 +4680,14 @@ function can_assassinate() {
 	return false
 }
 
-// TODO: auto-end after 3 spaces (or no more possible)
+function can_assassinate_again() {
+	if (game.sa.spaces.length === 3)
+		return false
+	for (let s of game.op.spaces)
+		if (!set_has(game.sa.spaces, s) && can_assassinate_in_space(s))
+			return true
+	return false
+}
 
 function goto_assassinate() {
 	push_undo()
@@ -4626,22 +4713,19 @@ function can_assassinate_in_space(s) {
 
 states.assassinate = {
 	prompt() {
-		view.prompt = "Assassinate: Select space where Terror."
+		view.prompt = "Assassinate: Select up to 3 spaces where Terror."
 
-		if (game.sa.spaces.length < 3) {
-			for (let s = first_space; s <= last_space; ++s) {
-				if (set_has(game.sa.spaces, s))
-					continue
-				if (can_assassinate_in_space(s))
-					gen_action_space(s)
-			}
+		for (let s = first_space; s <= last_space; ++s) {
+			if (set_has(game.sa.spaces, s))
+				continue
+			if (can_assassinate_in_space(s))
+				gen_action_space(s)
 		}
 
 		view.actions.end_assassinate = 1
 	},
 	space(s) {
 		push_undo()
-		log(`S${s}.`)
 		set_add(game.sa.spaces, s)
 		game.sa.where = s
 		game.state = "assassinate_space"
@@ -4672,10 +4756,10 @@ states.assassinate_space = {
 	piece(p) {
 		remove_piece(p)
 
-		if (game.sa.spaces.length === 3)
-			end_special_activity()
-		else
+		if (can_assassinate_again())
 			game.state = "assassinate"
+		else
+			end_special_activity()
 
 		transfer_or_remove_shipments()
 	},
@@ -4685,9 +4769,15 @@ states.assassinate_space = {
 
 function can_cultivate() {
 	for (let s = first_pop; s <= last_pop; ++s)
-		if (can_stack_piece(s, CARTELS, BASE))
-			if (count_pieces(s, CARTELS, GUERRILLA) > count_pieces(s, GOVT, POLICE))
-				return true
+		if (can_cultivate_in_space(s))
+			return true
+	return false
+}
+
+function can_cultivate_in_space(s) {
+	if (can_stack_piece(s, CARTELS, BASE))
+		if (count_pieces(s, CARTELS, GUERRILLA) > count_pieces(s, GOVT, POLICE))
+			return true
 	return false
 }
 
@@ -4706,18 +4796,20 @@ states.cultivate = {
 	prompt() {
 		view.prompt = "Cultivate: Select Department or City to place or relocate Base."
 		for (let s = first_pop; s <= last_pop; ++s)
-			if (can_stack_piece(s, CARTELS, BASE))
-				if (count_pieces(s, CARTELS, GUERRILLA) > count_pieces(s, GOVT, POLICE))
-					gen_action_space(s)
+			if (can_cultivate_in_space(s))
+				gen_action_space(s)
 	},
 	space(s) {
 		push_undo()
-		log(`Cultivate in S${s}.`)
 		game.sa.where = s
-		if (is_selected_op_space(s) && game.op.type === "Rally")
-			game.state = "cultivate_place"
-		else
+		if (is_selected_op_space(s) && game.op.type === "Rally") {
+			if (auto_place_piece(s, CARTELS, BASE))
+				end_special_activity()
+			else
+				game.state = "cultivate_place"
+		} else {
 			game.state = "cultivate_move"
+		}
 	},
 }
 
@@ -4841,7 +4933,6 @@ states.process = {
 			remove_piece(p)
 			game.sa.count = -1
 		} else {
-			log("Placed Shipment.")
 			place_shipment(game.sa.shipment, p)
 			game.sa.shipment = -1
 			game.sa.count--
@@ -4895,7 +4986,7 @@ function resume_bribe() {
 
 states.bribe = {
 	prompt() {
-		view.prompt = `Bribe: Select up to ${3-game.sa.spaces.length} spaces.`
+		view.prompt = `Bribe: Select up to 3 spaces.`
 		if (game.resources[CARTELS] >= 3) {
 			for (let s = first_space; s <= last_space; ++s)
 				if (!set_has(game.sa.spaces, s) && has_enemy_piece(s))
@@ -4919,7 +5010,7 @@ states.bribe = {
 
 states.bribe_space = {
 	prompt() {
-		view.prompt = "Bribe: Remove 1 base or 2 cubes or 2 guerrillas, or flip 2 guerrillas."
+		view.prompt = "Bribe: Remove 1 Base or 2 cubes or 2 Guerrillas, or flip 2 Guerrillas."
 
 		// Nothing removed yet
 		if (game.sa.targeted === 0) {
@@ -5551,7 +5642,7 @@ states.farc_zone_place = {
 	},
 	space(s) {
 		push_undo()
-		log(`Placed FARC Zone in S${s}.`)
+		log(`FARC Zone in S${s}.`)
 		set_add(game.farc_zones, s)
 
 		if (game.vm)
@@ -6318,13 +6409,10 @@ states.vm_shipment = {
 function vm_auto_place() {
 	let faction = vm_operand(3)
 	let type = vm_operand(4)
-	let p = find_piece(AVAILABLE, faction, type)
-	if (p >= 0 && can_stack_piece(game.vm.s, faction, type)) {
-		place_piece(p, game.vm.s)
+	if (auto_place_piece(game.vm.s, faction, type))
 		vm_next()
-	} else {
+	else
 		vm_place()
-	}
 }
 
 function vm_place() {
@@ -6679,7 +6767,7 @@ states.vm_free_sweep_assault_farc = {
 			view.actions.sweep = 1
 		else
 			view.actions.sweep = 0
-		if (can_assault(game.vm.s, FARC))
+		if (can_assault_in_space_faction(game.vm.s, FARC))
 			view.actions.assault = 1
 		else
 			view.actions.assault = 0
@@ -7405,7 +7493,7 @@ const CODE = [
 	[ vm_endspace ],
 	[ vm_else ],
 	[ vm_prompt, "Free Attack or Terror in each space possible." ],
-	[ vm_space, true, 999, 999, (s)=>can_terror(s) || can_attack(s) ],
+	[ vm_space, true, 999, 999, (s)=>can_terror_in_space(s) || can_attack_in_space(s) ],
 	[ vm_free_attack_terror ],
 	[ vm_endspace ],
 	[ vm_endif ],
