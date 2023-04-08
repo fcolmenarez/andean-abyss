@@ -11,7 +11,7 @@
 // OP in a space -> next() transition handler to deal with ops/events/elite-backing in a common way
 
 // TODO: can_extort for SA button
-// TODO: auto_place Ambush
+// TODO: auto_place Attack/Ambush guerrilla, Train base, Rally base, etc.
 
 let states = {}
 let game = null
@@ -1104,6 +1104,13 @@ function update_control() {
 	}
 }
 
+function transfer_resources(from, to, n) {
+	if (n > game.resources[from])
+		n = game.resources[from]
+	add_resources(from, -n)
+	add_resources(to, n)
+}
+
 function add_resources(faction, n) {
 	if (n > 0)
 		log(faction_name[faction] + " Resources +" + n + ".")
@@ -1338,6 +1345,15 @@ function auto_transfer_dropped_shipment_imp(sh) {
 }
 
 // === ITERATORS AND ACTION GENERATORS ===
+
+function auto_place_piece(s, faction, type) {
+	let p = find_piece(AVAILABLE, faction, type)
+	if (p >= 0) {
+		place_piece(p, s)
+		return true
+	}
+	return false
+}
 
 function can_replace_with(s, faction, piece) {
 	if (has_piece(AVAILABLE, faction, piece))
@@ -2397,8 +2413,9 @@ states.train_base = {
 			remove_piece(p)
 		else
 			place_piece(p, game.op.where)
-		// TODO: auto_place BASE
-		--game.op.count
+		if (--game.op.count === 0)
+			auto_place_piece(game.op.where, game.current, BASE)
+			// TODO: add state train_done
 	},
 	end_train: end_operation,
 }
@@ -2420,6 +2437,7 @@ states.train_civic = {
 			if (res >= 3 && can_civic_action(game.op.where)) {
 				gen_action_space(game.op.where)
 			} else {
+				// TODO: add state train_done
 				view.prompt = `Train: All done.`
 			}
 			view.actions.end_train = 1
@@ -2429,6 +2447,7 @@ states.train_civic = {
 		game.op.where = s
 		add_resources(game.current, -3)
 		game.support[game.op.where] += 1
+		// TODO: add state train_done
 	},
 	end_train: end_operation,
 }
@@ -3267,7 +3286,7 @@ states.rally = {
 			gen_special(FARC, "extort")
 			gen_special(AUC, "extort")
 			gen_special(CARTELS, "cultivate")
-			gen_special(CARTELS, "process")
+			gen_special(CARTELS, "process", can_process())
 			gen_special(CARTELS, "bribe", game.resources[CARTELS] < 3)
 		}
 
@@ -3320,6 +3339,7 @@ states.rally_space = {
 		view.prompt = `Rally: Place up to ${game.op.count} Guerrillas, build Base, or Move.`
 		view.where = game.op.where
 
+		// TODO: handle removing pieces! - split state into rally_space_place/base/move based on first action
 		if (game.op.count === rally_count()) {
 			view.actions.base = 0
 			view.actions.move = 0
@@ -3384,8 +3404,12 @@ states.rally_base = {
 	piece(p) {
 		if (game.op.count > 0) {
 			remove_piece(p)
-			--game.op.count
-			// TODO: auto_place BASE
+			if (--game.op.count === 0) {
+				if (auto_place_piece(game.op.where, game.current, BASE)) {
+					resume_rally()
+					transfer_or_remove_shipments()
+				}
+			}
 		} else {
 			place_piece(p, game.op.where)
 			resume_rally()
@@ -3459,7 +3483,7 @@ states.march = {
 			gen_special(FARC, "extort")
 			gen_special(AUC, "extort")
 			gen_special(CARTELS, "cultivate", count_pieces(AVAILABLE, CARTELS, BASE) === 15)
-			gen_special(CARTELS, "process")
+			gen_special(CARTELS, "process", can_process())
 			gen_special(CARTELS, "bribe", game.resources[CARTELS] < 3)
 		}
 
@@ -3678,6 +3702,7 @@ states.attack_space = {
 		log("Rolled " + die + ".")
 
 		if (die === 1 && can_stack_any(game.op.where, game.current)) {
+			// TODO: auto_place GUERRILLA
 			game.state = "attack_place"
 		} else if (
 			die <= count_pieces(game.op.where, game.current, GUERRILLA) &&
@@ -4138,6 +4163,7 @@ states.eradicate_base = {
 }
 
 function goto_eradicate_shift() {
+	// TODO: auto_place FARC GUERRILLA
 	if (can_eradicate_shift())
 		game.state = "eradicate_shift"
 	else
@@ -4173,6 +4199,7 @@ states.eradicate_shift = {
 
 		if (!can_shift) {
 			view.prompt = `Eradicate: Place available FARC Guerrilla in ${space_name[game.sa.where]}.`
+			// TODO: auto_place
 			gen_piece_in_space(AVAILABLE, FARC, GUERRILLA)
 		}
 	},
@@ -4193,6 +4220,7 @@ states.eradicate_shift = {
 
 function vm_free_ambush() {
 	init_free_operation("Attack")
+	// TODO: auto_place GUERRILLA
 	game.state = "attack_place"
 	set_active(game.vm.p)
 	game.op.where = piece_space(game.vm.p)
@@ -4200,6 +4228,7 @@ function vm_free_ambush() {
 
 function vm_free_ambush_without_activating() {
 	init_free_operation("Attack")
+	// TODO: auto_place GUERRILLA
 	game.state = "attack_place"
 	game.op.where = piece_space(game.vm.p)
 }
@@ -4220,6 +4249,7 @@ states.ambush = {
 	piece(p) {
 		set_active(p)
 		game.state = "attack_place"
+		// TODO: auto_place GUERRILLA
 		if (can_stack_any(game.op.where, game.current)) {
 			game.state = "attack_place"
 		} else {
@@ -4230,6 +4260,9 @@ states.ambush = {
 }
 
 // SPECIAL ACTIVITY: EXTORT
+
+// TODO: end automatically when not possible?
+// TODO: can_extort()
 
 function goto_extort() {
 	push_undo()
@@ -4355,13 +4388,6 @@ states.kidnap = {
 	},
 }
 
-function transfer_resources(from, to, n) {
-	if (n > game.resources[from])
-		n = game.resources[from]
-	add_resources(from, -n)
-	add_resources(to, n)
-}
-
 states.kidnap_space = {
 	prompt() {
 		view.prompt = `Kidnap in ${space_name[game.sa.where]}.`
@@ -4460,6 +4486,9 @@ function resume_kidnap_2() {
 
 // SPECIAL ACTIVITY: ASSASSINATE
 
+// TODO: can_assassinate
+// TODO: auto-end after 3 spaces (or no more possible)
+
 function goto_assassinate() {
 	push_undo()
 	move_cylinder_to_special_activity()
@@ -4472,7 +4501,7 @@ function goto_assassinate() {
 	game.state = "assassinate"
 }
 
-function can_assassinate(s) {
+function can_assassinate_in_space(s) {
 	// Space where Terror
 	if (is_selected_op_space(s))
 		// AUC Guerrillas outnumber Police
@@ -4490,7 +4519,7 @@ states.assassinate = {
 			for (let s = first_space; s <= last_space; ++s) {
 				if (set_has(game.sa.spaces, s))
 					continue
-				if (can_assassinate(s))
+				if (can_assassinate_in_space(s))
 					gen_action_space(s)
 			}
 		}
@@ -4600,6 +4629,8 @@ states.cultivate_move = {
 
 // SPECIAL ACTIVITY: PROCESS
 
+// TODO: end automatically when placed max shipments or no more bases to remove
+
 function has_available_shipment() {
 	for (let sh = 0; sh < 4; ++sh)
 		if (is_shipment_available(sh))
@@ -4635,6 +4666,7 @@ function can_process() {
 
 states.process = {
 	prompt() {
+		// TODO: split state based on first action?
 		if (game.sa.count === 2)
 			view.prompt = "Process: Place 1-2 Shipments with any Guerrillas, or remove any Cartels bases for Resources."
 		else if (game.sa.count === 1)
