@@ -454,8 +454,8 @@ def_space("forest", 0, "Amazonas")
 
 // Foreign Countries
 
-def_space("foreign", 0, "Ecuador")
-def_space("foreign", 0, "Panamá")
+def_space("grassland", 0, "Ecuador")
+def_space("forest", 0, "Panamá")
 
 data.last_dept = spaces.length-1
 

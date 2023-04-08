@@ -1,5 +1,20 @@
 # Events for Andean Abyss.
 
+# TODO: format prompt "Remove N Piece(s)"
+# TODO: prompt wording to match card texts
+
+# TODO: piece/space_opt_1 - optional if at least 1
+
+# TODO: 5.1.3 - as much as possible - for doing multiple things in one space
+#   14, 34, 49 (place base + other piece) priority to spaces with room for all available pieces
+#   65 priority to where both (place or remove shipment) and (place or remove insurgent base)
+
+# TODO: replace pieces - must check stacking if replacement piece is available
+# 35, 39, 40, 50, 54, 57, 72
+
+# TODO: allow voluntarily removing pieces before taking event (but disable passing if did so)
+# - needed for 66 shaded (within stacking place base) etc
+
 EVENT 1
 	log "1 Civic Action space each Support Phase requires Government Control and any cube."
 	capability CAP_1ST_DIV
@@ -132,6 +147,7 @@ SHADED 13
 EVENT 14
 	current GOVT
 	prompt "Place 1 Base and 3 Troops into any Department."
+	# TODO: 5.1.3 do as much as can!
 	space 1 is_dept(s) && can_stack_any(s, GOVT)
 		# TODO: auto or manual ?
 		auto_place GOVT BASE
@@ -435,6 +451,7 @@ EVENT 34
 SHADED 34
 	current [FARC,AUC,CARTELS]
 	prompt "Place 2 Guerrillas and 1 Base into a 0 Population Department."
+	# TODO: 5.1.3 do as much as can!
 	space 1 is_zero_pop_dept(s) && can_stack_any(s, game.current)
 		# TODO: auto or manual ?
 		auto_place (game.current) GUERRILLA
@@ -529,13 +546,14 @@ EVENT 40
 		set_piece_space
 		remove
 		auto_place GOVT POLICE
+		set_space -1
 	endpiece
 
 SHADED 40
 	prompt "Move all cubes in a Department with AUC to any Cities."
 	space 1 is_dept(s) && has_auc_piece(s) && has_cube(s)
 		prompt "Move all cubes to any Cities."
-		piece_no_undo 0 is_piece_in_event_space(p) && is_cube(p)
+		piece 0 is_piece_in_event_space(p) && is_cube(p)
 			save_space
 			prompt "Move cube to any City."
 			space_no_undo 1 is_city(s)
@@ -617,7 +635,7 @@ EVENT 45
 	endspace
 
 SHADED 45
-	# TODO: sum and manual aid once?
+	# TODO: aid (-count_spaces_with_faction_piece(AUC))
 	prompt "Aid -1 for each space with AUC pieces."
 	space 0 has_auc_piece(s)
 		auto_aid -1
@@ -657,7 +675,8 @@ EVENT 47
 SHADED 47
 	current AUC
 	set_space CUCUTA
-	prompt "Place AUC Guerrillas in Cúcuta."
+	prompt "Place 2 AUC Guerrillas in Cúcuta."
+	# set_space CUCUTA
 	space 1 s === CUCUTA
 		auto_place AUC GUERRILLA
 		auto_place AUC GUERRILLA
@@ -667,7 +686,7 @@ SHADED 47
 			terror_aid_cut
 		endpiece
 	endspace
-	prompt "Flip any AUC Guerrillas Underground."
+	prompt "Flip any 2 AUC Guerrillas Underground."
 	piece 2 is_auc_guerrilla(p) && is_active(p)
 		underground
 	endpiece
@@ -679,45 +698,64 @@ EVENT 48
 		remove
 	endif
 	if game.vm.s >= 0
-		shift_support
+		# https://boardgamegeek.com/thread/1132718/article/15062894#15062894
+		set_neutral
 	endif
 
 SHADED 48
-	space 2 s !== BOGOTA && is_city(s)
+	prompt "Shift 2 Cities other than Bogotá 1 level toward Active Opposition."
+	space 2 s !== BOGOTA && is_city(s) && can_shift_opposition(s)
 		shift_opposition
 	endspace
 
 EVENT 49
+	prompt "Permanently remove 3 available AUC Guerrillas."
 	remove_permanently AUC GUERRILLA
 	remove_permanently AUC GUERRILLA
 	remove_permanently AUC GUERRILLA
 
 SHADED 49
-	space 1 is_dept(s)
+	prompt "Place an AUC Guerrilla and Base in any Department."
+	# TODO: 5.1.3 do as much as can!
+	space 1 is_dept(s) && can_stack_any(s, AUC)
 		auto_place AUC GUERRILLA
 		auto_place AUC BASE
 	endspace
 
 EVENT 50
-	# UPTO
 	current GOVT
-	space 1 is_dept(s) && !is_farc_zone(s)
-		auto_place GOVT POLICE
-	endspace
-	space_opt 1 is_dept(s) && !is_farc_zone(s)
-		auto_place GOVT POLICE
-	endspace
-	space_opt 1 is_dept(s) && !is_farc_zone(s)
-		auto_place GOVT POLICE
-	endspace
+	repeat 3
+		if !game.vm.opt
+			prompt "Place up to 3 Police into any Departments."
+			space_opt 1 is_dept(s) && can_stack_any(s, GOVT)
+				auto_place GOVT POLICE
+			endspace
+		endif
+	endrepeat
 
 SHADED 50
-	# TODO: remove 2 / replace 2 / remove 1 + replace 1 ?
-	piece 2 is_police(p)
+	# Note: strictly remove 2 or replace 2
+	prompt "Remove any 2 Police or replace them with available AUC Guerrillas."
+	piece_undo 1 is_police(p)
 		set_piece_space
 		remove
 		place_opt AUC GUERRILLA
+		set_space -1
 	endpiece
+	if game.vm.opt
+		prompt "Remove 1 more Police."
+		piece_undo 1 is_police(p)
+			remove
+		endpiece
+	else
+		prompt "Replace 1 more Police with AUC Guerrilla."
+		piece_undo 1 is_police(p)
+			set_piece_space
+			remove
+			auto_place AUC GUERRILLA
+			set_space -1
+		endpiece
+	endif
 
 EVENT 51
 	if is_any_pipeline_sabotaged()
@@ -725,35 +763,52 @@ EVENT 51
 		space 0 is_pipeline(s) && has_sabotage(s)
 			remove_sabotage
 		endspace
-		return
+	else
+		resources GOVT 12
 	endif
-	resources GOVT 12
 
 SHADED 51
-	prompt "Sabotage Pipelines with or adjacent to FARC Guerrillas."
+	prompt "Sabotage 3 Pipelines with or adjacent to FARC Guerrillas."
 	space 3 is_pipeline(s) && is_with_or_adjacent_to_farc_guerrilla(s)
 		sabotage
 	endspace
 
 EVENT 52
-	space 2 is_city(s) || is_mountain(s)
+	prompt "Shift 2 City or Mountain each 1 level toward Active Support."
+	space 2 (is_city(s) || is_mountain(s)) && can_shift_support(s)
 		shift_support
 	endspace
 
 SHADED 52
+	prompt "Place an AUC Base into a space with AUC."
 	space 1 has_auc_piece(s) && can_stack_base(s, AUC)
 		auto_place AUC BASE
 	endspace
-	resources AUC (count_pieces_on_map(AUC,BASE))
+	# TODO: resources AUC (count_pieces_on_map(AUC,BASE))
+	prompt "AUC Resources +1 per AUC Base."
+	piece 0 is_auc_base(p)
+		auto_resources AUC 1
+	endpiece
 
 EVENT 53
 	current [FARC,AUC,CARTELS]
 	prompt "Select Departments to move Guerrillas between."
-	space 2 is_dept(s)
+	space 1 is_dept(s)
 		mark_space
 	endspace
+	if has_piece(game.vm.m[0], game.current, GUERRILLA)
+		prompt "Select Departments to move Guerrillas between."
+		space 1 (s !== game.vm.m[0]) && is_dept(s)
+			mark_space
+		endspace
+	else
+		prompt "Select Departments to move Guerrillas between."
+		space 1 is_dept(s) && has_piece(s, game.current, GUERRILLA)
+			mark_space
+		endspace
+	endif
 	prompt "Move Guerrillas between Departments."
-	piece 2 is_any_guerrilla(p) && (s === game.vm.m[0] || s === game.vm.m[1])
+	piece 2 is_piece(p, game.current, GUERRILLA) && (s === game.vm.m[0] || s === game.vm.m[1])
 		if piece_space(game.vm.p) === game.vm.m[0]
 			set_space (game.vm.m[1])
 		else
@@ -761,29 +816,79 @@ EVENT 53
 		endif
 		move
 		underground
+		set_space -1
 	endpiece
 
 EVENT 54
-	# UPTO
-	piece_opt 2 is_any_guerrilla(p)
-		set_piece_space
-		remove
-		if piece_faction(game.vm.p) === FARC
-			place_opt [AUC,CARTELS] GUERRILLA
+	if false
+		# Note: may remove one and replace another.
+		prompt "Remove up to 2 Guerrillas or replace them with with another Faction."
+		# TODO: don't remove just placed guerrilla
+		piece_undo_opt 2 is_any_guerrilla(p)
+			set_piece_space
+			remove
+			if piece_faction(game.vm.p) === FARC
+				place_opt [AUC,CARTELS] GUERRILLA
+			endif
+			if piece_faction(game.vm.p) === AUC
+				place_opt [FARC,CARTELS] GUERRILLA
+			endif
+			if piece_faction(game.vm.p) === CARTELS
+				place_opt [FARC,AUC] GUERRILLA
+			endif
+			set_space -1
+		endpiece
+
+	else
+		# Note: strictly remove 2 or replace 2 (see shaded 50)
+		prompt "Remove up to 2 Guerrillas or replace them with with another Faction's."
+		piece_undo 1 is_any_guerrilla(p)
+			set_piece_space
+			remove
+			if piece_faction(game.vm.p) === FARC
+				place_opt [AUC,CARTELS] GUERRILLA
+			endif
+			if piece_faction(game.vm.p) === AUC
+				place_opt [FARC,CARTELS] GUERRILLA
+			endif
+			if piece_faction(game.vm.p) === CARTELS
+				place_opt [FARC,AUC] GUERRILLA
+			endif
+			set_space -1
+		endpiece
+		if game.vm.opt
+			# TODO: don't remove just placed guerrilla!
+			prompt "Remove 1 more Guerrilla."
+			piece_undo_opt 1 is_any_guerrilla(p)
+				remove
+			endpiece
+		else
+			# TODO: don't replace just placed guerrilla!
+			prompt "Replace 1 more Guerrilla."
+			piece_undo_opt 1 is_any_guerrilla(p)
+				set_piece_space
+				remove
+				if piece_faction(game.vm.p) === FARC
+					place [AUC,CARTELS] GUERRILLA
+				endif
+				if piece_faction(game.vm.p) === AUC
+					place [FARC,CARTELS] GUERRILLA
+				endif
+				if piece_faction(game.vm.p) === CARTELS
+					place [FARC,AUC] GUERRILLA
+				endif
+				set_space -1
+			endpiece
 		endif
-		if piece_faction(game.vm.p) === AUC
-			place_opt [FARC,CARTELS] GUERRILLA
-		endif
-		if piece_faction(game.vm.p) === CARTELS
-			place_opt [FARC,AUC] GUERRILLA
-		endif
-	endpiece
+
+	endif
 
 EVENT 55
+	prompt "Remove 2 Shipments."
 	shipment 2 true
 		remove_shipment
-	endpiece
-	prompt "Remove N Cartels Guerrillas."
+	endshipment
+	prompt "Remove 5 Cartels Guerrillas."
 	piece 5 is_cartels_guerrilla(p)
 		remove
 	endpiece
@@ -799,24 +904,29 @@ EVENT 56
 	transfer CARTELS GOVT 15
 
 SHADED 56
+	prompt "Add twice Cartels pieces in Cities to Cartels Resources."
 	piece 0 is_cartels_piece(p) && is_city(s)
 		auto_resources CARTELS 2
 	endpiece
+	prompt "Place a Cartels Base in each of 2 Cities."
 	space 2 is_city(s) && can_stack_base(s, CARTELS)
 		auto_place CARTELS BASE
 	endspace
 
 EVENT 57
-	prompt "Replace Cartels pieces with Police."
-	piece_opt 3 is_cartels_piece(p)
+	prompt "Replace up to 3 Cartels pieces with Police."
+	piece_undo_opt 3 is_cartels_piece(p)
 		set_piece_space
 		remove
 		auto_place GOVT POLICE
+		set_space -1
 	endpiece
 
 SHADED 57
-	prompt "In 2 spaces replace 1 Police with any Cartels piece."
+	prompt "In each of 2 spaces replace a Police with any Cartels piece."
+	# TODO: prompt "Replace a Police with any Cartels piece in 2 spaces."
 	space 2 has_police(s)
+		prompt "Replace a Police with any Cartels piece."
 		piece 1 is_piece_in_event_space(p) && is_police(p)
 			remove
 			place CARTELS [BASE,GUERRILLA]
@@ -825,6 +935,7 @@ SHADED 57
 
 EVENT 58
 	resources CARTELS -6
+	prompt "Remove all Cartels Guerrillas."
 	piece 0 is_cartels_guerrilla(p)
 		remove
 	endpiece
@@ -832,36 +943,42 @@ EVENT 58
 SHADED 58
 	current CARTELS
 	prompt "Relocate up to 4 Police to any spaces."
-	piece_opt 4 is_police(p)
-		space 1 can_stack_piece(s, GOVT, POLICE)
+	piece_undo_opt 4 is_police(p)
+		prompt "Relocate Police to any space."
+		space_no_undo 1 can_stack_piece(s, GOVT, POLICE)
 			move
 		endspace
 	endpiece
 
 EVENT 59
 	current GOVT
+	prompt "All Cartels Guerrillas to Active."
 	piece 0 is_cartels_guerrilla(p) && is_underground(p)
 		activate
 	endpiece
+	prompt "Free Assault against Cartels in each space."
 	space 0 can_assault(s, CARTELS)
 		free_assault_cartels
 	endspace
 
 SHADED 59
 	current CARTELS
-	prompt "Flip all Cartels Guerrillas underground."
+	prompt "Flip all Cartels Guerrillas Underground."
 	piece 0 is_cartels_guerrilla(p) && is_active(p)
 		underground
 	endpiece
-	prompt "Relocate Cartels Guerrillas anywhere."
-	piece_opt 3 is_cartels_guerrilla(p)
-		space 1 can_stack_piece(s, CARTELS, GUERRILLA)
+	prompt "Relocate up to 3 Cartels Guerrillas anywhere."
+	piece_undo_opt 3 is_cartels_guerrilla(p)
+		prompt "Relocate Cartels Guerrilla anywhere."
+		space_no_undo 1 !is_event_piece_space(s) && can_stack_piece(s, CARTELS, GUERRILLA)
 			move
 		endspace
 	endpiece
 
 EVENT 60
+	prompt "Remove all Cartels pieces from 2 Cities or 1 Department."
 	space 2 has_cartels_piece(s) && ((is_city(s) && (game.vm.ss.length === 0 || is_city(game.vm.ss[0]))) || (is_dept(s) && game.vm.ss.length === 0))
+		prompt "Remove all Cartels pieces."
 		piece 0 is_piece_in_event_space(p) && is_cartels_piece(p)
 			remove
 		endpiece
@@ -870,46 +987,53 @@ EVENT 60
 
 SHADED 60
 	current CARTELS
+	prompt "Place a Cartels Base in each of 2 Cities."
 	space 2 is_city(s) && can_stack_base(s, CARTELS)
 		auto_place CARTELS BASE
 	endspace
-	# TODO: can_bribe
-	space 1 is_space(s)
+	prompt "Free Bribe in 1 space."
+	space 1 !is_empty(s)
 		free_bribe
 	endspace
 
 EVENT 61
-	space 1 is_city(s)
-		piece 0 is_piece_in_event_space(p) && is_cartels_piece(p)
+	prompt "Remove all Cartels pieces from 1 City."
+	space 1 is_city(s) && has_cartels_piece(s)
+		prompt "Remove all Cartels pieces."
+		piece_undo 0 is_piece_in_event_space(p) && is_cartels_piece(p)
 			remove
 		endpiece
 	endspace
 	resources CARTELS -6
 
 SHADED 61
-	space 3 !has_cartels_piece(s) && can_stack_base(s, CARTELS)
+	prompt "Place 1 Cartels Base into each of 3 Departments with no Cartels pieces."
+	space 3 is_dept(s) && !has_cartels_piece(s) && can_stack_base(s, CARTELS)
 		auto_place CARTELS BASE
 	endspace
 
 EVENT 62
-	piece_opt 3 is_insurgent_piece(p) && is_zero_pop_forest(s)
+	prompt "Remove up to 3 Insurgent pieces for 0 Population Forests."
+	piece_undo_opt 3 is_insurgent_piece(p) && is_zero_pop_forest(s)
 		remove
 	endpiece
 
 SHADED 62
-	space 3 s === GUAINIA || s === VAUPES || s === AMAZONAS
+	prompt "Place 1 Cartels Base each in Guainia, Vaupés, and Amazonas."
+	space 3 (s === GUAINIA || s === VAUPES || s === AMAZONAS) && can_stack_base(s, CARTELS)
 		auto_place CARTELS BASE
 	endspace
 
 EVENT 63
 	current CARTELS
+	prompt "In each space with Cartels Guerrillas..."
 	space 0 has_cartels_guerrilla(s)
 		prompt "Remove all but one Cartels Guerrilla."
-		piece_no_undo 0 is_piece_in_event_space(p) && is_cartels_guerrilla(p) && count_pieces(s, CARTELS, GUERRILLA) > 1
+		piece 0 is_piece_in_event_space(p) && is_cartels_guerrilla(p) && count_pieces(s, CARTELS, GUERRILLA) > 1
 			remove
 		endpiece
 		prompt "Free Terror with remaining Cartels Guerrilla."
-		piece_no_undo 1 is_piece_in_event_space(p) && is_cartels_guerrilla(p)
+		piece 1 is_piece_in_event_space(p) && is_cartels_guerrilla(p)
 			free_terror
 		endpiece
 	endspace
@@ -917,33 +1041,42 @@ EVENT 63
 	ineligible CARTELS
 
 EVENT 64
-	prompt "Place Shipments with FARC Guerrillas."
-	piece 2 is_farc_guerrilla(p) && has_cartels_base(s) && has_available_shipment()
-		place_shipment
-	endpiece
+	repeat 2
+		prompt "Place 2 Shipments with FARC Guerrillas in the same spaces as Cartels Bases."
+		if has_available_shipment()
+			asm game.vm.shipment = find_available_shipment()
+			piece_undo 1 is_farc_guerrilla(p) && has_cartels_base(s)
+				place_shipment
+			endpiece
+		endif
+	endrepeat
 
 SHADED 64
-	prompt "Select each Cartels Base in a City."
+	prompt "Cartels Resources +2 for each Cartels Base in a City."
 	piece 0 is_cartels_base(p) && is_city(s)
 		auto_resources CARTELS 2
 	endpiece
-	prompt "Select each Cartels Base in a Department."
+	prompt "Cartels Resources +1 for each Cartels Base in a Department."
 	piece 0 is_cartels_base(p) && is_dept(s)
 		auto_resources CARTELS 1
 	endpiece
 
 EVENT 65
+	prompt "Place or remove 1 Shipment and Insurgent Base in any Mountain Department."
+	# TODO: 5.1.3 do as much as can!
 	space 1 is_mountain(s)
 		place_or_remove_shipment
 		place_or_remove_insurgent_base
 	endspace
 
 EVENT 66
-	piece 3 is_cartels_base(p) && is_forest(s)
+	prompt "Remove 3 Cartels Bases from Forest."
+	piece_undo 3 is_cartels_base(p) && is_forest(s)
 		remove
 	endpiece
 
 SHADED 66
+	prompt "Place Cartels Base into each Forest that already has one."
 	space 0 is_forest(s) && has_cartels_base(s) && can_stack_base(s, CARTELS)
 		auto_place CARTELS BASE
 	endspace
@@ -956,23 +1089,25 @@ SHADED 67
 	momentum MOM_MEXICAN_TRAFFICKERS
 
 EVENT 68
-	prompt "Remove 2 Cartels pieces or up to 2 Shipments in coastal spaces."
+	prompt "Remove 2 Cartels pieces or up to 2 Shipments from coastal spaces."
 	select_shipment_or_cartels_piece_in_coastal_space
 	if game.vm.p >= 0
 		remove
+		prompt "Remove 1 more Cartels piece from coastal spaces."
 		piece 1 is_coastal_space(s) && is_cartels_piece(p)
 			remove
 		endpiece
 	endif
 	if game.vm.sh >= 0
 		remove_shipment
+		prompt "Remove up to 1 more Shipment from coastal spaces."
 		shipment_opt 1 is_coastal_space(s)
 			remove_shipment
 		endshipment
 	endif
 
 SHADED 68
-	prompt "Select each Cartels piece in coastal spaces."
+	prompt "Cartels Resources +2 per Cartels piece in coastal spaces."
 	piece 0 is_cartels_piece(p) && is_coastal_space(s)
 		auto_resources CARTELS 2
 	endpiece
@@ -988,35 +1123,34 @@ EVENT 69
 			mark_space
 		endspace
 	endif
-	prompt "Select destination space."
-	if game.current === GOVT
-		space 1 (s !== game.vm.m[0]) && !is_farc_zone(s) && is_within_adjacent_depts(s, game.vm.m[0], 3)
+	prompt "Select destination Department."
+	space 1 (s !== game.vm.m[0]) && is_within_adjacent_depts(s, game.vm.m[0], 3) && can_stack_any(s, game.current)
+		if game.current === GOVT
 			prompt "Move cubes to destination."
-			piece_opt 0 (s === game.vm.m[0]) && is_cube(p)
+			piece_undo_opt 0 (s === game.vm.m[0]) && is_cube(p) && can_stack_any(s, GOVT)
 				move
 			endpiece
-			# TODO: free sweep move or only flip?
 			free_train_sweep_assault
-		endspace
-	else
-		space 1 (s !== game.vm.m[0]) && is_within_adjacent_depts(s, game.vm.m[0], 3)
+		else
 			prompt "Move Guerrillas to destination."
-			piece_opt 0 console.log("CHECK",p,s) || ((s === game.vm.m[0]) && is_piece(p, game.current, GUERRILLA))
+			piece_undo_opt 0 (s === game.vm.m[0]) && is_piece(p, game.current, GUERRILLA) && can_stack_any(s, game.current)
 				move
 			endpiece
 			free_rally_attack_terror
-		endspace
-	endif
+		endif
+	endspace
 
 EVENT 70
-	prompt "Select each Forest without Guerrillas."
+	prompt "Government Resources +6 for each Forest without Guerrillas."
 	space_no_undo 0 is_forest(s) && !has_any_guerrilla(s)
 		auto_resources GOVT 6
 	endspace
 
 SHADED 70
 	current [FARC,AUC,CARTELS]
+	prompt "Free Terror in each Forest and +3 Resources per Terror."
 	space 0 is_forest(s) && has_piece(s, game.current, GUERRILLA)
+		prompt "Free Terror with any 1 Guerrilla."
 		piece 1 is_piece_in_event_space(p) && is_piece(p, game.current, GUERRILLA)
 			free_terror
 			auto_resources (game.current) 3
@@ -1034,26 +1168,29 @@ EVENT 71
 
 SHADED 71
 	capability EVT_DARIEN
-	# TODO: auto or manual select Ecuador ?
-	set_space PANAMA
-	# prompt "Place 1-2 Bases in Panamá."
-	# space 1 s === PANAMA
-		place (game.current) BASE
+	# TODO: auto or manual select Panama ?
+	# set_space PANAMA
+	prompt "Place 1-2 Bases in Panamá."
+	space 1 s === PANAMA
+		auto_place (game.current) BASE
 		place_opt (game.current) BASE
-	# endspace
+	endspace
 
 EVENT 72
+	prompt "Replace all Cartels Guerrillas in 2 spaces with other Guerrillas."
 	space 2 has_cartels_guerrilla(s)
-		piece 0 is_piece_in_event_space(p) && is_cartels_guerrilla(p)
+		prompt "Replace all Cartels Guerrillas with other Guerrillas."
+		piece_undo 0 is_piece_in_event_space(p) && is_cartels_guerrilla(p)
 			remove
 			place [FARC,AUC] GUERRILLA
 		endpiece
 	endspace
 
 SHADED 72
-	prompt "Place all available Cartels Guerrillas into spaces with Cartels Bases."
 	if count_pieces_on_map(CARTELS, BASE) > 0
 		while has_piece(AVAILABLE, CARTELS, GUERRILLA)
+			prompt "Place all available Cartels Guerrillas into spaces with Cartels Bases."
+			asm game.vm.p = find_piece(AVAILABLE, CARTELS, GUERRILLA)
 			space 1 has_cartels_base(s)
 				auto_place CARTELS GUERRILLA
 			endspace
