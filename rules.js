@@ -1422,6 +1422,9 @@ function can_place_piece(s, faction, type) {
 }
 
 function did_maximum_damage(targeted) {
+	// Must do at least something!
+	if (targeted === 0)
+		return false
 	if (view.actions.piece)
 		for (let p of view.actions.piece)
 			if (targeted & target_faction(p))
@@ -2242,6 +2245,18 @@ function init_free_operation(type) {
 	}
 }
 
+function prompt_end_op(cost) {
+	if (!view.actions.space) {
+		if (game.op.limited && game.op.spaces && game.op.spaces.length > 0)
+			view.prompt = game.op.type + ": All done."
+		else if (!game.op.free && game.resources[game.current] < cost)
+			view.prompt = game.op.type + ": No resources."
+		else
+			view.prompt = game.op.type + ": All done."
+	}
+	return (game.op.spaces.length > 0) ? 0 : 1
+}
+
 // OPERATION: TRAIN
 
 function vm_free_train() {
@@ -2253,7 +2268,7 @@ function vm_free_train() {
 	if (can_govt_train_place(game.op.where))
 		game.state = "train_place"
 	else
-		game.state = "train_base_or_civic"
+		game.state = "vm_train_base_or_civic"
 }
 
 function goto_train() {
@@ -2287,6 +2302,8 @@ function can_govt_train(s) {
 }
 
 function can_govt_train_base_any() {
+	if (game.op.limited && game.op.spaces.length > 0)
+		return can_govt_train_base(game.op.spaces[0])
 	for (let s = first_city; s <= last_city; ++s)
 		if (can_govt_train_base(s))
 			return true
@@ -2299,6 +2316,8 @@ function can_govt_train_base_any() {
 function can_govt_train_civic_any() {
 	if (game.resources[game.current] < 3)
 		return false
+	if (game.op.limited && game.op.spaces.length > 0)
+		return can_govt_train_civic(game.op.spaces[0])
 	for (let s = first_city; s <= last_city; ++s)
 		if (can_govt_train_civic(s))
 			return true
@@ -2313,6 +2332,7 @@ states.train = {
 		view.prompt = "Train: Select City or Department to place cubes."
 
 		if (game.sa) {
+			// TODO: can_air_lift, can_eradicate
 			view.actions.air_lift = 1
 			view.actions.eradicate = 1
 		}
@@ -2325,20 +2345,10 @@ states.train = {
 						gen_action_space(s)
 		}
 
-		if (can_govt_train_base_any())
-			view.actions.base = 1
-		else
-			view.actions.base = 0
+		view.actions.base = can_govt_train_base_any() ? 1 : 0
+		view.actions.civic = can_govt_train_civic_any() ? 1 : 0
 
-		if (can_govt_train_civic_any())
-			view.actions.civic = 1
-		else
-			view.actions.civic = 0
-
-		if (game.op.spaces.length > 0)
-			view.actions.end_train = 1
-		else
-			view.actions.end_train = 0
+		view.actions.end_train = prompt_end_op(3)
 	},
 	space(s) {
 		push_undo()
@@ -2350,11 +2360,20 @@ states.train = {
 	},
 	base() {
 		push_undo()
-		game.state = "train_base"
+		if (game.op.limited && game.op.spaces.length > 0) {
+			game.op.where = game.op.spaces[0]
+			game.op.count = 3
+			game.state = "train_base_remove"
+		} else {
+			game.state = "train_base"
+		}
 	},
 	civic() {
 		push_undo()
-		game.state = "train_civic"
+		if (game.op.limited && game.op.spaces.length > 0)
+			do_train_civic_action(game.op.spaces[0])
+		else
+			game.state = "train_civic"
 	},
 	end_train: end_operation,
 }
@@ -2380,7 +2399,7 @@ states.train_place = {
 		game.op.count = 0
 		if (game.vm) {
 			if (can_govt_train_base(game.vm.s) || can_govt_train_civic(game.vm.s))
-				game.state = "train_base_or_civic"
+				game.state = "vm_train_base_or_civic"
 			else
 				end_operation()
 			return
@@ -2389,32 +2408,24 @@ states.train_place = {
 	},
 }
 
-states.train_base_or_civic = {
+states.vm_train_base_or_civic = {
 	prompt() {
 		view.prompt = "Train: Build Base or buy Civic Action?"
 
-		if (can_govt_train_base_any())
-			view.actions.base = 1
-		else
-			view.actions.base = 0
+		view.actions.base = can_govt_train_base(game.vm.s) ? 1 : 0
+		view.actions.civic = can_govt_train_civic(game.vm.s) ? 1 : 0
 
-		if (can_govt_train_civic_any())
-			view.actions.civic = 1
-		else
-			view.actions.civic = 0
-
-		if (game.op.spaces.length > 0)
-			view.actions.end_train = 1
-		else
-			view.actions.end_train = 0
+		view.actions.end_train = (game.op.spaces.length > 0) ? 1 : 0
 	},
 	base() {
 		push_undo()
-		game.state = "train_base"
+		game.op.where = game.vm.s
+		game.op.count = 3
+		game.state = "train_base_remove"
 	},
 	civic() {
 		push_undo()
-		game.state = "train_civic"
+		do_train_civic_action()
 	},
 	end_train: end_operation,
 }
@@ -2465,9 +2476,14 @@ states.train_base_place = {
 	},
 }
 
-function buy_civic_action(s) {
+function do_train_civic_action(s) {
+	game.op.where = s
 	add_resources(GOVT, -3)
 	shift_support(s)
+	if (!can_govt_train_civic(game.op.where))
+		game.state = "train_done"
+	else
+		game.state = "train_civic_buy"
 }
 
 states.train_civic = {
@@ -2482,12 +2498,7 @@ states.train_civic = {
 		push_undo()
 		if (!is_selected_op_space(s))
 			select_op_space(s, 3)
-		buy_civic_action(s)
-		game.op.where = s
-		if (!can_civic_action_in_space(game.op.where))
-			game.state = "train_done"
-		else
-			game.state = "train_civic_buy"
+		do_train_civic_action(s)
 	},
 	end_train: end_operation,
 }
@@ -2499,9 +2510,7 @@ states.train_civic_buy = {
 	},
 	space(s) {
 		push_undo()
-		buy_civic_action(s)
-		if (!can_civic_action_in_space(game.op.where))
-			game.state = "train_done"
+		do_train_civic_action(s)
 	},
 	end_train: end_operation,
 }
@@ -2713,6 +2722,8 @@ function goto_patrol_activate() {
 		return
 	}
 
+	// TODO: activate per space (for maximum damage targeted tracking!)
+
 	// TODO: skip if nothing to activate
 	game.state = "patrol_activate"
 	game.op.count = []
@@ -2811,6 +2822,7 @@ states.patrol_assault = {
 
 		game.state = "patrol_assault_space"
 		game.op.where = s
+		game.op.targeted = 0
 		game.op.count = count_cubes(s)
 	},
 	next() {
@@ -2995,13 +3007,7 @@ states.sweep = {
 			}
 		}
 
-		if (!view.actions.space)
-			view.prompt = "Sweep: All done."
-
-		if (game.op.spaces.length > 0)
-			view.actions.end_sweep = 1
-		else
-			view.actions.end_sweep = 0
+		view.actions.end_sweep = prompt_end_op(cost)
 	},
 	space(s) {
 		push_undo()
@@ -3015,6 +3021,7 @@ states.sweep = {
 		select_op_space(s, cost)
 
 		game.op.where = s
+		game.op.targeted = 0
 
 		if (has_capability(CAP_NDSC))
 			game.op.ndsc = 1
@@ -3127,7 +3134,8 @@ function vm_free_assault() {
 	init_free_operation("Assault")
 	game.state = "assault_space"
 	game.op.where = game.vm.s
-	game.op.count = assault_kill_count(game.vm.s, undefined)
+	game.op.targeted = 0
+	game.op.count = assault_kill_count(game.vm.s, 0)
 }
 
 function vm_free_assault_auc() {
@@ -3135,6 +3143,7 @@ function vm_free_assault_auc() {
 	game.state = "assault_space"
 	game.op.faction = AUC
 	game.op.where = game.vm.s
+	game.op.targeted = 0
 	game.op.count = assault_kill_count(game.vm.s, AUC)
 }
 
@@ -3143,6 +3152,7 @@ function vm_free_assault_farc() {
 	game.state = "assault_space"
 	game.op.faction = FARC
 	game.op.where = game.vm.s
+	game.op.targeted = 0
 	game.op.count = assault_kill_count(game.vm.s, FARC)
 }
 
@@ -3151,6 +3161,7 @@ function vm_free_assault_cartels() {
 	game.state = "assault_space"
 	game.op.faction = CARTELS
 	game.op.where = game.vm.s
+	game.op.targeted = 0
 	game.op.count = assault_kill_count(game.vm.s, CARTELS)
 }
 
@@ -3274,13 +3285,7 @@ states.assault = {
 			}
 		}
 
-		if (!view.actions.space)
-			view.prompt = "Assault: All done."
-
-		if (game.op.spaces.length > 0)
-			view.actions.end_assault = 1
-		else
-			view.actions.end_assault = 0
+		view.actions.end_assault = prompt_end_op(cost)
 	},
 	space(s) {
 		push_undo()
@@ -3295,6 +3300,7 @@ states.assault = {
 
 		game.state = "assault_space"
 		game.op.where = s
+		game.op.targeted = 0
 		game.op.count = assault_kill_count(s, game.op.faction)
 	},
 	end_assault: end_operation,
@@ -3420,13 +3426,7 @@ states.rally = {
 			}
 		}
 
-		if (!view.actions.space)
-			view.prompt = "Rally: All done."
-
-		if (game.op.spaces.length > 0)
-			view.actions.end_rally = 1
-		else
-			view.actions.end_rally = 0
+		view.actions.end_rally = prompt_end_op(1)
 	},
 	space(s) {
 		push_undo()
@@ -3644,13 +3644,7 @@ states.march = {
 			}
 		}
 
-		if (!view.actions.space)
-			view.prompt = "March: All done."
-
-		if (game.op.spaces.length > 0)
-			view.actions.end_march = 1
-		else
-			view.actions.end_march = 0
+		view.actions.end_march = prompt_end_op(1)
 	},
 	space(s) {
 		push_undo()
@@ -3794,13 +3788,7 @@ states.attack = {
 			}
 		}
 
-		if (!view.actions.space)
-			view.prompt = "Attack: All done."
-
-		if (game.op.spaces.length > 0)
-			view.actions.end_attack = 1
-		else
-			view.actions.end_attack = 0
+		view.actions.end_attack = prompt_end_op(1)
 	},
 	space(s) {
 		push_undo()
@@ -3888,6 +3876,7 @@ function goto_attack_remove() {
 	if (has_attack_target(game.op.where)) {
 		game.state = "attack_remove"
 		game.op.count = 2
+		game.op.targeted = 0
 	} else {
 		do_attack_next()
 	}
@@ -3895,7 +3884,7 @@ function goto_attack_remove() {
 
 states.attack_remove = {
 	prompt() {
-		view.prompt = `Attack in ${space_name[game.op.where]}: Remove ${game.op.count} enemy pieces.`
+		view.prompt = `Attack in ${space_name[game.op.where]}: Remove 2 enemy pieces.`
 		view.where = game.op.where
 
 		if (game.op.faction) {
@@ -3916,6 +3905,8 @@ states.attack_remove = {
 			view.actions.next = 0
 	},
 	piece(p) {
+		push_undo()
+
 		game.op.targeted |= target_faction(p)
 		remove_piece(p)
 
@@ -3996,13 +3987,7 @@ states.terror = {
 			}
 		}
 
-		if (!view.actions.space)
-			view.prompt = "Terror: All done."
-
-		if (game.op.spaces.length > 0)
-			view.actions.end_terror = 1
-		else
-			view.actions.end_terror = 0
+		view.actions.end_terror = prompt_end_op(1)
 	},
 	space(s) {
 		push_undo()
@@ -4125,6 +4110,7 @@ function gen_special(faction, action, enable) {
 
 function gen_govt_special_activity() {
 	if (game.sa) {
+		// TODO: can_air_lift, can_air_strike, can_eradicate
 		view.actions.air_lift = 1
 		view.actions.eradicate = 1
 		if (has_momentum(MOM_PLAN_COLOMBIA))
@@ -4963,7 +4949,6 @@ function goto_bribe() {
 		save: game.state,
 		spaces: [],
 		where: -1,
-		targeted: 0,
 		count: 0,
 		piece: -1,
 	}
@@ -6708,8 +6693,12 @@ function vm_free_attack_terror() { game.state = "vm_free_attack_terror" }
 states.vm_free_govt_special_activity = {
 	prompt() {
 		event_prompt(`Free Special Activity.`)
+		// TODO: can_air_lift, can_air_strike, can_eradicate
 		view.actions.air_lift = 1
-		view.actions.air_strike = 1
+		if (has_momentum(MOM_PLAN_COLOMBIA))
+			view.actions.air_strike = 0
+		else
+			view.actions.air_strike = 1
 		view.actions.eradicate = 1
 	},
 	air_lift: vm_free_air_lift,
