@@ -313,7 +313,7 @@ exports.setup = function (seed, scenario, options) {
 	}
 
 	game.deck[0] =
-		/* TEST */ 54
+		/* TEST */ 36
 	log("DECK " + game.deck.join(", "))
 
 	update_control()
@@ -930,6 +930,34 @@ function can_shift_opposition(s) {
 
 function can_shift_neutral(s) {
 	return is_pop(s) && !is_neutral(s)
+}
+
+function log_support_shift(s) {
+	log("S" + s + " to " + support_level_name[game.support[s]] + ".")
+}
+
+function shift_opposition(s) {
+	if (can_shift_opposition(s)) {
+		game.support[s] --
+		log_support_shift(s)
+	}
+}
+
+function shift_support(s) {
+	if (can_shift_support(s)) {
+		game.support[s] ++
+		log_support_shift(s)
+	}
+}
+
+function shift_neutral(s) {
+	if (can_shift_neutral(s)) {
+		if (game.support[s] < 0)
+			game.support[s] ++
+		else
+			game.support[s] --
+		log_support_shift(s)
+	}
 }
 
 function is_support(s) {
@@ -2294,28 +2322,38 @@ states.train = {
 						gen_action_space(s)
 		}
 
-		if (game.op.spaces.length > 0 || can_govt_train_base_any() || can_govt_train_civic_any())
-			view.actions.next = 1
+		if (can_govt_train_base_any())
+			view.actions.base = 1
 		else
-			view.actions.next = 0
+			view.actions.base = 0
+
+		if (can_govt_train_civic_any())
+			view.actions.civic = 1
+		else
+			view.actions.civic = 0
+
+		if (game.op.spaces.length > 0)
+			view.actions.end_train = 1
+		else
+			view.actions.end_train = 0
 	},
 	space(s) {
 		push_undo()
-
 		log(`Train in S${s}.`)
-
 		select_op_space(s, 3)
-
-		if (is_city(s) || has_piece(s, GOVT, BASE)) {
-			game.state = "train_place"
-			game.op.where = s
-			game.op.count = 6
-		}
+		game.state = "train_place"
+		game.op.where = s
+		game.op.count = 6
 	},
-	next() {
+	base() {
 		push_undo()
-		game.state = "train_base_or_civic"
-	}
+		game.state = "train_base"
+	},
+	civic() {
+		push_undo()
+		game.state = "train_civic"
+	},
+	end_train: end_operation,
 }
 
 states.train_place = {
@@ -2350,7 +2388,7 @@ states.train_place = {
 
 states.train_base_or_civic = {
 	prompt() {
-		view.prompt = "Train: Build Base or buy Civic Action in one selected space?"
+		view.prompt = "Train: Build Base or buy Civic Action?"
 
 		if (can_govt_train_base_any())
 			view.actions.base = 1
@@ -2364,88 +2402,111 @@ states.train_base_or_civic = {
 
 		if (game.op.spaces.length > 0)
 			view.actions.end_train = 1
+		else
+			view.actions.end_train = 0
 	},
 	base() {
 		push_undo()
 		game.state = "train_base"
-		game.op.where = -1
 	},
 	civic() {
 		push_undo()
 		game.state = "train_civic"
-		game.op.where = -1
 	},
 	end_train: end_operation,
 }
 
 states.train_base = {
 	prompt() {
-		if (game.op.where < 0) {
-			view.prompt = `Train: Replace 3 cubes with a Base.`
-			for (let s = first_space; s <= last_dept; ++s)
-				if (can_govt_train_base(s))
-					if (is_selected_op_space(s) || can_select_op_space(3))
-						gen_action_space(s)
-		} else {
-			if (game.op.count < 0) {
-				view.prompt = `Train: All done.`
-				view.actions.end_train = 1
-			} else if (game.op.count > 0) {
-				view.prompt = `Train: ${game.op.count} cubes with a Base.`
-				gen_piece_in_space(game.op.where, GOVT, POLICE)
-				gen_piece_in_space(game.op.where, GOVT, TROOPS)
-			} else {
-				view.prompt = `Train: Place Base.`
-				gen_place_piece(game.op.where, GOVT, BASE)
-			}
-		}
+		view.prompt = "Train: Build Base."
+		for (let s = first_space; s <= last_dept; ++s)
+			if (can_govt_train_base(s))
+				if (is_selected_op_space(s) || can_select_op_space(3))
+					gen_action_space(s)
 	},
 	space(s) {
+		push_undo()
+		if (!is_selected_op_space(s))
+			select_op_space(s, 3)
 		game.op.where = s
 		game.op.count = 3
+		game.state = "train_base_remove"
+	},
+}
+
+states.train_base_remove = {
+	prompt() {
+		view.prompt = `Train: Replace 3 cubes with a Base in ${space_name[game.op.where]}.`
+		gen_piece_in_space(game.op.where, GOVT, POLICE)
+		gen_piece_in_space(game.op.where, GOVT, TROOPS)
 	},
 	piece(p) {
-		if (!is_selected_op_space(game.op.where))
-			select_op_space(game.op.where, 3)
-		if (game.op.count > 0)
-			remove_piece(p)
-		else
-			place_piece(p, game.op.where)
-		if (--game.op.count === 0)
-			auto_place_piece(game.op.where, game.current, BASE)
-			// TODO: add state train_done
+		remove_piece(p)
+		if (--game.op.count === 0) {
+			if (auto_place_piece(game.op.where, GOVT, BASE))
+				game.state = "train_done"
+			else
+				game.state = "train_base_place"
+		}
 	},
-	end_train: end_operation,
+}
+
+states.train_base_place = {
+	prompt() {
+		view.prompt = `Train: Place Base in ${space_name[game.op.where]}.`
+		gen_place_piece(game.op.where, GOVT, BASE)
+	},
+	piece(p) {
+		place_piece(p, game.op.where)
+		game.state = "train_done"
+	},
+}
+
+function buy_civic_action(s) {
+	add_resources(GOVT, -3)
+	shift_support(s)
 }
 
 states.train_civic = {
 	prompt() {
-		let res = game.resources[game.current]
-		if (game.op.where < 0) {
-			view.prompt = `Train: Buy Civic Action.`
-			if (res >= 3) {
-				for (let s = first_space; s <= last_dept; ++s)
-					if (can_civic_action(s))
-						if (is_selected_op_space(s) || can_select_op_space(3))
-							gen_action_space(s)
-			}
-		} else {
-			view.prompt = `Train: Buy Civic Action in ${space_name[game.op.where]}.`
-			view.where = game.op.where
-			if (res >= 3 && can_civic_action(game.op.where)) {
-				gen_action_space(game.op.where)
-			} else {
-				// TODO: add state train_done
-				view.prompt = `Train: All done.`
-			}
-			view.actions.end_train = 1
-		}
+		view.prompt = `Train: Buy Civic Action.`
+		for (let s = first_space; s <= last_dept; ++s)
+			if (can_civic_action(s))
+				if (is_selected_op_space(s) || can_select_op_space(3))
+					gen_action_space(s)
 	},
 	space(s) {
+		push_undo()
+		if (!is_selected_op_space(s))
+			select_op_space(s, 3)
+		buy_civic_action(s)
 		game.op.where = s
-		add_resources(game.current, -3)
-		game.support[game.op.where] += 1
-		// TODO: add state train_done
+		if (!can_civic_action_in_space(game.op.where))
+			game.state = "train_done"
+		else
+			game.state = "train_civic_buy"
+	},
+	end_train: end_operation,
+}
+
+states.train_civic_buy = {
+	prompt() {
+		view.prompt = `Train: Buy Civic Action.`
+		gen_action_space(game.op.where)
+	},
+	space(s) {
+		push_undo()
+		buy_civic_action(s)
+		if (!can_civic_action_in_space(game.op.where))
+			game.state = "train_done"
+	},
+	end_train: end_operation,
+}
+
+states.train_done = {
+	prompt() {
+		view.prompt = "Train: All done."
+		view.actions.end_train = 1
 	},
 	end_train: end_operation,
 }
@@ -3296,12 +3357,12 @@ states.rally = {
 
 				// FARC: without Support
 				if (game.current === FARC)
-					if (game.support[s] > 0)
+					if (is_support(s))
 						continue
 
 				// AUC: without Opposition
 				if (game.current === AUC)
-					if (game.support[s] < 0)
+					if (is_opposition(s))
 						continue
 
 				// Check Ecuador/Panama
@@ -3327,52 +3388,61 @@ states.rally = {
 
 		game.state = "rally_space"
 		game.op.where = s
-		game.op.count = rally_count()
+		game.op.count = 0
 	},
 	end_rally: end_operation,
 }
 
 states.rally_space = {
 	prompt() {
-		view.prompt = `Rally: Place up to ${game.op.count} Guerrillas, build Base, or Move.`
+		view.prompt = `Rally: Place up to ${rally_count()} Guerrillas, build Base, or Move.`
 		view.where = game.op.where
 
-		// TODO: handle removing pieces! - split state into rally_space_place/base/move based on first action
-		if (game.op.count === rally_count()) {
+		if (count_pieces(game.op.where, game.current, GUERRILLA) >= 2 && can_stack_base(game.op.where, game.current))
+			view.actions.base = 1
+		else
 			view.actions.base = 0
+
+		if (has_piece(game.op.where, game.current, BASE))
+			view.actions.move = 1
+		else
 			view.actions.move = 0
-			if (count_pieces(game.op.where, game.current, GUERRILLA) >= 2) {
-				if (count_bases(game.op.where) < 2)
-					view.actions.base = 1
-			}
-			if (has_piece(game.op.where, game.current, BASE)) {
-				view.actions.move = 1
-			}
-		}
 
-		view.actions.next = 1
-		view.actions.end_rally = 0
-
-		if (game.op.count > 0)
-			if (can_stack_piece(game.op.where, game.current, GUERRILLA))
-				gen_place_piece(game.op.where, game.current, GUERRILLA)
+		if (can_stack_piece(game.op.where, game.current, GUERRILLA))
+			gen_place_piece(game.op.where, game.current, GUERRILLA)
 	},
 	piece(p) {
 		place_piece(p, game.op.where)
-		if (--game.op.count === 0 && !game.op.elite_backing)
+		game.state = "rally_guerrillas"
+		if (++game.op.count >= rally_count() || !can_stack_piece(game.op.where, game.current, GUERRILLA))
 			resume_rally()
 	},
 	base() {
 		push_undo()
 		log("Base.")
-		game.state = "rally_base"
+		game.state = "rally_base_remove"
 		game.op.count = 2
 	},
 	move() {
 		push_undo()
-		log("Moved.")
+		log("Move.")
 		game.state = "rally_move"
 		game.op.count = 0
+	},
+}
+
+states.rally_guerrillas = {
+	prompt() {
+		view.prompt = `Rally: Place up to ${rally_count()} Guerrillas.`
+		view.where = game.op.where
+		gen_place_piece(game.op.where, game.current, GUERRILLA)
+		view.actions.next = 1
+	},
+	piece(p) {
+		place_piece(p, game.op.where)
+		game.state = "rally_guerrillas"
+		if (++game.op.count >= rally_count() || !can_stack_piece(game.op.where, game.current, GUERRILLA))
+			resume_rally()
 	},
 	next() {
 		resume_rally()
@@ -3388,63 +3458,76 @@ function resume_rally() {
 		game.state = "rally"
 }
 
-states.rally_base = {
+states.rally_base_remove = {
 	prompt() {
-		if (game.op.count > 0) {
-			view.prompt = `Rally: Replace ${game.op.count} Guerrillas with a Base.`
-			gen_piece_in_space(game.op.where, game.current, GUERRILLA)
-		} else {
-			view.prompt = `Rally: Place a Base.`
-			gen_place_piece(game.op.where, game.current, BASE)
-		}
-		view.actions.end_rally = 0
+		view.prompt = `Rally: Replace 2 Guerrillas with a Base in ${space_name[game.op.where]}.`
+		gen_piece_in_space(game.op.where, game.current, GUERRILLA)
 	},
 	piece(p) {
-		if (game.op.count > 0) {
-			remove_piece(p)
-			if (--game.op.count === 0) {
-				if (auto_place_piece(game.op.where, game.current, BASE)) {
-					resume_rally()
-					transfer_or_remove_shipments()
-				}
+		remove_piece(p)
+		if (--game.op.count === 0) {
+			if (auto_place_piece(game.op.where, game.current, BASE)) {
+				resume_rally()
+				transfer_or_remove_shipments()
+			} else {
+				game.state = "rally_base_place"
 			}
-		} else {
-			place_piece(p, game.op.where)
-			resume_rally()
-			transfer_or_remove_shipments()
 		}
+	},
+}
+
+states.rally_base_place = {
+	prompt() {
+		view.prompt = `Rally: Place a Base in ${space_name[game.op.where]}.`
+		gen_place_piece(game.op.where, game.current, BASE)
+	},
+	piece(p) {
+		place_piece(p, game.op.where)
+		resume_rally()
+		transfer_or_remove_shipments()
 	},
 }
 
 states.rally_move = {
 	prompt() {
+		view.prompt = `Rally: Move any Guerrillas to ${space_name[game.op.where]}.`
 		view.where = game.op.where
-
-		view.prompt = `Rally: Move any Guerrillas to ${space_name[game.op.where]} then flip all Underground.`
-
 		for_each_piece(game.current, GUERRILLA, p => {
 			if (piece_space(p) !== game.op.where && piece_space(p) >= 0)
 				if (can_stack_any(game.op.where, game.current))
 					gen_action_piece(p)
 		})
-
-		view.actions.flip = 1
-		view.actions.end_rally = 0
+		view.actions.next = 1
 	},
 	piece(p) {
 		move_piece(p, game.op.where)
+		set_underground(p)
 		game.op.count++
 	},
-	flip() {
+	next() {
 		push_undo()
 		log("Moved " + game.op.count + ".")
-		log("Flipped.")
-		for_each_piece(game.current, GUERRILLA, p => {
-			if (piece_space(p) === game.op.where)
-				set_underground(p)
-		})
-		resume_rally()
+		if (has_active_guerrilla(game.op.where, game.current))
+			game.state = "rally_flip"
+		else
+			resume_rally()
 	}
+}
+
+states.rally_flip = {
+	prompt() {
+		view.prompt = `Rally: Flip all Guerrillas in ${space_name[game.op.where]} to Underground.`
+		view.where = game.op.where
+		for_each_piece(game.current, GUERRILLA, (p,s) => {
+			if (s === game.op.where && is_active(p))
+				gen_action_piece(p)
+		})
+	},
+	piece(p) {
+		set_underground(p)
+		if (!has_active_guerrilla(game.op.where, game.current))
+			resume_rally()
+	},
 }
 
 // OPERATION: MARCH
@@ -3535,9 +3618,9 @@ states.march = {
 function may_activate_marching_guerrillas() {
 	if (is_loc(game.op.where))
 		return true
-	if (game.support[game.op.where] > 0)
+	if (is_support(game.op.where))
 		return true
-	if (game.current === AUC && game.support[game.op.where] < 0)
+	if (game.current === AUC && is_opposition(game.op.where))
 		return true
 	return false
 }
@@ -3884,15 +3967,10 @@ function do_terror_piece(p) {
 	} else {
 		place_terror(s)
 		if (is_pop(s)) {
-			if (game.current === FARC) {
-				if (game.support[s] > -2)
-					game.support[s] --
-			} else {
-				if (game.support[s] > 0)
-					game.support[s] --
-				else if (game.support[s] < 0)
-					game.support[s] ++
-			}
+			if (game.current === FARC)
+				shift_opposition(s)
+			else
+				shift_neutral(s)
 		}
 	}
 
@@ -4169,10 +4247,10 @@ function goto_eradicate_shift() {
 }
 
 function can_eradicate_shift() {
-	if (is_pop(game.sa.where) && game.support[game.sa.where] > -2)
+	if (can_shift_opposition(game.sa.where))
 		return true
 	for (let s of data.spaces[game.sa.where].adjacent)
-		if (is_pop(s) && game.support[s] > -2)
+		if (can_shift_opposition(s))
 			return true
 	return can_place_piece(game.sa.where, FARC, GUERRILLA)
 }
@@ -4184,12 +4262,12 @@ states.eradicate_shift = {
 
 		let can_shift = false
 
-		if (is_pop(game.sa.where) && game.support[game.sa.where] > -2) {
+		if (can_shift_opposition(game.sa.where)) {
 			gen_action_space(game.sa.where)
 			can_shift = true
 		}
 		for (let s of data.spaces[game.sa.where].adjacent) {
-			if (is_pop(s) && game.support[s] > -2) {
+			if (can_shift_opposition(s)) {
 				gen_action_space(s)
 				can_shift = true
 			}
@@ -4202,14 +4280,11 @@ states.eradicate_shift = {
 		}
 	},
 	space(s) {
-		game.support[s] --
+		shift_opposition(s)
 		end_special_activity()
 	},
 	piece(p) {
 		place_piece(p, game.sa.where)
-		end_special_activity()
-	},
-	end_special_activity() {
 		end_special_activity()
 	},
 }
@@ -4268,16 +4343,22 @@ function can_extort() {
 }
 
 function can_extort_farc() {
-	for (let s = first_space; s <= last_space; ++s)
+	for (let s = first_space; s <= last_space; ++s) {
+		if (game.sa && set_has(game.sa.spaces, s))
+			continue
 		if (has_farc_control(s) && has_underground_guerrilla(s, FARC))
 			return true
+	}
 	return false
 }
 
 function can_extort_auc() {
-	for (let s = first_space; s <= last_space; ++s)
+	for (let s = first_space; s <= last_space; ++s) {
+		if (game.sa && set_has(game.sa.spaces, s))
+			continue
 		if (has_auc_control(s) && has_underground_guerrilla(s, AUC))
 			return true
+	}
 	return false
 }
 
@@ -5180,7 +5261,7 @@ states.drug_profits_space = {
 // PROPAGANDA: SUPPORT PHASE
 
 function can_civic_action(s) {
-	if (game.support[s] < 2 && has_govt_control(s)) {
+	if (can_shift_support(s) && has_govt_control(s)) {
 		if (has_shaded_capability(CAP_1ST_DIV))
 			return count_pieces(s, GOVT, TROOPS) >= 2 && count_pieces(s, GOVT, POLICE) >= 2
 		return has_piece(s, GOVT, TROOPS) && has_piece(s, GOVT, POLICE)
@@ -5189,7 +5270,7 @@ function can_civic_action(s) {
 }
 
 function can_agitate(s) {
-	if (game.support[s] > -2) {
+	if (can_shift_opposition(s)) {
 		if (has_farc_control(s))
 			return true
 		if (!has_govt_control(s)) {
@@ -5231,7 +5312,7 @@ states.civic_action = {
 		if (has_terror(s))
 			remove_terror(s)
 		else
-			game.support[s] += 1
+			shift_support(s)
 	},
 	next() {
 		clear_undo()
@@ -5259,7 +5340,7 @@ states.agitation = {
 		if (has_terror(s))
 			remove_terror(s)
 		else
-			game.support[s] -= 1
+			shift_opposition(s)
 	},
 	next() {
 		clear_undo()
@@ -5809,10 +5890,6 @@ function vm_activate() {
 function vm_underground() {
 	set_underground(game.vm.p)
 	vm_next()
-}
-
-function log_support_shift(s) {
-	log("S" + s + " to " + support_level_name[game.support[s]] + ".")
 }
 
 function vm_set_neutral() {
@@ -7605,7 +7682,7 @@ const CODE = [
 	[ vm_asm, ()=>game.vm.m = game.current ],
 	[ vm_current, GOVT ],
 	[ vm_place_farc_zone ],
-	[ vm_asm, ()=>game.current = game.vm.m ],
+	[ vm_current, ()=>(game.vm.m) ],
 	[ vm_prompt, "Shift 2 adjacent spaces 1 level toward Active Support." ],
 	[ vm_space, true, 2, 2, (s)=>is_pop(s) && is_adjacent(game.vm.farc_zone, s) && can_shift_support(s) ],
 	[ vm_shift_support ],

@@ -525,9 +525,9 @@ EVENT 36
 	asm game.vm.m = game.current
 	current GOVT
 	place_farc_zone
-	asm game.current = game.vm.m
+	current (game.vm.m)
 	prompt "Shift 2 adjacent spaces 1 level toward Active Support."
-	space 2 is_pop(s) && is_adjacent(game.vm.farc_zone, s) && can_shift_support(s)
+	space 2 is_adjacent(game.vm.farc_zone, s) && can_shift_support(s)
 		shift_support
 	endspace
 
