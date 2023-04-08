@@ -461,9 +461,9 @@ SHADED 34
 
 EVENT 35
 	prompt "Replace Cartels Bases in 1 Department with Police."
-	space 1 is_dept(s) && has_cartels_base(s)
+	space 1 is_dept(s) && has_cartels_base(s) && can_replace_with(s, GOVT, POLICE)
 		prompt "Replace Cartels Bases with Police."
-		piece 0 is_piece_in_event_space(p) && is_cartels_base(p)
+		piece 0 is_piece_in_event_space(p) && is_cartels_base(p) && can_replace_with(s, GOVT, POLICE)
 			remove
 			auto_place GOVT POLICE
 		endpiece
@@ -532,9 +532,9 @@ EVENT 39
 
 SHADED 39
 	prompt "In up to 3 Departments, replace 1 Police with AUC Guerrilla."
-	space_opt 3 is_dept(s) && has_police(s)
+	space_opt 3 is_dept(s) && has_police(s) && can_replace_with(s, AUC, GUERRILLA)
 		prompt "Replace 1 Police with AUC Guerrilla."
-		piece 1 is_piece_in_event_space(p) && is_police(p)
+		piece 1 is_piece_in_event_space(p) && is_police(p) && can_replace_with(s, AUC, GUERRILLA)
 			remove
 			auto_place AUC GUERRILLA
 		endpiece
@@ -542,7 +542,7 @@ SHADED 39
 
 EVENT 40
 	prompt "Replace 3 AUC Guerrillas with Police."
-	piece_undo 3 is_auc_guerrilla(p)
+	piece_undo 3 is_auc_guerrilla(p) && can_replace_with(s, GOVT, POLICE)
 		set_piece_space
 		remove
 		auto_place GOVT POLICE
@@ -749,7 +749,7 @@ SHADED 50
 		endpiece
 	else
 		prompt "Replace 1 more Police with AUC Guerrilla."
-		piece_undo 1 is_police(p)
+		piece_undo 1 is_police(p) && can_replace_with(s, AUC, GUERRILLA)
 			set_piece_space
 			remove
 			auto_place AUC GUERRILLA
@@ -820,67 +820,45 @@ EVENT 53
 	endpiece
 
 EVENT 54
-	if false
-		# Note: may remove one and replace another.
-		prompt "Remove up to 2 Guerrillas or replace them with with another Faction."
-		# TODO: don't remove just placed guerrilla
-		piece_undo_opt 2 is_any_guerrilla(p)
-			set_piece_space
-			remove
-			if piece_faction(game.vm.p) === FARC
-				place_opt [AUC,CARTELS] GUERRILLA
-			endif
-			if piece_faction(game.vm.p) === AUC
-				place_opt [FARC,CARTELS] GUERRILLA
-			endif
-			if piece_faction(game.vm.p) === CARTELS
-				place_opt [FARC,AUC] GUERRILLA
-			endif
-			set_space -1
-		endpiece
-
-	else
-		# Note: strictly remove 2 or replace 2 (see shaded 50)
-		prompt "Remove up to 2 Guerrillas or replace them with with another Faction's."
-		piece_undo 1 is_any_guerrilla(p)
-			set_piece_space
-			remove
-			if piece_faction(game.vm.p) === FARC
-				place_opt [AUC,CARTELS] GUERRILLA
-			endif
-			if piece_faction(game.vm.p) === AUC
-				place_opt [FARC,CARTELS] GUERRILLA
-			endif
-			if piece_faction(game.vm.p) === CARTELS
-				place_opt [FARC,AUC] GUERRILLA
-			endif
-			set_space -1
-		endpiece
-		if game.vm.opt
-			# TODO: don't remove just placed guerrilla!
-			prompt "Remove 1 more Guerrilla."
-			piece_undo_opt 1 is_any_guerrilla(p)
-				remove
-			endpiece
-		else
-			# TODO: don't replace just placed guerrilla!
-			prompt "Replace 1 more Guerrilla."
-			piece_undo_opt 1 is_any_guerrilla(p)
-				set_piece_space
-				remove
-				if piece_faction(game.vm.p) === FARC
-					place [AUC,CARTELS] GUERRILLA
-				endif
-				if piece_faction(game.vm.p) === AUC
-					place [FARC,CARTELS] GUERRILLA
-				endif
-				if piece_faction(game.vm.p) === CARTELS
-					place [FARC,AUC] GUERRILLA
-				endif
-				set_space -1
-			endpiece
+	# Note: strictly remove 2 or replace 2 (see shaded 50)
+	prompt "Remove up to 2 Guerrillas or replace them with with another Faction's."
+	piece_undo 1 is_any_guerrilla(p)
+		set_piece_space
+		remove
+		if piece_faction(game.vm.p) === FARC
+			place_opt [AUC,CARTELS] GUERRILLA
 		endif
-
+		if piece_faction(game.vm.p) === AUC
+			place_opt [FARC,CARTELS] GUERRILLA
+		endif
+		if piece_faction(game.vm.p) === CARTELS
+			place_opt [FARC,AUC] GUERRILLA
+		endif
+		set_space -1
+	endpiece
+	if game.vm.opt
+		# TODO: don't remove just placed guerrilla!
+		prompt "Remove 1 more Guerrilla."
+		piece_undo_opt 1 is_any_guerrilla(p)
+			remove
+		endpiece
+	else
+		# TODO: don't replace just placed guerrilla!
+		prompt "Replace 1 more Guerrilla."
+		piece_undo_opt 1 is_any_guerrilla(p) && ( can_replace_with(s, FARC, GUERRILLA) || can_replace_with(s, AUC, GUERRILLA) || can_replace_with(s, CARTELS, GUERRILLA) )
+			set_piece_space
+			remove
+			if piece_faction(game.vm.p) === FARC
+				place [AUC,CARTELS] GUERRILLA
+			endif
+			if piece_faction(game.vm.p) === AUC
+				place [FARC,CARTELS] GUERRILLA
+			endif
+			if piece_faction(game.vm.p) === CARTELS
+				place [FARC,AUC] GUERRILLA
+			endif
+			set_space -1
+		endpiece
 	endif
 
 EVENT 55
@@ -915,7 +893,7 @@ SHADED 56
 
 EVENT 57
 	prompt "Replace up to 3 Cartels pieces with Police."
-	piece_undo_opt 3 is_cartels_piece(p)
+	piece_undo_opt 3 is_cartels_piece(p) && can_replace_with(s, GOVT, POLICE)
 		set_piece_space
 		remove
 		auto_place GOVT POLICE
@@ -1178,9 +1156,9 @@ SHADED 71
 
 EVENT 72
 	prompt "Replace all Cartels Guerrillas in 2 spaces with other Guerrillas."
-	space 2 has_cartels_guerrilla(s)
+	space 2 has_cartels_guerrilla(s) && ( can_replace_with(s, FARC, GUERRILLA) || can_replace_with(s, AUC, GUERRILLA) )
 		prompt "Replace all Cartels Guerrillas with other Guerrillas."
-		piece_undo 0 is_piece_in_event_space(p) && is_cartels_guerrilla(p)
+		piece_undo 0 is_piece_in_event_space(p) && is_cartels_guerrilla(p) && ( can_replace_with(s, FARC, GUERRILLA) || can_replace_with(s, AUC, GUERRILLA) )
 			remove
 			place [FARC,AUC] GUERRILLA
 		endpiece

@@ -302,7 +302,7 @@ exports.setup = function (seed, scenario, options) {
 	}
 
 	game.deck[0] =
-		/* TEST */ 72
+		/* TEST */ 35
 	log("DECK " + game.deck.join(", "))
 
 	update_control()
@@ -1310,6 +1310,12 @@ function auto_transfer_dropped_shipment_imp(sh) {
 }
 
 // === ITERATORS AND ACTION GENERATORS ===
+
+function can_replace_with(s, faction, piece) {
+	if (has_piece(AVAILABLE, faction, piece))
+		return can_stack_piece(s, faction, piece)
+	return true
+}
 
 function can_stack_any(s, faction) {
 	if (s === PANAMA)
@@ -7439,9 +7445,9 @@ const CODE = [
 	[ vm_return ],
 // EVENT 35
 	[ vm_prompt, "Replace Cartels Bases in 1 Department with Police." ],
-	[ vm_space, 1, 0, 1, (s)=>is_dept(s) && has_cartels_base(s) ],
+	[ vm_space, 1, 0, 1, (s)=>is_dept(s) && has_cartels_base(s) && can_replace_with(s, GOVT, POLICE) ],
 	[ vm_prompt, "Replace Cartels Bases with Police." ],
-	[ vm_piece, 0, 0, 0, (p,s)=>is_piece_in_event_space(p) && is_cartels_base(p) ],
+	[ vm_piece, 0, 0, 0, (p,s)=>is_piece_in_event_space(p) && is_cartels_base(p) && can_replace_with(s, GOVT, POLICE) ],
 	[ vm_remove ],
 	[ vm_auto_place, 0, 0, GOVT, POLICE ],
 	[ vm_endpiece ],
@@ -7510,9 +7516,9 @@ const CODE = [
 	[ vm_return ],
 // SHADED 39
 	[ vm_prompt, "In up to 3 Departments, replace 1 Police with AUC Guerrilla." ],
-	[ vm_space, 1, 1, 3, (s)=>is_dept(s) && has_police(s) ],
+	[ vm_space, 1, 1, 3, (s)=>is_dept(s) && has_police(s) && can_replace_with(s, AUC, GUERRILLA) ],
 	[ vm_prompt, "Replace 1 Police with AUC Guerrilla." ],
-	[ vm_piece, 0, 0, 1, (p,s)=>is_piece_in_event_space(p) && is_police(p) ],
+	[ vm_piece, 0, 0, 1, (p,s)=>is_piece_in_event_space(p) && is_police(p) && can_replace_with(s, AUC, GUERRILLA) ],
 	[ vm_remove ],
 	[ vm_auto_place, 0, 0, AUC, GUERRILLA ],
 	[ vm_endpiece ],
@@ -7520,7 +7526,7 @@ const CODE = [
 	[ vm_return ],
 // EVENT 40
 	[ vm_prompt, "Replace 3 AUC Guerrillas with Police." ],
-	[ vm_piece, 1, 0, 3, (p,s)=>is_auc_guerrilla(p) ],
+	[ vm_piece, 1, 0, 3, (p,s)=>is_auc_guerrilla(p) && can_replace_with(s, GOVT, POLICE) ],
 	[ vm_set_piece_space ],
 	[ vm_remove ],
 	[ vm_auto_place, 0, 0, GOVT, POLICE ],
@@ -7721,7 +7727,7 @@ const CODE = [
 	[ vm_endpiece ],
 	[ vm_else ],
 	[ vm_prompt, "Replace 1 more Police with AUC Guerrilla." ],
-	[ vm_piece, 1, 0, 1, (p,s)=>is_police(p) ],
+	[ vm_piece, 1, 0, 1, (p,s)=>is_police(p) && can_replace_with(s, AUC, GUERRILLA) ],
 	[ vm_set_piece_space ],
 	[ vm_remove ],
 	[ vm_auto_place, 0, 0, AUC, GUERRILLA ],
@@ -7791,23 +7797,6 @@ const CODE = [
 	[ vm_endpiece ],
 	[ vm_return ],
 // EVENT 54
-	[ vm_if, ()=>false ],
-	[ vm_prompt, "Remove up to 2 Guerrillas or replace them with with another Faction." ],
-	[ vm_piece, 1, 1, 2, (p,s)=>is_any_guerrilla(p) ],
-	[ vm_set_piece_space ],
-	[ vm_remove ],
-	[ vm_if, ()=>piece_faction(game.vm.p) === FARC ],
-	[ vm_place, 0, 1, [AUC,CARTELS], GUERRILLA ],
-	[ vm_endif ],
-	[ vm_if, ()=>piece_faction(game.vm.p) === AUC ],
-	[ vm_place, 0, 1, [FARC,CARTELS], GUERRILLA ],
-	[ vm_endif ],
-	[ vm_if, ()=>piece_faction(game.vm.p) === CARTELS ],
-	[ vm_place, 0, 1, [FARC,AUC], GUERRILLA ],
-	[ vm_endif ],
-	[ vm_set_space, -1 ],
-	[ vm_endpiece ],
-	[ vm_else ],
 	[ vm_prompt, "Remove up to 2 Guerrillas or replace them with with another Faction's." ],
 	[ vm_piece, 1, 0, 1, (p,s)=>is_any_guerrilla(p) ],
 	[ vm_set_piece_space ],
@@ -7830,7 +7819,7 @@ const CODE = [
 	[ vm_endpiece ],
 	[ vm_else ],
 	[ vm_prompt, "Replace 1 more Guerrilla." ],
-	[ vm_piece, 1, 1, 1, (p,s)=>is_any_guerrilla(p) ],
+	[ vm_piece, 1, 1, 1, (p,s)=>is_any_guerrilla(p) && ( can_replace_with(s, FARC, GUERRILLA) || can_replace_with(s, AUC, GUERRILLA) || can_replace_with(s, CARTELS, GUERRILLA) ) ],
 	[ vm_set_piece_space ],
 	[ vm_remove ],
 	[ vm_if, ()=>piece_faction(game.vm.p) === FARC ],
@@ -7844,7 +7833,6 @@ const CODE = [
 	[ vm_endif ],
 	[ vm_set_space, -1 ],
 	[ vm_endpiece ],
-	[ vm_endif ],
 	[ vm_endif ],
 	[ vm_return ],
 // EVENT 55
@@ -7879,7 +7867,7 @@ const CODE = [
 	[ vm_return ],
 // EVENT 57
 	[ vm_prompt, "Replace up to 3 Cartels pieces with Police." ],
-	[ vm_piece, 1, 1, 3, (p,s)=>is_cartels_piece(p) ],
+	[ vm_piece, 1, 1, 3, (p,s)=>is_cartels_piece(p) && can_replace_with(s, GOVT, POLICE) ],
 	[ vm_set_piece_space ],
 	[ vm_remove ],
 	[ vm_auto_place, 0, 0, GOVT, POLICE ],
@@ -8138,9 +8126,9 @@ const CODE = [
 	[ vm_return ],
 // EVENT 72
 	[ vm_prompt, "Replace all Cartels Guerrillas in 2 spaces with other Guerrillas." ],
-	[ vm_space, 1, 0, 2, (s)=>has_cartels_guerrilla(s) ],
+	[ vm_space, 1, 0, 2, (s)=>has_cartels_guerrilla(s) && ( can_replace_with(s, FARC, GUERRILLA) || can_replace_with(s, AUC, GUERRILLA) ) ],
 	[ vm_prompt, "Replace all Cartels Guerrillas with other Guerrillas." ],
-	[ vm_piece, 1, 0, 0, (p,s)=>is_piece_in_event_space(p) && is_cartels_guerrilla(p) ],
+	[ vm_piece, 1, 0, 0, (p,s)=>is_piece_in_event_space(p) && is_cartels_guerrilla(p) && ( can_replace_with(s, FARC, GUERRILLA) || can_replace_with(s, AUC, GUERRILLA) ) ],
 	[ vm_remove ],
 	[ vm_place, 0, 0, [FARC,AUC], GUERRILLA ],
 	[ vm_endpiece ],
@@ -8158,5 +8146,5 @@ const CODE = [
 	[ vm_endif ],
 	[ vm_return ],
 ]
-const UCODE = [0,1,7,13,19,29,47,61,67,74,80,86,92,98,104,125,133,140,146,153,165,181,193,201,221,239,254,265,273,290,311,323,337,344,356,366,382,392,408,424,438,463,477,487,504,516,528,545,571,585,596,628,642,656,684,740,755,766,783,798,821,840,854,864,879,898,904,914,919,941,968,984,998]
-const SCODE = [0,4,10,16,24,41,52,64,72,77,83,89,95,101,113,128,138,143,149,0,174,187,198,213,227,247,260,270,281,300,320,332,342,351,358,376,0,398,416,429,446,472,483,497,510,521,0,554,580,590,606,637,647,0,0,750,757,774,789,808,830,849,859,0,889,0,909,916,936,0,973,991,1007]
+const UCODE = [0,1,7,13,19,29,47,61,67,74,80,86,92,98,104,125,133,140,146,153,165,181,193,201,221,239,254,265,273,290,311,323,337,344,356,366,382,392,408,424,438,463,477,487,504,516,528,545,571,585,596,628,642,656,684,722,737,748,765,780,803,822,836,846,861,880,886,896,901,923,950,966,980]
+const SCODE = [0,4,10,16,24,41,52,64,72,77,83,89,95,101,113,128,138,143,149,0,174,187,198,213,227,247,260,270,281,300,320,332,342,351,358,376,0,398,416,429,446,472,483,497,510,521,0,554,580,590,606,637,647,0,0,732,739,756,771,790,812,831,841,0,871,0,891,898,918,0,955,973,989]
