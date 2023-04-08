@@ -2713,6 +2713,7 @@ function goto_patrol_activate() {
 		return
 	}
 
+	// TODO: skip if nothing to activate
 	game.state = "patrol_activate"
 	game.op.count = []
 	for (let s = first_loc; s <= last_loc; ++s)
@@ -2759,6 +2760,7 @@ states.patrol_activate = {
 }
 
 function goto_patrol_assault() {
+	// TODO: skip if nothing to assault
 	game.state = "patrol_assault"
 	if (has_shaded_capability(CAP_METEORO))
 		game.state = "patrol_done"
@@ -3035,7 +3037,6 @@ states.sweep_move = {
 		gen_sweep_move_cubes(game.op.where)
 
 		view.actions.next = 1
-		view.actions.end_sweep = 0
 	},
 	piece(p) {
 		place_piece(p, game.op.where)
@@ -3093,7 +3094,6 @@ states.sweep_activate = {
 			view.actions.next = 1
 		else
 			view.actions.next = 0
-		view.actions.end_sweep = 0
 	},
 	piece(p) {
 		game.op.targeted |= target_faction(p)
@@ -3324,7 +3324,6 @@ states.assault_space = {
 			view.actions.next = 1
 		else
 			view.actions.next = 0
-		view.actions.end_assault = 0
 	},
 	piece(p) {
 		game.op.targeted |= target_faction(p)
@@ -3595,7 +3594,7 @@ function vm_free_march() {
 	game.op.spaces = []
 	game.op.pieces = []
 	// remember destinations
-	game.vm.m = []
+	game.vm.march = []
 }
 
 function can_march() {
@@ -3660,7 +3659,7 @@ states.march = {
 
 		// remember destinations
 		if (game.vm)
-			set_add(game.vm.m, s)
+			set_add(game.vm.march, s)
 
 		if (is_loc(s))
 			select_op_space(s, 0)
@@ -3717,7 +3716,6 @@ states.march_move = {
 			view.actions.next = 1
 		else
 			view.actions.next = 0
-		view.actions.end_march = 0
 	},
 	piece(p) {
 		let from = piece_space(p)
@@ -3823,7 +3821,6 @@ states.attack_space = {
 		view.prompt = `Attack in ${space_name[game.op.where]}.`
 		view.where = game.op.where
 		view.actions.roll = 1
-		view.actions.end_attack = 0
 
 		// Ambush activity modifies Attack action intead of being a stand-alone activity.
 		if (game.sa) {
@@ -3846,15 +3843,10 @@ states.attack_space = {
 		let die = random(6) + 1
 		log("Rolled " + die + ".")
 
-		if (die === 1 && can_stack_any(game.op.where, game.current)) {
-			// TODO: auto_place GUERRILLA
-			game.state = "attack_place"
-		} else if (
-			die <= count_pieces(game.op.where, game.current, GUERRILLA) &&
-			has_attack_target(game.op.where)
-		) {
-			game.state = "attack_remove"
-			game.op.count = 2
+		if (die === 1) {
+			goto_attack_place()
+		} else if (die <= count_pieces(game.op.where, game.current, GUERRILLA)) {
+			goto_attack_remove()
 		} else {
 			do_attack_next()
 		}
@@ -3869,17 +3861,35 @@ function do_attack_next() {
 		game.state = "attack"
 }
 
+function goto_attack_place() {
+	if (can_stack_any(game.op.where, game.current)) {
+		if (auto_place_piece(game.op.where, game.current, GUERRILLA))
+			goto_attack_remove()
+		else
+			game.state = "attack_place"
+	} else {
+		goto_attack_remove()
+	}
+}
+
 states.attack_place = {
 	prompt() {
 		view.prompt = `Attack in ${space_name[game.op.where]}: Place a Guerrilla.`
 		view.where = game.op.where
 		gen_place_piece(game.op.where, game.current, GUERRILLA)
-		view.actions.end_attack = 0
 	},
 	piece(p) {
 		place_piece(p, game.op.where)
+		goto_attack_remove()
+	}
+}
+
+function goto_attack_remove() {
+	if (has_attack_target(game.op.where)) {
 		game.state = "attack_remove"
 		game.op.count = 2
+	} else {
+		do_attack_next()
 	}
 }
 
@@ -3904,7 +3914,6 @@ states.attack_remove = {
 			view.actions.next = 1
 		else
 			view.actions.next = 0
-		view.actions.end_attack = 0
 	},
 	piece(p) {
 		game.op.targeted |= target_faction(p)
@@ -3931,6 +3940,8 @@ function goto_terror() {
 
 function vm_free_terror() {
 	init_free_operation("Terror")
+	if (game.current === AUC)
+		game.vm.auc_terror = 0
 	game.op.spaces = []
 	do_terror_space(game.vm.s)
 	do_terror_piece(game.vm.p)
@@ -3938,6 +3949,8 @@ function vm_free_terror() {
 
 function vm_free_terror_space() {
 	init_free_operation("Terror")
+	if (game.current === AUC)
+		game.vm.auc_terror = 0
 	game.op.spaces = []
 	do_terror_space(game.vm.s)
 }
@@ -4020,7 +4033,6 @@ states.terror_space = {
 		view.prompt = "Terror: Activate an Underground Guerrilla."
 		view.where = game.op.where
 		gen_underground_guerrillas(game.op.where, game.current)
-		view.actions.end_terror = 0
 	},
 	piece(p) {
 		do_terror_piece(p)
@@ -4048,7 +4060,7 @@ function do_terror_piece(p) {
 		resume_kidnap_2()
 	} else if (game.vm) {
 		if (game.current === AUC)
-			game.vm.m++
+			game.vm.auc_terror++
 		end_operation()
 	} else {
 		game.state = "terror"
@@ -4060,7 +4072,6 @@ states.terror_aid_cut = {
 		let n = (game.op.spaces.length >= 2) ? -5 : -3
 		view.prompt = `Terror: Aid Cut by ${n}.`
 		view.actions.aid = 1
-		view.actions.end_terror = 0
 	},
 	aid() {
 		let n = (game.op.spaces.length >= 2) ? -5 : -3
@@ -4070,7 +4081,7 @@ states.terror_aid_cut = {
 }
 
 function vm_terror_aid_cut() {
-	if (game.current === AUC && game.vm.m > 0)
+	if (game.current === AUC && game.vm.auc_terror > 0)
 		game.state = "vm_terror_aid_cut"
 	else
 		vm_next()
@@ -4078,13 +4089,12 @@ function vm_terror_aid_cut() {
 
 states.vm_terror_aid_cut = {
 	prompt() {
-		let n = (game.vm.m >= 2) ? -5 : -3
+		let n = (game.vm.auc_terror >= 2) ? -5 : -3
 		view.prompt = `Terror: Aid Cut by ${n}.`
 		view.actions.aid = 1
-		view.actions.end_terror = 0
 	},
 	aid() {
-		let n = (game.vm.m >= 2) ? -5 : -3
+		let n = (game.vm.auc_terror >= 2) ? -5 : -3
 		add_aid(n)
 		vm_next()
 	},
@@ -4363,17 +4373,15 @@ states.eradicate_place = {
 
 function vm_free_ambush() {
 	init_free_operation("Attack")
-	// TODO: auto_place GUERRILLA
-	game.state = "attack_place"
 	set_active(game.vm.p)
 	game.op.where = piece_space(game.vm.p)
+	goto_attack_place()
 }
 
 function vm_free_ambush_without_activating() {
 	init_free_operation("Attack")
-	// TODO: auto_place GUERRILLA
-	game.state = "attack_place"
 	game.op.where = piece_space(game.vm.p)
+	goto_attack_place()
 }
 
 function goto_ambush() {
@@ -4391,14 +4399,7 @@ states.ambush = {
 	},
 	piece(p) {
 		set_active(p)
-		game.state = "attack_place"
-		// TODO: auto_place GUERRILLA
-		if (can_stack_any(game.op.where, game.current)) {
-			game.state = "attack_place"
-		} else {
-			game.state = "attack_remove"
-			game.op.count = 2
-		}
+		goto_attack_place()
 	}
 }
 
@@ -7340,9 +7341,10 @@ const CODE = [
 	[ vm_prompt, "Sabotage a pipeline." ],
 	[ vm_space, true, 1, 1, (s)=>is_pipeline(s) && !has_sabotage(s) ],
 	[ vm_sabotage ],
+	[ vm_mark_space ],
 	[ vm_endspace ],
 	[ vm_prompt, "Shift an Adjacent Department." ],
-	[ vm_space, true, 1, 1, (s)=>can_shift_opposition(s) && is_dept(s) && is_adjacent(s, game.vm.s) ],
+	[ vm_space, true, 1, 1, (s)=>can_shift_opposition(s) && is_dept(s) && is_adjacent(s, game.vm.m[0]) ],
 	[ vm_shift_opposition ],
 	[ vm_endspace ],
 	[ vm_return ],
@@ -7423,22 +7425,22 @@ const CODE = [
 // SHADED 14
 	[ vm_prompt, "Remove 1 Government Base and 1 cube from a Department." ],
 	[ vm_space, true, 1, 1, (s)=>is_dept(s) && ( has_govt_base(s) && has_cube(s) ) ],
-	[ vm_prompt, ()=>`Remove Government Base from ${space_name[game.vm.s]}.` ],
+	[ vm_prompt, "Remove 1 Government Base." ],
 	[ vm_piece, false, 1, 1, (p,s)=>is_piece_in_event_space(p) && is_govt_base(p) ],
 	[ vm_remove ],
 	[ vm_endpiece ],
-	[ vm_prompt, ()=>`Remove cube from ${space_name[game.vm.s]}.` ],
+	[ vm_prompt, "Remove 1 cube." ],
 	[ vm_piece, false, 1, 1, (p,s)=>is_piece_in_event_space(p) && is_cube(p) ],
 	[ vm_remove ],
 	[ vm_endpiece ],
 	[ vm_return ],
 	[ vm_endspace ],
 	[ vm_space, true, 1, 1, (s)=>is_dept(s) && ( has_govt_base(s) || has_cube(s) ) ],
-	[ vm_prompt, ()=>`Remove Government Base from ${space_name[game.vm.s]}.` ],
+	[ vm_prompt, "Remove 1 Government Base." ],
 	[ vm_piece, false, 1, 1, (p,s)=>is_piece_in_event_space(p) && is_govt_base(p) ],
 	[ vm_remove ],
 	[ vm_endpiece ],
-	[ vm_prompt, ()=>`Remove cube from ${space_name[game.vm.s]}.` ],
+	[ vm_prompt, "Remove 1 cube." ],
 	[ vm_piece, false, 1, 1, (p,s)=>is_piece_in_event_space(p) && is_cube(p) ],
 	[ vm_remove ],
 	[ vm_endpiece ],
@@ -7484,12 +7486,12 @@ const CODE = [
 // EVENT 19
 	[ vm_if, ()=>game.current === GOVT ],
 	[ vm_prompt, "Free Sweep or Assault in each space possible." ],
-	[ vm_space, true, 999, 999, (s)=>can_sweep_activate(s) || can_assault_any(s) ],
+	[ vm_space, true, 999, 999, (s)=>can_sweep_activate(s) || can_assault_in_space(s) ],
 	[ vm_free_sweep_assault ],
 	[ vm_endspace ],
 	[ vm_else ],
 	[ vm_prompt, "Free Attack or Terror in each space possible." ],
-	[ vm_space, true, 999, 999, (s)=>can_terror_in_space(s) || can_attack_in_space(s) ],
+	[ vm_space, true, 999, 999, (s)=>can_terror(s) || can_attack(s) ],
 	[ vm_free_attack_terror ],
 	[ vm_endspace ],
 	[ vm_endif ],
@@ -7713,7 +7715,7 @@ const CODE = [
 	[ vm_return ],
 // SHADED 33
 	[ vm_capability, EVT_SUCUMBIOS ],
-	[ vm_if, ()=>true ],
+	[ vm_if, ()=>AUTOMATIC ],
 	[ vm_set_space, ECUADOR ],
 	[ vm_place, false, 0, ()=>(game.current), ANY_PIECE ],
 	[ vm_place, false, 0, ()=>(game.current), ANY_PIECE ],
@@ -7763,19 +7765,19 @@ const CODE = [
 	[ vm_return ],
 // EVENT 36
 	[ vm_eligible, ()=>(game.current) ],
-	[ vm_asm, ()=>game.vm.m = game.current ],
+	[ vm_asm, ()=>game.vm.save_current = game.current ],
 	[ vm_current, GOVT ],
 	[ vm_place_farc_zone ],
-	[ vm_current, ()=>(game.vm.m) ],
+	[ vm_current, ()=>(game.vm.save_current) ],
 	[ vm_prompt, "Shift 2 adjacent spaces 1 level toward Active Support." ],
-	[ vm_space, true, 2, 2, (s)=>is_pop(s) && is_adjacent(game.vm.farc_zone, s) && can_shift_support(s) ],
+	[ vm_space, true, 2, 2, (s)=>is_adjacent(game.vm.farc_zone, s) && can_shift_support(s) ],
 	[ vm_shift_support ],
 	[ vm_endspace ],
 	[ vm_return ],
 // EVENT 37
 	[ vm_current, GOVT ],
 	[ vm_prompt, "Free Sweep or Assault FARC within each space; AUC Guerrillas act as Troops." ],
-	[ vm_space, true, 999, 999, (s)=>can_sweep_activate(s, FARC) || can_assault(s, FARC) ],
+	[ vm_space, true, 999, 999, (s)=>can_sweep_activate(s, FARC) || can_assault_in_space_faction(s, FARC) ],
 	[ vm_free_sweep_assault_farc ],
 	[ vm_endspace ],
 	[ vm_return ],
@@ -7783,9 +7785,9 @@ const CODE = [
 	[ vm_current, AUC ],
 	[ vm_free_march ],
 	[ vm_prompt, "Free Ambush at any 1 destination." ],
-	[ vm_space, true, 1, 1, (s)=>set_has(game.vm.m, s) && has_underground_guerrilla(s, AUC) && has_enemy_piece(s) ],
+	[ vm_space, true, 1, 1, (s)=>set_has(game.vm.march, s) && has_underground_guerrilla(s, AUC) && has_enemy_piece(s) ],
 	[ vm_prompt, "Free Ambush." ],
-	[ vm_piece, false, 1, 1, (p,s)=>is_piece_in_event_space(p) && is_auc_guerrilla(p) && is_underground(p) ],
+	[ vm_piece, false, 1, 1, (p,s)=>is_piece_in_event_space(p) && is_underground_guerrilla(p, AUC) ],
 	[ vm_free_ambush ],
 	[ vm_endpiece ],
 	[ vm_endspace ],
@@ -7924,7 +7926,7 @@ const CODE = [
 	[ vm_endspace ],
 	[ vm_return ],
 // SHADED 45
-	[ vm_if, ()=>true ],
+	[ vm_if, ()=>AUTOMATIC ],
 	[ vm_aid, ()=>(-count_matching_spaces(s=>has_faction_piece(s,AUC))) ],
 	[ vm_else ],
 	[ vm_prompt, "Aid -1 for each space with AUC pieces." ],
@@ -8075,7 +8077,7 @@ const CODE = [
 	[ vm_space, true, 1, 1, (s)=>has_auc_piece(s) && can_stack_base(s, AUC) ],
 	[ vm_auto_place, false, 0, AUC, BASE ],
 	[ vm_endspace ],
-	[ vm_if, ()=>true ],
+	[ vm_if, ()=>AUTOMATIC ],
 	[ vm_resources, AUC, ()=>(count_pieces_on_map(AUC,BASE)) ],
 	[ vm_else ],
 	[ vm_prompt, "AUC Resources +1 per AUC Base." ],
@@ -8209,7 +8211,7 @@ const CODE = [
 	[ vm_activate ],
 	[ vm_endpiece ],
 	[ vm_prompt, "Free Assault against Cartels in each space." ],
-	[ vm_space, true, 999, 999, (s)=>can_assault(s, CARTELS) ],
+	[ vm_space, true, 999, 999, (s)=>can_assault_in_space_faction(s, CARTELS) ],
 	[ vm_free_assault_cartels ],
 	[ vm_endspace ],
 	[ vm_return ],
@@ -8424,7 +8426,7 @@ const CODE = [
 	[ vm_return ],
 // SHADED 71
 	[ vm_capability, EVT_DARIEN ],
-	[ vm_if, ()=>true ],
+	[ vm_if, ()=>AUTOMATIC ],
 	[ vm_set_space, PANAMA ],
 	[ vm_place, false, 0, ()=>(game.current), BASE ],
 	[ vm_place, false, 1, ()=>(game.current), BASE ],
@@ -8458,5 +8460,5 @@ const CODE = [
 	[ vm_endif ],
 	[ vm_return ],
 ]
-const UCODE = [0,1,7,13,19,29,47,61,67,74,80,86,92,98,104,144,152,159,165,172,184,200,212,220,240,258,273,284,292,309,330,346,360,367,387,403,419,429,445,461,475,500,514,524,546,558,574,591,616,630,646,678,692,710,738,760,775,786,803,818,841,860,874,884,899,918,929,939,944,966,993,1009,1029]
-const SCODE = [0,4,10,16,24,41,52,64,72,77,83,89,95,101,120,147,157,162,168,0,193,206,217,232,246,266,279,289,300,319,343,355,365,374,389,413,0,435,453,466,483,509,520,539,552,563,0,600,625,635,656,687,697,0,0,770,777,794,809,828,850,869,879,0,909,0,934,941,961,0,998,1016,1038]
+const UCODE = [0,1,7,13,19,29,47,62,68,75,81,87,93,99,105,145,153,160,166,173,185,201,213,221,241,259,274,285,293,310,331,347,361,368,388,404,420,430,446,462,476,501,515,525,547,559,575,592,617,631,647,679,693,711,739,761,776,787,804,819,842,861,875,885,900,919,930,940,945,967,994,1010,1030]
+const SCODE = [0,4,10,16,24,41,52,65,73,78,84,90,96,102,121,148,158,163,169,0,194,207,218,233,247,267,280,290,301,320,344,356,366,375,390,414,0,436,454,467,484,510,521,540,553,564,0,601,626,636,657,688,698,0,0,771,778,795,810,829,851,870,880,0,910,0,935,942,962,0,999,1017,1039]

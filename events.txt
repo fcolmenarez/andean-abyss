@@ -87,9 +87,10 @@ SHADED 6
 	prompt "Sabotage a pipeline."
 	space 1 is_pipeline(s) && !has_sabotage(s)
 		sabotage
+		mark_space
 	endspace
 	prompt "Shift an Adjacent Department."
-	space 1 can_shift_opposition(s) && is_dept(s) && is_adjacent(s, game.vm.s)
+	space 1 can_shift_opposition(s) && is_dept(s) && is_adjacent(s, game.vm.m[0])
 		shift_opposition
 	endspace
 
@@ -172,22 +173,22 @@ SHADED 14
 	prompt "Remove 1 Government Base and 1 cube from a Department."
 	# 5.1.3 - remove both base and cube if possible
 	space 1 is_dept(s) && ( has_govt_base(s) && has_cube(s) )
-		prompt `Remove Government Base from ${space_name[game.vm.s]}.`
+		prompt "Remove 1 Government Base."
 		piece 1 is_piece_in_event_space(p) && is_govt_base(p)
 			remove
 		endpiece
-		prompt `Remove cube from ${space_name[game.vm.s]}.`
+		prompt "Remove 1 cube."
 		piece 1 is_piece_in_event_space(p) && is_cube(p)
 			remove
 		endpiece
 		return
 	endspace
 	space 1 is_dept(s) && ( has_govt_base(s) || has_cube(s) )
-		prompt `Remove Government Base from ${space_name[game.vm.s]}.`
+		prompt "Remove 1 Government Base."
 		piece 1 is_piece_in_event_space(p) && is_govt_base(p)
 			remove
 		endpiece
-		prompt `Remove cube from ${space_name[game.vm.s]}.`
+		prompt "Remove 1 cube."
 		piece 1 is_piece_in_event_space(p) && is_cube(p)
 			remove
 		endpiece
@@ -521,10 +522,10 @@ SHADED 35
 
 EVENT 36
 	eligible (game.current)
-	asm game.vm.m = game.current
+	asm game.vm.save_current = game.current
 	current GOVT
 	place_farc_zone
-	current (game.vm.m)
+	current (game.vm.save_current)
 	prompt "Shift 2 adjacent spaces 1 level toward Active Support."
 	space 2 is_adjacent(game.vm.farc_zone, s) && can_shift_support(s)
 		shift_support
@@ -541,9 +542,9 @@ SHADED 37
 	current AUC
 	free_march
 	prompt "Free Ambush at any 1 destination."
-	space 1 set_has(game.vm.m, s) && has_underground_guerrilla(s, AUC) && has_enemy_piece(s)
+	space 1 set_has(game.vm.march, s) && has_underground_guerrilla(s, AUC) && has_enemy_piece(s)
 		prompt "Free Ambush."
-		piece 1 is_piece_in_event_space(p) && is_auc_guerrilla(p) && is_underground(p)
+		piece 1 is_piece_in_event_space(p) && is_underground_guerrilla(p, AUC)
 			free_ambush
 		endpiece
 	endspace
