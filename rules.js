@@ -307,8 +307,8 @@ exports.setup = function (seed, scenario, options) {
 				game.deck.push(i)
 	}
 
-//	game.deck[0] =
-//		/* TEST */ 36
+	game.deck[0] =
+		/* TEST */ 24
 	log("DECK " + game.deck.join(", "))
 
 	update_control()
@@ -7430,6 +7430,7 @@ const CODE = [
 	[ vm_auto_place, false, 0, GOVT, TROOPS ],
 	[ vm_return ],
 	[ vm_endspace ],
+	[ vm_prompt, "Place 1 Base and 3 Troops into any Department." ],
 	[ vm_space, true, 1, 1, (s)=>is_dept(s) && can_stack_any(s, GOVT) ],
 	[ vm_auto_place, false, 0, GOVT, BASE ],
 	[ vm_auto_place, false, 0, GOVT, TROOPS ],
@@ -7450,6 +7451,7 @@ const CODE = [
 	[ vm_endpiece ],
 	[ vm_return ],
 	[ vm_endspace ],
+	[ vm_prompt, "Remove 1 Government Base and 1 cube from a Department." ],
 	[ vm_space, true, 1, 1, (s)=>is_dept(s) && ( has_govt_base(s) || has_cube(s) ) ],
 	[ vm_prompt, "Remove 1 Government Base." ],
 	[ vm_piece, false, 1, 1, (p,s)=>is_piece_in_event_space(p) && is_govt_base(p) ],
@@ -7459,7 +7461,6 @@ const CODE = [
 	[ vm_piece, false, 1, 1, (p,s)=>is_piece_in_event_space(p) && is_cube(p) ],
 	[ vm_remove ],
 	[ vm_endpiece ],
-	[ vm_return ],
 	[ vm_endspace ],
 	[ vm_return ],
 // EVENT 15
@@ -7584,6 +7585,20 @@ const CODE = [
 	[ vm_return ],
 // SHADED 24
 	[ vm_prompt, "Remove 2 Troops from a space with FARC pieces." ],
+	[ vm_space, true, 1, 1, (s)=>has_farc_piece(s) && count_pieces(s, GOVT, TROOPS) >= 2 ],
+	[ vm_prompt, "Remove 2 Troops." ],
+	[ vm_piece, false, 2, 2, (p,s)=>is_piece_in_event_space(p) && is_troops(p) ],
+	[ vm_remove ],
+	[ vm_endpiece ],
+	[ vm_save_space ],
+	[ vm_prompt, "Shift a City with Support to Neutral." ],
+	[ vm_space, true, 1, 1, (s)=>is_city(s) && is_support(s) ],
+	[ vm_set_neutral ],
+	[ vm_endspace ],
+	[ vm_restore_space ],
+	[ vm_return ],
+	[ vm_endspace ],
+	[ vm_prompt, "Remove 2 Troops from a space with FARC pieces." ],
 	[ vm_space, true, 1, 1, (s)=>has_farc_piece(s) && has_troops(s) ],
 	[ vm_prompt, "Remove 2 Troops." ],
 	[ vm_piece, false, 2, 2, (p,s)=>is_piece_in_event_space(p) && is_troops(p) ],
@@ -7687,6 +7702,7 @@ const CODE = [
 	[ vm_endpiece ],
 	[ vm_return ],
 	[ vm_endspace ],
+	[ vm_prompt, "Remove 1 FARC Zone and 1 FARC Base there." ],
 	[ vm_space, true, 1, 1, (s)=>is_farc_zone(s) ],
 	[ vm_remove_farc_zone ],
 	[ vm_endspace ],
@@ -7754,6 +7770,7 @@ const CODE = [
 	[ vm_auto_place, false, 0, ()=>(game.current), GUERRILLA ],
 	[ vm_return ],
 	[ vm_endspace ],
+	[ vm_prompt, "Place 2 Guerrillas and 1 Base into a 0 Population Department." ],
 	[ vm_space, true, 1, 1, (s)=>is_zero_pop_dept(s) && can_stack_any(s, game.current) ],
 	[ vm_auto_place, false, 0, ()=>(game.current), BASE ],
 	[ vm_auto_place, false, 0, ()=>(game.current), GUERRILLA ],
@@ -7907,6 +7924,7 @@ const CODE = [
 	[ vm_endpiece ],
 	[ vm_return ],
 	[ vm_endspace ],
+	[ vm_prompt, "Place 2 Terror and remove all FARC Bases from a Department with Troops." ],
 	[ vm_space, true, 1, 1, (s)=>is_dept(s) && has_troops(s) ],
 	[ vm_terror ],
 	[ vm_terror ],
@@ -8026,6 +8044,7 @@ const CODE = [
 	[ vm_auto_place, false, 0, AUC, GUERRILLA ],
 	[ vm_return ],
 	[ vm_endspace ],
+	[ vm_prompt, "Place an AUC Guerrilla and Base in any Department." ],
 	[ vm_space, true, 1, 1, (s)=>is_dept(s) && can_stack_any(s, AUC) ],
 	[ vm_auto_place, false, 0, AUC, BASE ],
 	[ vm_auto_place, false, 0, AUC, GUERRILLA ],
@@ -8337,6 +8356,7 @@ const CODE = [
 	[ vm_place_or_remove_insurgent_base ],
 	[ vm_return ],
 	[ vm_endspace ],
+	[ vm_prompt, "Place or remove 1 Shipment and Insurgent Base in any Mountain Department." ],
 	[ vm_space, true, 1, 1, (s)=>is_mountain(s) && ( can_place_or_remove_shipment(s) || can_place_or_remove_insurgent_base(s) ) ],
 	[ vm_place_or_remove_shipment ],
 	[ vm_place_or_remove_insurgent_base ],
@@ -8475,5 +8495,5 @@ const CODE = [
 	[ vm_endif ],
 	[ vm_return ],
 ]
-const UCODE = [0,1,7,13,19,29,47,62,68,75,81,87,93,99,105,145,153,160,166,173,185,201,213,221,241,259,274,285,293,310,331,347,361,368,388,404,420,430,446,462,476,501,515,525,547,559,575,592,617,631,647,679,693,711,739,761,776,787,804,819,842,861,875,885,900,919,930,940,945,967,994,1010,1030]
-const SCODE = [0,4,10,16,24,41,52,65,73,78,84,90,96,102,121,148,158,163,169,0,194,207,218,233,247,267,280,290,301,320,344,356,366,375,390,414,0,436,454,467,484,510,521,540,553,564,0,601,626,636,657,688,698,0,0,771,778,795,810,829,851,870,880,0,910,0,935,942,962,0,999,1017,1039]
+const UCODE = [0,1,7,13,19,29,47,62,68,75,81,87,93,99,105,146,154,161,167,174,186,202,214,222,242,274,289,300,308,325,346,363,377,384,404,421,437,447,463,479,493,518,532,542,565,577,593,610,635,649,666,698,712,730,758,780,795,806,823,838,861,880,894,904,919,938,950,960,965,987,1014,1030,1050]
+const SCODE = [0,4,10,16,24,41,52,65,73,78,84,90,96,102,122,149,159,164,170,0,195,208,219,234,248,282,295,305,316,335,360,372,382,391,406,431,0,453,471,484,501,527,538,558,571,582,0,619,644,654,676,707,717,0,0,790,797,814,829,848,870,889,899,0,929,0,955,962,982,0,1019,1037,1059]
