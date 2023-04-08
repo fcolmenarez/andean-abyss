@@ -10,10 +10,14 @@ function emit(line) {
 	++pc
 	line[0] = "vm_" + line[0]
 	for (let i = 1; i < line.length; ++i) {
-		if (typeof line[i] === "string" && line[i][0] === "(" && !line[i].match(/\)=>/))
-			line[i] = "()=>" + line[i]
-		if (typeof line[i] === "string" && line[i][0] === "`")
-			line[i] = "()=>" + line[i]
+		if (typeof line[i] === "string") {
+			if (line[i] === "all")
+				line[i] = 999
+			if (line[i][0] === "(" && !line[i].match(/\)=>/))
+				line[i] = "()=>" + line[i]
+			if (line[i][0] === "`")
+				line[i] = "()=>" + line[i]
+		}
 	}
 	console.log("\t[ " + line.join(", ") + " ],")
 }
@@ -39,65 +43,44 @@ for (let line of fs.readFileSync("events.txt", "utf-8").split("\n")) {
 		console.log("// SHADED " + line[1])
 		break
 
-	case "space_opt":
-		emit([ "space", 1, 1, line[1], "(s)=>" + line.slice(2).join(" ") ])
+	case "space_no_undo":
+		emit([ "space", false, line[1], line[1], "(s)=>" + line.slice(2).join(" ") ])
 		break
 	case "space":
-		emit([ "space", 1, 0, line[1], "(s)=>" + line.slice(2).join(" ") ])
+		emit([ "space", true, line[1], line[1], "(s)=>" + line.slice(2).join(" ") ])
 		break
-	case "space_no_undo_opt":
-		emit([ "space", 0, 1, line[1], "(s)=>" + line.slice(2).join(" ") ])
-		break
-	case "space_no_undo":
-		emit([ "space", 0, 0, line[1], "(s)=>" + line.slice(2).join(" ") ])
-		break
-	case "space_undo_opt":
-		emit([ "space", 1, 1, line[1], "(s)=>" + line.slice(2).join(" ") ])
-		break
-	case "space_undo":
-		emit([ "space", 1, 0, line[1], "(s)=>" + line.slice(2).join(" ") ])
+	case "space_opt":
+		emit([ "space", true, 0, line[1], "(s)=>" + line.slice(2).join(" ") ])
 		break
 
-	case "piece_opt":
-		emit([ "piece", 0, 1, line[1], "(p,s)=>" + line.slice(2).join(" ") ])
-		break
 	case "piece":
-		emit([ "piece", 0, 0, line[1], "(p,s)=>" + line.slice(2).join(" ") ])
-		break
-	case "piece_no_undo_opt":
-		emit([ "piece", 0, 1, line[1], "(p,s)=>" + line.slice(2).join(" ") ])
-		break
-	case "piece_no_undo":
-		emit([ "piece", 0, 0, line[1], "(p,s)=>" + line.slice(2).join(" ") ])
-		break
-	case "piece_undo_opt":
-		emit([ "piece", 1, 1, line[1], "(p,s)=>" + line.slice(2).join(" ") ])
+		emit([ "piece", false, line[1], line[1], "(p,s)=>" + line.slice(2).join(" ") ])
 		break
 	case "piece_undo":
-		emit([ "piece", 1, 0, line[1], "(p,s)=>" + line.slice(2).join(" ") ])
+		emit([ "piece", true, line[1], line[1], "(p,s)=>" + line.slice(2).join(" ") ])
+		break
+	case "piece_opt":
+		emit([ "piece", false, 0, line[1], "(p,s)=>" + line.slice(2).join(" ") ])
+		break
+	case "piece_undo_opt":
+		emit([ "piece", true, 0, line[1], "(p,s)=>" + line.slice(2).join(" ") ])
 		break
 
-	case "shipment_opt":
-		emit([ "shipment", 0, 1, line[1], "(p,s)=>" + line.slice(2).join(" ") ])
-		break
 	case "shipment":
-		emit([ "shipment", 0, 0, line[1], "(p,s)=>" + line.slice(2).join(" ") ])
+		emit([ "shipment", false, line[1], line[1], "(p,s)=>" + line.slice(2).join(" ") ])
+		break
+	case "shipment_opt":
+		emit([ "shipment", false, 0, line[1], "(p,s)=>" + line.slice(2).join(" ") ])
 		break
 
-	case "place_opt":
-		emit([ "place", 0, 1, line[1], line[2] ])
-		break
 	case "place":
-		emit([ "place", 0, 0, line[1], line[2] ])
+		emit([ "place", false, 0, line[1], line[2] ])
 		break
-	case "place_undo_opt":
-		emit([ "place", 1, 1, line[1], line[2] ])
-		break
-	case "place_undo":
-		emit([ "place", 1, 0, line[1], line[2] ])
+	case "place_opt":
+		emit([ "place", false, 1, line[1], line[2] ])
 		break
 	case "auto_place":
-		emit([ "auto_place", 0, 0, line[1], line[2] ])
+		emit([ "auto_place", false, 0, line[1], line[2] ])
 		break
 
 	case "log":
