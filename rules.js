@@ -4313,9 +4313,12 @@ states.eradicate_base = {
 }
 
 function goto_eradicate_shift() {
-	// TODO: auto_place FARC GUERRILLA
 	if (can_eradicate_shift())
 		game.state = "eradicate_shift"
+	else if (AUTOMATIC && auto_place_piece(game.sa.where, FARC, GUERRILLA))
+		end_special_activity()
+	else if (can_place_piece(game.sa.where, FARC, GUERRILLA))
+		game.state = "eradicate_place"
 	else
 		end_special_activity()
 }
@@ -4326,36 +4329,29 @@ function can_eradicate_shift() {
 	for (let s of data.spaces[game.sa.where].adjacent)
 		if (can_shift_opposition(s))
 			return true
-	return can_place_piece(game.sa.where, FARC, GUERRILLA)
+	return false
 }
 
 states.eradicate_shift = {
 	prompt() {
 		view.prompt = `Eradicate: Shift ${space_name[game.sa.where]} or adjacent space toward active Opposition.`
 		view.where = game.sa.where
-
-		let can_shift = false
-
-		if (can_shift_opposition(game.sa.where)) {
+		if (can_shift_opposition(game.sa.where))
 			gen_action_space(game.sa.where)
-			can_shift = true
-		}
-		for (let s of data.spaces[game.sa.where].adjacent) {
-			if (can_shift_opposition(s)) {
+		for (let s of data.spaces[game.sa.where].adjacent)
+			if (can_shift_opposition(s))
 				gen_action_space(s)
-				can_shift = true
-			}
-		}
-
-		if (!can_shift) {
-			view.prompt = `Eradicate: Place available FARC Guerrilla in ${space_name[game.sa.where]}.`
-			// TODO: auto_place
-			gen_piece_in_space(AVAILABLE, FARC, GUERRILLA)
-		}
 	},
 	space(s) {
 		shift_opposition(s)
 		end_special_activity()
+	},
+}
+
+states.eradicate_place = {
+	prompt() {
+		view.prompt = `Eradicate: Place available FARC Guerrilla in ${space_name[game.sa.where]}.`
+		gen_piece_in_space(AVAILABLE, FARC, GUERRILLA)
 	},
 	piece(p) {
 		place_piece(p, game.sa.where)
