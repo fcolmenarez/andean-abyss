@@ -10,7 +10,6 @@
 // TODO: clean up init_free_operation and transitions
 // OP in a space -> next() transition handler to deal with ops/events/elite-backing in a common way
 
-// TODO: can_extort for SA button
 // TODO: auto_place Attack/Ambush guerrilla, Train base, Rally base, etc.
 
 let states = {}
@@ -256,8 +255,9 @@ exports.setup = function (seed, scenario, options) {
 		senado: 0,
 		aid: 0,
 		marked: 0,
-		farc_control: 0,
 		govt_control: 0,
+		farc_control: 0,
+		auc_control: 0,
 		cylinder: [ ELIGIBLE, ELIGIBLE, ELIGIBLE, ELIGIBLE ],
 		resources: [ 0, 0, 0, 0 ],
 		shipments: [ 0, 0, 0, 0 ],
@@ -897,12 +897,7 @@ function has_farc_control(s) {
 }
 
 function has_auc_control(s) {
-	// AUC outnumber all other forces
-	let g = count_faction_pieces(s, GOVT)
-	let f = count_faction_pieces(s, FARC)
-	let a = count_faction_pieces(s, AUC)
-	let c = count_faction_pieces(s, CARTELS)
-	return a > g + f + c
+	return (s <= last_dept) && game.auc_control & (1 << s)
 }
 
 function is_neutral(s) {
@@ -1092,6 +1087,7 @@ function is_within_adjacent_depts(s, here, depth) {
 function update_control() {
 	game.govt_control = 0
 	game.farc_control = 0
+	game.auc_control = 0
 	for (let s = first_space; s <= last_dept; ++s) {
 		let g = count_faction_pieces(s, GOVT)
 		let f = count_faction_pieces(s, FARC)
@@ -1101,6 +1097,8 @@ function update_control() {
 			game.govt_control |= (1 << s)
 		else if (f > g + a + c)
 			game.farc_control |= (1 << s)
+		else if (a > g + f + c)
+			game.auc_control |= (1 << s)
 	}
 }
 
@@ -3283,11 +3281,11 @@ states.rally = {
 			view.prompt = "Rally: Select City or Department."
 
 		if (game.sa) {
-			gen_special(FARC, "extort")
-			gen_special(AUC, "extort")
+			gen_special(FARC, "extort", can_extort)
+			gen_special(AUC, "extort", can_extort)
 			gen_special(CARTELS, "cultivate")
-			gen_special(CARTELS, "process", can_process())
-			gen_special(CARTELS, "bribe", game.resources[CARTELS] < 3)
+			gen_special(CARTELS, "process", can_process)
+			gen_special(CARTELS, "bribe", can_bribe)
 		}
 
 		// Departments or Cities
@@ -3480,11 +3478,11 @@ states.march = {
 		view.prompt = `March: Move Guerrillas to Cities/Departments/LoCs.`
 
 		if (game.sa) {
-			gen_special(FARC, "extort")
-			gen_special(AUC, "extort")
-			gen_special(CARTELS, "cultivate", count_pieces(AVAILABLE, CARTELS, BASE) === 15)
-			gen_special(CARTELS, "process", can_process())
-			gen_special(CARTELS, "bribe", game.resources[CARTELS] < 3)
+			gen_special(FARC, "extort", can_extort)
+			gen_special(AUC, "extort", can_extort)
+			gen_special(CARTELS, "cultivate", can_cultivate)
+			gen_special(CARTELS, "process", can_process)
+			gen_special(CARTELS, "bribe", can_bribe)
 		}
 
 		if (can_select_op_space(1)) {
@@ -3635,9 +3633,9 @@ states.attack = {
 		view.prompt = "Attack: Select space with Guerrilla and enemy piece."
 
 		if (game.sa) {
-			gen_special(FARC, "extort")
-			gen_special(AUC, "extort")
-			gen_special(CARTELS, "bribe", game.resources[CARTELS] < 3)
+			gen_special(FARC, "extort", can_extort)
+			gen_special(AUC, "extort", can_extort)
+			gen_special(CARTELS, "bribe", can_bribe)
 		}
 
 		if (can_select_op_space(1)) {
@@ -3806,11 +3804,11 @@ states.terror = {
 		view.prompt = "Terror: Select space with Underground Guerrilla."
 
 		if (game.sa) {
-			gen_special(FARC, "extort")
-			gen_special(FARC, "kidnap")
-			gen_special(AUC, "extort")
-			gen_special(AUC, "assassinate", game.op.spaces.length === 0)
-			gen_special(CARTELS, "bribe", game.resources[CARTELS] < 3)
+			gen_special(FARC, "extort", can_extort)
+			gen_special(FARC, "kidnap", can_kidnap)
+			gen_special(AUC, "extort", can_extort)
+			gen_special(AUC, "assassinate", can_assassinate)
+			gen_special(CARTELS, "bribe", can_bribe)
 		}
 
 		if (can_select_op_space(1)) {
@@ -3958,12 +3956,12 @@ const special_activities = {
 	bribe: goto_bribe,
 }
 
-function gen_special(faction, action, disable = false) {
+function gen_special(faction, action, enable) {
 	if (game.current === faction) {
-		if (disable)
-			view.actions[action] = 0
-		else
+		if (enable())
 			view.actions[action] = 1
+		else
+			view.actions[action] = 0
 	}
 }
 
@@ -4261,8 +4259,27 @@ states.ambush = {
 
 // SPECIAL ACTIVITY: EXTORT
 
-// TODO: end automatically when not possible?
-// TODO: can_extort()
+function can_extort() {
+	if (game.current === FARC)
+		return can_extort_farc()
+	if (game.current === AUC)
+		return can_extort_auc()
+	return false
+}
+
+function can_extort_farc() {
+	for (let s = first_space; s <= last_space; ++s)
+		if (has_farc_control(s) && has_underground_guerrilla(s, FARC))
+			return true
+	return false
+}
+
+function can_extort_auc() {
+	for (let s = first_space; s <= last_space; ++s)
+		if (has_auc_control(s) && has_underground_guerrilla(s, AUC))
+			return true
+	return false
+}
 
 function goto_extort() {
 	push_undo()
@@ -4302,6 +4319,8 @@ states.extort = {
 		set_active(p)
 		add_resources(game.current, 1)
 		game.sa.where = -1
+		if (!can_extort())
+			end_special_activity()
 	},
 	space(s) {
 		push_undo()
@@ -4317,6 +4336,13 @@ states.extort = {
 
 // SPECIAL ACTIVITY: KIDNAP
 
+function can_kidnap() {
+	for (let s = first_space; s <= last_space; ++s)
+		if (can_kidnap_in_space(s))
+			return true
+	return false
+}
+
 function goto_kidnap() {
 	push_undo()
 	move_cylinder_to_special_activity()
@@ -4330,7 +4356,7 @@ function goto_kidnap() {
 	game.state = "kidnap"
 }
 
-function can_kidnap(s) {
+function can_kidnap_in_space(s) {
 	// City, LoC, or Cartels Base
 	if (is_city_or_loc(s) || has_piece(s, CARTELS, BASE)) {
 		// FARC Guerrillas outnumber Police
@@ -4368,7 +4394,7 @@ states.kidnap = {
 			for (let s = first_space; s <= last_space; ++s) {
 				if (set_has(game.sa.spaces, s))
 					continue
-				if (can_kidnap(s))
+				if (can_kidnap_in_space(s))
 					gen_action_space(s)
 			}
 		}
@@ -4486,7 +4512,13 @@ function resume_kidnap_2() {
 
 // SPECIAL ACTIVITY: ASSASSINATE
 
-// TODO: can_assassinate
+function can_assassinate() {
+	for (let s of game.op.spaces)
+		if (can_assassinate_in_space(s))
+			return true
+	return false
+}
+
 // TODO: auto-end after 3 spaces (or no more possible)
 
 function goto_assassinate() {
@@ -4569,6 +4601,14 @@ states.assassinate_space = {
 }
 
 // SPECIAL ACTIVITY: CULTIVATE
+
+function can_cultivate() {
+	for (let s = first_pop; s <= last_pop; ++s)
+		if (can_stack_piece(s, CARTELS, BASE))
+			if (count_pieces(s, CARTELS, GUERRILLA) > count_pieces(s, GOVT, POLICE))
+				return true
+	return false
+}
 
 function goto_cultivate() {
 	push_undo()
@@ -4733,6 +4773,10 @@ states.process = {
 }
 
 // SPECIAL ACTIVITY: BRIBE
+
+function can_bribe() {
+	return game.resources[CARTELS] >= 3
+}
 
 function vm_free_bribe() {
 	goto_bribe()
