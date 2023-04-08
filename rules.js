@@ -1,13 +1,10 @@
 "use strict"
 
-// TODO: game.memory instead of president/aid/cylinder/resources/samper/pieces/
-
 // TODO: rules material - reference 6.3.3 Drug Profits to 5.2.2 should be 4.5.3
 
+// TODO: game.memory instead of president/aid/cylinder/resources/samper/pieces/
 // TODO: clean up init_free_operation and transitions
 // OP in a space -> next() transition handler to deal with ops/events/elite-backing in a common way
-
-// TODO: game.op.free is not used - remove
 
 const AUTOMATIC = true
 
@@ -2157,6 +2154,35 @@ states.eligible = {
 	pass: goto_pass,
 }
 
+function goto_ship_limop() {
+	game.state = "ship_limop"
+	game.op = {
+		limited: 1,
+		free: 1,
+		ship: 0,
+		spaces: [],
+		pieces: [],
+	}
+	game.sa = 0
+}
+
+states.ship_limop = {
+	disable_negotiation: true,
+	inactive: "Extra Limited Operation",
+	prompt() {
+		view.prompt = "Extra Limited Operation."
+		gen_any_operation()
+	},
+	train: goto_train,
+	patrol: goto_patrol,
+	sweep: goto_sweep,
+	assault: goto_assault,
+	rally: goto_rally,
+	march: goto_march,
+	attack: goto_attack,
+	terror: goto_terror,
+}
+
 function end_operation() {
 	if (game.op.ship && is_any_shipment_held()) {
 		push_undo()
@@ -2254,7 +2280,7 @@ function prompt_end_op(cost) {
 		else
 			view.prompt = game.op.type + ": All done."
 	}
-	return (game.op.spaces.length > 0) ? 0 : 1
+	return (game.op.spaces.length > 0) ? 1 : 0
 }
 
 // OPERATION: TRAIN
