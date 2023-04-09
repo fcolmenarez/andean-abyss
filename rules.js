@@ -2793,19 +2793,36 @@ function can_patrol_activate_space(s) {
 states.patrol_activate = {
 	prompt() {
 		view.prompt = "Patrol: Activate 1 Guerrilla for each cube in LoCs."
-
 		gen_govt_special_activity()
+		for (let s = first_loc; s <= last_loc; ++s)
+			if (!set_has(game.op.spaces, s) && can_patrol_activate_space(s))
+				gen_action_space(s)
+		// TODO: mandatory to activate max possible?
+		view.actions.next = 1
+	},
+	space(s) {
+		push_undo()
+		set_add(game.op.spaces, s)
+		game.op.where = s
+		game.op.targeted = 0
+		game.op.count = Math.min(count_cubes(s), count_any_underground_guerrillas(s))
+		game.state = "patrol_activate_space"
+	},
+	next() {
+		push_undo()
+		goto_patrol_assault()
+	},
+}
 
-		// for each cube in each loc, activate 1 guerrilla
-		for (let s = first_loc; s <= last_loc; ++s) {
-			let n = game.op.count[s - first_loc]
-			if (n > 0) {
-				gen_underground_guerrillas(s, FARC)
-				gen_underground_guerrillas(s, AUC)
-				gen_underground_guerrillas(s, CARTELS)
-			}
-		}
+states.patrol_activate_space = {
+	prompt() {
+		view.prompt = "Patrol: Activate 1 Guerrilla for each cube in LoCs."
 
+		gen_underground_guerrillas(game.op.where, FARC)
+		gen_underground_guerrillas(game.op.where, AUC)
+		gen_underground_guerrillas(game.op.where, CARTELS)
+
+		// TODO: mandatory to activate max possible?
 		if (did_maximum_damage(game.op.targeted))
 			view.actions.next = 1
 		else
@@ -2815,17 +2832,11 @@ states.patrol_activate = {
 		let s = piece_space(p)
 		game.op.targeted |= target_faction(p)
 		set_active(p)
-		game.op.count[s - first_loc]--
-
-		let n = 0
-		for (let x of game.op.count)
-			n += x
-		if (n === 0)
-			goto_patrol_assault()
+		if (--game.op.count === 0)
+			resume_patrol_activate()
 	},
 	next() {
-		push_undo()
-		goto_patrol_assault()
+		resume_patrol_activate()
 	},
 }
 
