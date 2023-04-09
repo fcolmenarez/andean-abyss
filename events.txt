@@ -13,8 +13,6 @@
 #     event 30 - remove farc zone and remove farc base
 #     event 43 - place terror and remove farc base
 #     event 65 - (place or remove shipment) and (place or remove insurgent base)
-#     shaded 50 - remove/replace 2 police (TODO)
-#     event 54 - remove/replace 2 guerrillas (TODO)
 #
 #   Replace pieces - may only remove when unable to place available piece (check stacking if piece is available)
 #     35, shaded 39, 40, shaded 50, 54, 57, shaded 57, 72
@@ -812,7 +810,6 @@ EVENT 50
 
 SHADED 50
 	# Note: strictly remove or replace (see event 54)
-	# TODO: 5.1.3 - spaces with 2 police first!
 	prompt "Remove any 2 Police or replace them with available AUC Guerrillas."
 	piece_undo 1 is_police(p)
 		set_piece_space
@@ -902,7 +899,6 @@ EVENT 53
 
 EVENT 54
 	# Note: strictly remove or replace (see shaded 50)
-	# TODO: 5.1.3 - spaces with 2 guerrillas first!
 	prompt "Remove up to 2 Guerrillas or replace them with with another Faction's Guerrillas."
 	piece_undo 1 is_any_guerrilla(p)
 		set_piece_space
