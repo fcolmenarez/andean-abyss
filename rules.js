@@ -2358,9 +2358,8 @@ states.train = {
 		view.prompt = "Train: Select City or Department to place cubes."
 
 		if (game.sa) {
-			// TODO: can_air_lift, can_eradicate
-			view.actions.air_lift = 1
-			view.actions.eradicate = 1
+			view.actions.air_lift = can_air_lift() ? 1 : 0
+			view.actions.eradicate = can_eradicate() ? 1 : 0
 		}
 
 		// Any Departments or Cities
@@ -4136,13 +4135,9 @@ function gen_special(faction, action, enable) {
 
 function gen_govt_special_activity() {
 	if (game.sa) {
-		// TODO: can_air_lift, can_air_strike, can_eradicate
-		view.actions.air_lift = 1
-		view.actions.eradicate = 1
-		if (has_momentum(MOM_PLAN_COLOMBIA))
-			view.actions.air_strike = 0
-		else
-			view.actions.air_strike = 1
+		view.actions.air_lift = can_air_lift() ? 1 : 0
+		view.actions.eradicate = can_eradicate() ? 1 : 0
+		view.actions.air_strike = can_air_strike() ? 1 : 0
 	}
 }
 
@@ -4180,14 +4175,37 @@ function goto_air_lift() {
 		game.sa.count = 1
 }
 
+function can_air_lift() {
+	let manpad = has_momentum(MOM_MISIL_ANTIAEREO)
+	for (let from = first_space; from <= last_space; ++from)
+		if (can_air_lift_from(manpad, from))
+			for (let to = first_space; to <= last_space; ++to)
+				if (to !== from && can_air_lift_to(manpad, to))
+					return true
+	return false
+}
+
+function can_air_lift_from(manpad, s) {
+	if (has_piece(s, GOVT, TROOPS))
+		if (!manpad || !has_any_guerrilla(s))
+			return true
+	return false
+}
+
+function can_air_lift_to(manpad, s) {
+	if (can_stack_piece(s, GOVT, TROOPS))
+		if (!manpad || !has_any_guerrilla(s))
+			return true
+	return false
+}
+
 states.air_lift_from = {
 	prompt() {
 		view.prompt = "Air Lift: Select origin space."
 		let manpad = has_momentum(MOM_MISIL_ANTIAEREO)
 		for (let s = first_space; s <= last_space; ++s)
-			if (has_piece(s, GOVT, TROOPS))
-				if (!manpad || !has_any_guerrilla(s))
-					gen_action_space(s)
+			if (can_air_lift_from(manpad, s))
+				gen_action_space(s)
 	},
 	space(s) {
 		push_undo()
@@ -4202,9 +4220,8 @@ states.air_lift_to = {
 		view.where = game.sa.from
 		let manpad = has_momentum(MOM_MISIL_ANTIAEREO)
 		for (let s = first_space; s <= last_space; ++s)
-			if (s !== game.sa.from && can_stack_any(s, GOVT))
-				if (!manpad || !has_any_guerrilla(s))
-					gen_action_space(s)
+			if (s !== game.sa.from && can_air_lift_to(manpad, s))
+				gen_action_space(s)
 	},
 	space(s) {
 		push_undo()
@@ -4245,6 +4262,23 @@ function goto_air_strike() {
 	log_h3("Air Strike")
 	game.sa = { save: game.state }
 	game.state = "air_strike"
+}
+
+function can_air_strike() {
+	if (has_momentum(MOM_PLAN_COLOMBIA))
+		return false
+	let manpad = has_momentum(MOM_MISIL_ANTIAEREO)
+	for (let s = first_space; s <= last_space; ++s)
+		if (can_air_strike_in_space(manpad, s))
+			return true
+	return false
+}
+
+function can_air_strike_in_space(manpad, s) {
+	if (!manpad || !has_any_guerrilla(s))
+		if (has_exposed_piece(s, FARC) || has_exposed_piece(s, AUC) || has_exposed_piece(s, CARTELS))
+			return true
+	return false
 }
 
 states.air_strike = {
@@ -4289,6 +4323,21 @@ function goto_eradicate() {
 	}
 }
 
+function can_eradicate() {
+	let manpad = has_momentum(MOM_MISIL_ANTIAEREO)
+	for (let s = first_dept; s <= last_dept; ++s)
+		if (can_eradicate_in_space(manpad, s))
+			return true
+	return false
+}
+
+function can_eradicate_in_space(manpad, s) {
+	if (!manpad || !has_any_guerrilla(s))
+		if (has_piece(s, CARTELS, GUERRILLA) || has_piece(s, CARTELS, BASE))
+			return true
+	return false
+}
+
 states.eradicate_aid = {
 	prompt() {
 		view.prompt = "Eradicate: Aid +4."
@@ -4306,9 +4355,8 @@ states.eradicate = {
 		view.prompt = "Eradicate: Destroy rural Cartels Bases."
 		let manpad = has_momentum(MOM_MISIL_ANTIAEREO)
 		for (let s = first_dept; s <= last_dept; ++s)
-			if (has_piece(s, CARTELS, GUERRILLA) || has_piece(s, CARTELS, BASE))
-				if (!manpad || !has_any_guerrilla(s))
-					gen_action_space(s)
+			if (can_eradicate_in_space(manpad, s))
+				gen_action_space(s)
 	},
 	space(s) {
 		push_undo()
@@ -6719,13 +6767,9 @@ function vm_free_attack_terror() { game.state = "vm_free_attack_terror" }
 states.vm_free_govt_special_activity = {
 	prompt() {
 		event_prompt(`Free Special Activity.`)
-		// TODO: can_air_lift, can_air_strike, can_eradicate
-		view.actions.air_lift = 1
-		if (has_momentum(MOM_PLAN_COLOMBIA))
-			view.actions.air_strike = 0
-		else
-			view.actions.air_strike = 1
-		view.actions.eradicate = 1
+		view.actions.air_lift = can_air_lift() ? 1 : 0
+		view.actions.eradicate = can_eradicate() ? 1 : 0
+		view.actions.air_strike = can_air_strike() ? 1 : 0
 	},
 	air_lift: vm_free_air_lift,
 	air_strike: vm_free_air_strike,
