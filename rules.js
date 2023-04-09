@@ -2647,6 +2647,7 @@ states.patrol_limop = {
 
 		select_op_space(s, 0)
 
+		game.op.limop_space = s // remember destination for assault
 		game.op.where = s
 		game.state = "patrol_limop_move"
 	},
@@ -2763,20 +2764,30 @@ states.patrol = {
 
 function goto_patrol_activate() {
 	push_undo()
+	game.op.spaces = []
+	resume_patrol_activate()
+}
 
-	if (has_momentum(MOM_PLAN_COLOMBIA)) {
-		log("No Activation by Patrol.")
+function resume_patrol_activate() {
+	if (can_patrol_activate())
+		game.state = "patrol_activate"
+	else
 		goto_patrol_assault()
-		return
-	}
+}
 
-	// TODO: activate per space (for maximum damage targeted tracking!)
-
-	// TODO: skip if nothing to activate
-	game.state = "patrol_activate"
-	game.op.count = []
+function can_patrol_activate() {
+	if (has_momentum(MOM_PLAN_COLOMBIA))
+		return false
 	for (let s = first_loc; s <= last_loc; ++s)
-		game.op.count[s - first_loc] = Math.min(count_cubes(s), count_any_underground_guerrillas(s))
+		if (can_patrol_activate_space(s))
+			return true
+	return false
+}
+
+function can_patrol_activate_space(s) {
+	if (has_cube(s) && has_any_underground_guerrilla(s))
+		return true
+	return false
 }
 
 states.patrol_activate = {
@@ -2854,9 +2865,8 @@ states.patrol_assault = {
 		else {
 			view.prompt = "Patrol: Free Assault in one LoC."
 			if (game.op.limited) {
-				for (let s of game.op.spaces)
-					if (has_assault_target(s))
-						gen_action_space(s)
+				if (has_assault_target(game.op.limop_space))
+					gen_action_space(game.op.limop_space)
 			} else {
 				for (let s = first_loc; s <= last_loc; ++s)
 					if (has_assault_target(s))
