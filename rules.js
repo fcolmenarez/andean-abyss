@@ -608,6 +608,15 @@ function count_pieces_on_map(faction, type) {
 	return n
 }
 
+function has_pieces_on_map(faction, type) {
+	let first = first_piece[faction][type]
+	let last = last_piece[faction][type]
+	for (let p = first; p <= last; ++p)
+		if (piece_space(p) >= 0)
+			return true
+	return false
+}
+
 function count_matching_spaces(f) {
 	let n = 0
 	for (let s = first_space; s <= last_space; ++s)
@@ -1229,8 +1238,22 @@ function remove_sabotage(s) {
 
 // === SHIPMENT QUERIES AND COMMANDS ===
 
+function has_available_shipment() {
+	for (let sh = 0; sh < 4; ++sh)
+		if (is_shipment_available(sh))
+			return true
+	return false
+}
+
+function find_available_shipment() {
+	for (let sh = 0; sh < 4; ++sh)
+		if (is_shipment_available(sh))
+			return sh
+	return -1
+}
+
 function place_shipment(sh, p) {
-	log(`Shipment with ${piece_name(p)} in S${piece_space(p)}.`)
+	log(`Placed Shipment with ${faction_name[piece_faction(p)]} in S${piece_space(p)}.`)
 	game.shipments[sh] = p << 2
 }
 
@@ -4901,20 +4924,6 @@ states.cultivate_move = {
 
 // TODO: end automatically when placed max shipments or no more bases to remove
 
-function has_available_shipment() {
-	for (let sh = 0; sh < 4; ++sh)
-		if (is_shipment_available(sh))
-			return true
-	return false
-}
-
-function find_available_shipment() {
-	for (let sh = 0; sh < 4; ++sh)
-		if (is_shipment_available(sh))
-			return sh
-	return -1
-}
-
 function goto_process() {
 	push_undo()
 	move_cylinder_to_special_activity()
@@ -4936,64 +4945,83 @@ function can_process() {
 
 states.process = {
 	prompt() {
-		// TODO: split state based on first action?
-		if (game.sa.count === 2)
-			view.prompt = "Process: Place 1-2 Shipments with any Guerrillas, or remove any Cartels bases for Resources."
-		else if (game.sa.count === 1)
-			view.prompt = "Process: Place 1-2 Shipments with any Guerrillas."
-		else if (game.sa.count < 0)
-			view.prompt = "Process: Remove any Cartels bases for Resources."
-		else
-			view.prompt = "Process: All done."
+		view.prompt = "Process: Place 1-2 Shipments with any Guerrillas, or remove any Cartels bases for Resources."
+		for (let sh = 0; sh < 4; ++sh)
+			if (is_shipment_available(sh))
+				gen_action_shipment(sh)
+		for_each_piece(CARTELS, BASE, p => {
+			if (piece_space(p) !== AVAILABLE)
+				gen_action_piece(p)
+		})
+	},
+	shipment(sh) {
+		push_undo()
+		game.state = "process_place_shipments"
+		game.sa.shipment = sh
+		game.sa.count = 2
+	},
+	piece(p) {
+		push_undo()
+		do_process_remove_base(p)
+	},
+}
 
+function do_process_remove_base(p) {
+	remove_piece(p)
+	add_resources(CARTELS, 3)
+	if (has_pieces_on_map(CARTELS, BASE))
+		game.state = "process_remove_bases"
+	else
+		end_special_activity()
+}
+
+states.process_place_shipments = {
+	prompt() {
+		view.prompt = "Process: Place 1-2 Shipments with any Guerrillas."
 		if (game.sa.shipment < 0) {
-			if (game.sa.count === 2 || game.sa.count < 0) {
-				for_each_piece(CARTELS, BASE, p => {
-					if (piece_space(p) !== AVAILABLE)
-						gen_action_piece(p)
-				})
-			}
+			for (let sh = 0; sh < 4; ++sh)
+				if (is_shipment_available(sh))
+					gen_action_shipment(sh)
+			if (game.sa.count === 1)
+				view.actions.end_process = 1
 		} else {
-			gen_action_shipment(game.sa.shipment)
-		}
-
-		if (game.sa.count > 0) {
-			if (game.sa.shipment < 0) {
-				for (let sh = 0; sh < 4; ++sh)
-					if (is_shipment_available(sh))
-						gen_action_shipment(sh)
-			} else {
-				for (let s = first_space; s <= last_space; ++s) {
-					if (has_cartels_base(s)) {
-						gen_piece_in_space(s, FARC, GUERRILLA)
-						gen_piece_in_space(s, AUC, GUERRILLA)
-						gen_piece_in_space(s, CARTELS, GUERRILLA)
-					}
+			for (let s = first_space; s <= last_space; ++s) {
+				if (has_cartels_base(s)) {
+					gen_piece_in_space(s, FARC, GUERRILLA)
+					gen_piece_in_space(s, AUC, GUERRILLA)
+					gen_piece_in_space(s, CARTELS, GUERRILLA)
 				}
 			}
 		}
-
-		view.actions.end_process = 1
 	},
 	shipment(sh) {
-		if (game.sa.shipment >= 0) {
-			pop_undo()
-		} else {
-			push_undo()
-			game.sa.shipment = sh
-		}
+		push_undo()
+		game.sa.shipment = sh
 	},
 	piece(p) {
-		if (is_cartels_base(p)) {
-			push_undo()
-			add_resources(CARTELS, 3)
-			remove_piece(p)
-			game.sa.count = -1
-		} else {
-			place_shipment(game.sa.shipment, p)
-			game.sa.shipment = -1
-			game.sa.count--
-		}
+		place_shipment(game.sa.shipment, p)
+		game.sa.shipment = -1
+		if (--game.sa.count === 0 || !has_available_shipment())
+			end_special_activity()
+	},
+	end_process() {
+		push_undo()
+		end_special_activity()
+	},
+}
+
+states.process_remove_bases = {
+	prompt() {
+		view.prompt = "Process: Remove any Cartels bases for Resources."
+		for_each_piece(CARTELS, BASE, p => {
+			if (piece_space(p) !== AVAILABLE)
+				gen_action_piece(p)
+		})
+		view.actions.end_process = 1
+	},
+	piece(p) {
+		push_undo()
+		do_process_remove_base(p)
 	},
 	end_process() {
 		push_undo()
@@ -8528,7 +8556,7 @@ const CODE = [
 	[ vm_endspace ],
 	[ vm_return ],
 // SHADED 72
-	[ vm_if, ()=>count_pieces_on_map(CARTELS, BASE) > 0 ],
+	[ vm_if, ()=>has_pieces_on_map(CARTELS, BASE) ],
 	[ vm_while, ()=>has_piece(AVAILABLE, CARTELS, GUERRILLA) ],
 	[ vm_prompt, "Place all available Cartels Guerrillas into spaces with Cartels Bases." ],
 	[ vm_asm, ()=>game.vm.p = find_piece(AVAILABLE, CARTELS, GUERRILLA) ],

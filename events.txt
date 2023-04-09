@@ -1241,7 +1241,7 @@ EVENT 72
 	endspace
 
 SHADED 72
-	if count_pieces_on_map(CARTELS, BASE) > 0
+	if has_pieces_on_map(CARTELS, BASE)
 		while has_piece(AVAILABLE, CARTELS, GUERRILLA)
 			prompt "Place all available Cartels Guerrillas into spaces with Cartels Bases."
 			asm game.vm.p = find_piece(AVAILABLE, CARTELS, GUERRILLA)
