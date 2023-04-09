@@ -2,9 +2,13 @@
 
 // TODO: rules material - reference 6.3.3 Drug Profits to 5.2.2 should be 4.5.3
 
-// TODO: game.memory instead of president/aid/cylinder/resources/samper/pieces/
-// TODO: clean up init_free_operation and transitions
-// OP in a space -> next() transition handler to deal with ops/events/elite-backing in a common way
+// TODO: compact game.memory array instead of president/aid/cylinder/resources/samper/pieces/support/control
+// TODO: bit array for momentum and capabilities instead of set lists
+// TODO: clean up init_free_operation stuff
+
+// TODO: check how often and where to push_undo
+
+// TODO: log when resource/aid is capped
 
 const AUTOMATIC = true
 
@@ -2221,6 +2225,10 @@ function end_operation() {
 
 function goto_pass() {
 	push_undo()
+
+	game.op = 0
+	game.sa = 0
+
 	game.cylinder[game.current] = SOP_PASS
 	log_h2(faction_name[game.current] + " - Pass")
 	if (game.current === GOVT)
@@ -5301,23 +5309,36 @@ function goto_final_victory() {
 
 function goto_sabotage_phase() {
 	game.prop.step = 2
-	game.current = GOVT
+	game.current = FARC
 
 	log_h2("Sabotage Phase")
 
-	for (let s = first_loc; s <= last_loc; ++s) {
-		if (can_sabotage_phase_space(s)) {
-			log("Sabotaged S" + s + ".")
-			place_sabotage(s)
+	if (false) {
+		for (let s = first_loc; s <= last_loc; ++s) {
+			if (can_sabotage_phase_space(s)) {
+				log("Sabotaged S" + s + ".")
+				place_sabotage(s)
+			}
 		}
+		goto_resources_phase()
+	} else {
+		if (can_sabotage_phase())
+			game.state = "sabotage"
+		else
+			goto_resources_phase()
 	}
-
-	goto_resources_phase()
 }
 
 function is_adjacent_to_city_farc_control(s) {
 	for (let x of data.spaces[s].adjacent)
 		if (is_city(x) && has_farc_control(x))
+			return true
+	return false
+}
+
+function can_sabotage_phase() {
+	for (let s = first_loc; s <= last_loc; ++s)
+		if (can_sabotage_phase_space(s))
 			return true
 	return false
 }
@@ -5331,6 +5352,20 @@ function can_sabotage_phase_space(s) {
 		return count_guerrillas(s) > count_cubes(s)
 	}
 	return false
+}
+
+states.sabotage = {
+	prompt() {
+		view.prompt = "Sabotage LoCs."
+		for (let s = first_loc; s <= last_loc; ++s)
+			if (can_sabotage_phase_space(s))
+				gen_action_space(s)
+	},
+	space(s) {
+		place_sabotage(s)
+		if (!can_sabotage_phase())
+			goto_resources_phase()
+	},
 }
 
 // PROPAGANDA: RESOURCES PHASE
@@ -5460,6 +5495,11 @@ function can_agitate(s) {
 function goto_support_phase() {
 	game.prop.step = 4
 	log_h2("Support Phase")
+	goto_support_civic_action()
+}
+
+function goto_support_civic_action() {
+	// TODO: skip civic action if not possible?
 	log_h3("Civic Action")
 	game.current = GOVT
 	game.state = "civic_action"
@@ -5488,10 +5528,15 @@ states.civic_action = {
 	},
 	next() {
 		clear_undo()
-		log_h3("Agitation")
-		game.current = FARC
-		game.state = "agitation"
+		goto_support_agitation()
 	},
+}
+
+function goto_support_agitation() {
+	// TODO: skip agitation if not possible?
+	log_h3("Agitation")
+	game.current = FARC
+	game.state = "agitation"
 }
 
 states.agitation = {
@@ -5797,6 +5842,7 @@ function goto_event(shaded) {
 	move_cylinder_to_event()
 	let c = this_card()
 
+	game.op = 0
 	game.sa = 0
 
 	if (shaded) {
