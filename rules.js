@@ -1444,12 +1444,12 @@ function can_place_piece(s, faction, type) {
 function did_maximum_damage(targeted) {
 	// Must do at least something!
 	if (targeted === 0)
-		return false
+		return 0
 	if (view.actions.piece)
 		for (let p of view.actions.piece)
 			if (targeted & target_faction(p))
-				return false
-	return true
+				return 0
+	return 1
 }
 
 function for_each_piece(faction, type, f) {
@@ -2792,12 +2792,11 @@ function can_patrol_activate_space(s) {
 
 states.patrol_activate = {
 	prompt() {
-		view.prompt = "Patrol: Activate 1 Guerrilla for each cube in LoCs."
+		view.prompt = "Patrol: Activate Guerrillas in each LoC with cubes."
 		gen_govt_special_activity()
 		for (let s = first_loc; s <= last_loc; ++s)
 			if (!set_has(game.op.spaces, s) && can_patrol_activate_space(s))
 				gen_action_space(s)
-		// TODO: mandatory to activate max possible?
 		view.actions.next = 1
 	},
 	space(s) {
@@ -2816,17 +2815,14 @@ states.patrol_activate = {
 
 states.patrol_activate_space = {
 	prompt() {
-		view.prompt = "Patrol: Activate 1 Guerrilla for each cube in LoCs."
+		view.prompt = `Patrol: Activate 1 Guerrilla for each cube in ${space_name[game.op.where]}.`
+		view.where = game.op.where
 
 		gen_underground_guerrillas(game.op.where, FARC)
 		gen_underground_guerrillas(game.op.where, AUC)
 		gen_underground_guerrillas(game.op.where, CARTELS)
 
-		// TODO: mandatory to activate max possible?
-		if (did_maximum_damage(game.op.targeted))
-			view.actions.next = 1
-		else
-			view.actions.next = 0
+		view.actions.skip = did_maximum_damage(game.op.targeted)
 	},
 	piece(p) {
 		let s = piece_space(p)
@@ -2835,18 +2831,17 @@ states.patrol_activate_space = {
 		if (--game.op.count === 0)
 			resume_patrol_activate()
 	},
-	next() {
+	skip() {
 		resume_patrol_activate()
 	},
 }
 
 function goto_patrol_assault() {
-	// TODO: skip if nothing to assault
-	game.state = "patrol_assault"
-	if (has_shaded_capability(CAP_METEORO))
+	game.op.spaces = []
+	if (can_patrol_assault())
+		game.state = "patrol_assault"
+	else
 		game.state = "patrol_done"
-	else if (has_capability(CAP_METEORO))
-		game.op.spaces = []
 }
 
 function end_patrol_assault_space() {
@@ -2856,67 +2851,65 @@ function end_patrol_assault_space() {
 		game.state = "patrol_done"
 }
 
+function can_patrol_assault() {
+	if (has_shaded_capability(CAP_METEORO))
+		return false
+	if (game.op.limited)
+		return can_patrol_assault_space(game.op.limop_space)
+	for (let s = first_loc; s <= last_loc; ++s)
+		if (can_patrol_assault_space(s))
+			return true
+	return false
+}
+
+function can_patrol_assault_space(s) {
+	return has_assault_target(s) && has_cube(s)
+}
+
 states.patrol_assault = {
 	prompt() {
+		if (has_capability(CAP_METEORO))
+			view.prompt = "Patrol: Free Assault in each LoC."
+		else
+			view.prompt = "Patrol: Free Assault in one LoC."
 
 		gen_govt_special_activity()
 
-		view.actions.next = 1
-
-		if (has_capability(CAP_METEORO)) {
-			view.prompt = "Patrol: Free Assault in each LoC."
+		if (game.op.limited) {
+			if (can_patrol_assault_space(game.op.limop_space))
+				gen_action_space(game.op.limop_space)
+		} else {
 			for (let s = first_loc; s <= last_loc; ++s) {
 				if (is_selected_op_space(s))
 					continue
-				if (has_assault_target(s))
+				if (can_patrol_assault_space(s))
 					gen_action_space(s)
 			}
 		}
 
-		else {
-			view.prompt = "Patrol: Free Assault in one LoC."
-			if (game.op.limited) {
-				if (has_assault_target(game.op.limop_space))
-					gen_action_space(game.op.limop_space)
-			} else {
-				for (let s = first_loc; s <= last_loc; ++s)
-					if (has_assault_target(s))
-						gen_action_space(s)
-			}
-		}
+		view.actions.end_patrol = 1
 	},
 	space(s) {
 		push_undo()
 		log(`Assault S${s}.`)
-
 		game.state = "patrol_assault_space"
 		game.op.where = s
 		game.op.targeted = 0
 		game.op.count = count_cubes(s)
 	},
-	next() {
-		push_undo()
-		game.state = "patrol_done"
-	},
+	end_patrol: end_operation,
 }
 
 states.patrol_assault_space = {
 	prompt() {
-		view.prompt = `Patrol: Remove ${game.op.count} enemy pieces in ${space_name[game.op.where]}.`
+		view.prompt = `Patrol: Remove 1 Guerrilla for each cube in ${space_name[game.op.where]}.`
 		view.where = game.op.where
 
-		gen_govt_special_activity()
+		gen_exposed_piece(game.op.where, FARC)
+		gen_exposed_piece(game.op.where, AUC)
+		gen_exposed_piece(game.op.where, CARTELS)
 
-		if (game.op.count > 0) {
-			gen_exposed_piece(game.op.where, FARC)
-			gen_exposed_piece(game.op.where, AUC)
-			gen_exposed_piece(game.op.where, CARTELS)
-		}
-
-		if (did_maximum_damage(game.op.targeted))
-			view.actions.next = 1
-		else
-			view.actions.next = 0
+		view.actions.skip = did_maximum_damage(game.op.targeted)
 	},
 	piece(p) {
 		game.op.targeted |= target_faction(p)
@@ -2927,7 +2920,7 @@ states.patrol_assault_space = {
 			transfer_or_drug_bust_shipments()
 		}
 	},
-	next() {
+	skip() {
 		push_undo()
 		end_patrol_assault_space()
 		transfer_or_drug_bust_shipments()
@@ -3166,18 +3159,15 @@ states.sweep_activate = {
 				gen_underground_guerrillas(game.op.where, CARTELS)
 		}
 
-		if (did_maximum_damage(game.op.targeted))
-			view.actions.next = 1
-		else
-			view.actions.next = 0
+		view.actions.skip = did_maximum_damage(game.op.targeted)
 	},
 	piece(p) {
 		game.op.targeted |= target_faction(p)
 		set_active(p)
 		if (--game.op.count === 0 || !can_sweep_activate(game.op.where, game.op.faction))
-			this.next()
+			this.skip()
 	},
-	next() {
+	skip() {
 		push_undo()
 		do_sweep_next()
 	},
@@ -3395,19 +3385,16 @@ states.assault_space = {
 				gen_exposed_piece(game.op.where, CARTELS)
 		}
 
-		if (did_maximum_damage(game.op.targeted))
-			view.actions.next = 1
-		else
-			view.actions.next = 0
+		view.actions.skip = did_maximum_damage(game.op.targeted)
 	},
 	piece(p) {
 		game.op.targeted |= target_faction(p)
 		remove_piece(p)
 
 		if (--game.op.count === 0 || !has_assault_target(game.op.where, game.op.faction))
-			this.next()
+			this.skip()
 	},
-	next() {
+	skip() {
 		if (game.vm) {
 			end_operation()
 			transfer_or_drug_bust_shipments()
@@ -3775,10 +3762,7 @@ states.march_move = {
 					gen_action_piece(p)
 		})
 
-		if (game.op.march.length > 0)
-			view.actions.next = 1
-		else
-			view.actions.next = 0
+		view.actions.next = (game.op.march.length > 0) ? 1 : 0
 	},
 	piece(p) {
 		let from = piece_space(p)
@@ -3968,10 +3952,7 @@ states.attack_remove = {
 				gen_attack_piece(game.op.where, CARTELS)
 		}
 
-		if (did_maximum_damage(game.op.targeted))
-			view.actions.next = 1
-		else
-			view.actions.next = 0
+		view.actions.skip = did_maximum_damage(game.op.targeted)
 	},
 	piece(p) {
 		push_undo()
@@ -3984,7 +3965,7 @@ states.attack_remove = {
 			transfer_or_remove_shipments()
 		}
 	},
-	next() {
+	skip() {
 		do_attack_next()
 		game.op.count = 0
 		transfer_or_remove_shipments()
@@ -4943,8 +4924,6 @@ states.cultivate_move = {
 
 // SPECIAL ACTIVITY: PROCESS
 
-// TODO: end automatically when placed max shipments or no more bases to remove
-
 function goto_process() {
 	push_undo()
 	move_cylinder_to_special_activity()
@@ -5115,7 +5094,7 @@ states.bribe = {
 
 states.bribe_space = {
 	prompt() {
-		view.prompt = "Bribe: Remove 1 Base or 2 cubes or 2 Guerrillas, or flip 2 Guerrillas."
+		view.prompt = "Bribe: Remove up to 2 cubes, remove or flip up to 2 Guerrillas, or remove a Base."
 
 		// Nothing removed yet
 		if (game.sa.targeted === 0) {
@@ -5148,10 +5127,7 @@ states.bribe_space = {
 			gen_piece_in_space(game.sa.where, AUC, GUERRILLA)
 		}
 
-		if (did_maximum_damage(game.sa.targeted))
-			view.actions.next = 1
-		else
-			view.actions.next = 0
+		view.actions.skip = did_maximum_damage(game.sa.targeted)
 	},
 	piece(p) {
 		remove_piece(p)
@@ -5169,7 +5145,7 @@ states.bribe_space = {
 		game.sa.count = 2
 		game.sa.piece = -1
 	},
-	next() {
+	skip() {
 		resume_bribe()
 		transfer_or_remove_shipments()
 	},
@@ -5583,7 +5559,10 @@ states.remove_farc_zones = {
 function goto_elite_backing() {
 	log_h3("Elite Backing")
 	game.current = AUC
-	game.state = "elite_backing"
+	if (can_rally())
+		game.state = "elite_backing"
+	else
+		end_elite_backing()
 }
 
 function end_elite_backing() {
@@ -5594,16 +5573,16 @@ function end_elite_backing() {
 states.elite_backing = {
 	prompt() {
 		view.prompt = "Elite Backing: Free Rally in one space."
-		view.actions.next = 1
 		for (let s = first_space; s <= last_dept; ++s)
 			if (!is_opposition(s) && !has_govt_control(s) && !has_farc_control(s))
 				gen_action_space(s)
+		view.actions.skip = 1
 	},
 	space(s) {
 		push_undo()
 		free_rally_elite_backing(s)
 	},
-	next() {
+	skip() {
 		end_elite_backing()
 	},
 }
@@ -5666,10 +5645,7 @@ states.redeploy = {
 			}
 		}
 
-		if (done)
-			view.actions.next = 1
-		else
-			view.actions.next = 0
+		view.actions.next = done ? 1 : 0
 	},
 	piece(p) {
 		if (game.prop.who === p)
