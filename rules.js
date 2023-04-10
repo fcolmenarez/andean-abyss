@@ -10,6 +10,8 @@
 
 // TODO: log when resource/aid is capped
 
+// TODO: CODE separated by functions - CODE[game.vm.fp][game.vm.ip]
+
 const AUTOMATIC = true
 
 let states = {}
@@ -311,8 +313,7 @@ exports.setup = function (seed, scenario, options) {
 				game.deck.push(i)
 	}
 
-	game.deck[0] =
-		/* TEST */ 24
+	game.deck[1] = /* TEST */ 73
 	log("DECK " + game.deck.join(", "))
 
 	update_control()
@@ -565,10 +566,6 @@ function is_auc_piece(p) { return is_auc_base(p) || is_auc_guerrilla(p) }
 function is_cartels_base(p) { return is_piece(p, CARTELS, BASE) }
 function is_cartels_guerrilla(p) { return is_piece(p, CARTELS, GUERRILLA) }
 function is_cartels_piece(p) { return is_cartels_base(p) || is_cartels_guerrilla(p) }
-
-function is_faction_guerrilla(p, faction) {
-	return is_piece(p, faction, GUERRILLA)
-}
 
 function is_any_base(p) {
 	return is_govt_base(p) || is_farc_base(p) || is_auc_base(p) || is_cartels_base(p)
@@ -984,12 +981,8 @@ function has_terror(s) {
 	return map_get(game.terror, s, 0) > 0
 }
 
-function count_terror(s) {
-	return map_get(game.terror, s, 0)
-}
-
 function count_terror_and_sabotage() {
-	let n = (game.sabotage.length >> 1)
+	let n = game.sabotage.length
 	for (let i = 1; i < game.terror.length; i += 2)
 		n += game.terror[i]
 	return n
@@ -1371,7 +1364,7 @@ function can_transfer_dropped_shipments() {
 	return false
 }
 
-function auto_transfer_dropped_shipments(s) {
+function auto_transfer_dropped_shipments() {
 	for (let sh = 0; sh < 4; ++sh)
 		if (is_shipment_dropped(sh))
 			auto_transfer_dropped_shipment_imp(sh)
@@ -2038,7 +2031,7 @@ function next_eligible_faction() {
 	for (let faction of order)
 		if (is_eligible(faction))
 			return faction
-	return null
+	return -1
 }
 
 function adjust_eligibility(faction) {
@@ -2124,9 +2117,9 @@ function end_card() {
 	goto_card()
 }
 
-function goto_eligible(limited) {
+function goto_eligible() {
 	game.current = next_eligible_faction()
-	if (game.current === null) {
+	if (game.current < 0) {
 		end_card()
 	} else {
 		game.state = "eligible"
@@ -2833,7 +2826,6 @@ states.patrol_activate_space = {
 		view.actions.skip = did_maximum_damage(game.op.targeted)
 	},
 	piece(p) {
-		let s = piece_space(p)
 		game.op.targeted |= target_faction(p)
 		set_active(p)
 		if (--game.op.count === 0)
@@ -5313,13 +5305,11 @@ function goto_sabotage_phase() {
 
 	log_h2("Sabotage Phase")
 
+	// TODO: manual or automatic sabotage
 	if (false) {
-		for (let s = first_loc; s <= last_loc; ++s) {
-			if (can_sabotage_phase_space(s)) {
-				log("Sabotaged S" + s + ".")
+		for (let s = first_loc; s <= last_loc; ++s)
+			if (can_sabotage_phase_space(s))
 				place_sabotage(s)
-			}
-		}
 		goto_resources_phase()
 	} else {
 		if (can_sabotage_phase())
@@ -5455,7 +5445,7 @@ states.drug_profits_space = {
 		}
 		gen_action_resources(game.current)
 	},
-	resources(s) {
+	resources(_) {
 		add_resources(game.current, 6)
 		game.state = "drug_profits"
 	},
@@ -6501,7 +6491,6 @@ function can_vm_shipment() {
 
 states.vm_shipment = {
 	prompt() {
-		let n = CODE[game.vm.pc][3]
 		let f = CODE[game.vm.pc][4]
 		if (game.vm.prompt)
 			event_prompt(game.vm.prompt)
@@ -6655,9 +6644,9 @@ states.vm_set_passive_support_or_passive_opposition = {
 }
 
 function can_place_or_remove_shipment(s) {
-	if (has_available_shipment() && has_any_guerrilla(game.vm.s))
+	if (has_available_shipment() && has_any_guerrilla(s))
 		return true
-	if (is_any_shipment_held_in_space(game.vm.s))
+	if (is_any_shipment_held_in_space(s))
 		return true
 	return false
 }
@@ -6859,7 +6848,7 @@ states.vm_free_train_sweep_assault = {
 			view.actions.sweep = 1
 		else
 			view.actions.sweep = 0
-		if (can_assault_any(game.vm.s))
+		if (can_assault_in_space(game.vm.s))
 			view.actions.assault = 1
 		else
 			view.actions.assault = 0
@@ -6877,7 +6866,7 @@ states.vm_free_sweep_assault = {
 			view.actions.sweep = 1
 		else
 			view.actions.sweep = 0
-		if (can_assault_any(game.vm.s))
+		if (can_assault_in_space(game.vm.s))
 			view.actions.assault = 1
 		else
 			view.actions.assault = 0
@@ -6940,7 +6929,7 @@ function goto_game_over(result) {
 	game.current = -1
 	game.active = "None"
 	game.result = result
-	game.victory = victory + " won!"
+	game.victory = result + " won!"
 	log_h1("Game Over")
 	log(game.victory)
 	return true
@@ -6966,10 +6955,6 @@ function log(msg) {
 	game.log.push(msg)
 }
 
-function logi(msg) {
-	game.log.push(">" + msg)
-}
-
 function log_h1(msg) {
 	log_br()
 	log(".h1 " + msg)
@@ -6985,11 +6970,6 @@ function log_h2(msg) {
 function log_h3(msg) {
 	log_br()
 	log(".h3 " + msg)
-}
-
-function log_h4(msg) {
-	log_br()
-	log(".h4 " + msg)
 }
 
 function gen_action(action, argument) {
@@ -7227,13 +7207,6 @@ function object_copy(original) {
 
 // Array remove and insert (faster than splice)
 
-function array_remove_item(array, item) {
-	let n = array.length
-	for (let i = 0; i < n; ++i)
-		if (array[i] === item)
-			return array_remove(array, i)
-}
-
 function array_remove(array, index) {
 	let n = array.length
 	for (let i = index + 1; i < n; ++i)
@@ -7314,41 +7287,7 @@ function set_delete(set, item) {
 	}
 }
 
-function set_toggle(set, item) {
-	let a = 0
-	let b = set.length - 1
-	while (a <= b) {
-		let m = (a + b) >> 1
-		let x = set[m]
-		if (item < x)
-			b = m - 1
-		else if (item > x)
-			a = m + 1
-		else {
-			array_remove(set, m)
-			return
-		}
-	}
-	array_insert(set, a, item)
-}
-
 // Map as plain sorted array of key/value pairs
-
-function map_has(map, key) {
-	let a = 0
-	let b = (map.length >> 1) - 1
-	while (a <= b) {
-		let m = (a + b) >> 1
-		let x = map[m << 1]
-		if (key < x)
-			b = m - 1
-		else if (key > x)
-			a = m + 1
-		else
-			return true
-	}
-	return false
-}
 
 function map_get(map, key, missing) {
 	let a = 0
@@ -7736,7 +7675,7 @@ const CODE = [
 	[ vm_return ],
 // SHADED 25
 	[ vm_prompt, "Place 3 FARC pieces into Antioquia or an adjacent Department." ],
-	[ vm_space, true, 1, 1, (s)=>(s === ANTIOQUIA || (is_dept(s) && is_adjacent(ANTIOQUIA, s))) && can_place_any(s, FARC) ],
+	[ vm_space, true, 1, 1, (s)=>(s === ANTIOQUIA || (is_dept(s) && is_adjacent(ANTIOQUIA, s))) && can_stack_any(s, FARC) ],
 	[ vm_place, false, 0, FARC, BASE_GUERRILLA ],
 	[ vm_place, false, 0, FARC, BASE_GUERRILLA ],
 	[ vm_place, false, 0, FARC, BASE_GUERRILLA ],
@@ -7809,7 +7748,7 @@ const CODE = [
 	[ vm_return ],
 // EVENT 30
 	[ vm_prompt, "Remove 1 FARC Zone and 1 FARC Base there." ],
-	[ vm_space, true, 1, 1, (s)=>is_farc_zone(s) && has_farc_base(s) ],
+	[ vm_space, true, 1, 1, (s)=>is_farc_zone(s) && has_piece(s, FARC, BASE) ],
 	[ vm_remove_farc_zone ],
 	[ vm_prompt, "Remove 1 FARC Base." ],
 	[ vm_piece, false, 1, 1, (p,s)=>is_piece_in_event_space(p) && is_farc_base(p) ],
@@ -8030,7 +7969,7 @@ const CODE = [
 	[ vm_return ],
 // EVENT 43
 	[ vm_prompt, "Place 2 Terror and remove all FARC Bases from a Department with Troops." ],
-	[ vm_space, true, 1, 1, (s)=>is_dept(s) && has_troops(s) && has_farc_base(s) ],
+	[ vm_space, true, 1, 1, (s)=>is_dept(s) && has_troops(s) && has_piece(s, FARC, BASE) ],
 	[ vm_terror ],
 	[ vm_terror ],
 	[ vm_prompt, "Remove all FARC Bases." ],
