@@ -12,6 +12,9 @@
 
 // TODO: CODE separated by functions - CODE[game.vm.fp][game.vm.ip]
 
+// TODO: auto-skip civic action
+// TODO: auto-skip agitation
+
 const AUTOMATIC = true
 
 let states = {}
@@ -313,7 +316,7 @@ exports.setup = function (seed, scenario, options) {
 				game.deck.push(i)
 	}
 
-	game.deck[1] = /* TEST */ 73
+	// game.deck[1] = /* TEST */ 73
 	log("DECK " + game.deck.join(", "))
 
 	update_control()
@@ -3400,7 +3403,6 @@ states.assault_space = {
 			transfer_or_drug_bust_shipments()
 			return
 		}
-		push_undo()
 		game.state = "assault"
 		transfer_or_drug_bust_shipments()
 	},
@@ -4429,7 +4431,7 @@ function can_eradicate_shift() {
 
 states.eradicate_shift = {
 	prompt() {
-		view.prompt = `Eradicate: Shift ${space_name[game.sa.where]} or adjacent space toward active Opposition.`
+		view.prompt = `Eradicate: Shift ${space_name[game.sa.where]} or an adjacent space toward active Opposition.`
 		view.where = game.sa.where
 		if (can_shift_opposition(game.sa.where))
 			gen_action_space(game.sa.where)
@@ -5506,7 +5508,7 @@ states.civic_action = {
 				if (can_civic_action(s))
 					gen_action_space(s)
 		}
-		view.actions.next = 1
+		view.actions.done = 1
 	},
 	space(s) {
 		push_undo()
@@ -5516,7 +5518,7 @@ states.civic_action = {
 		else
 			shift_support(s)
 	},
-	next() {
+	done() {
 		clear_undo()
 		goto_support_agitation()
 	},
@@ -5537,7 +5539,7 @@ states.agitation = {
 				if (can_agitate(s))
 					gen_action_space(s)
 		}
-		view.actions.next = 1
+		view.actions.done = 1
 	},
 	space(s) {
 		push_undo()
@@ -5549,7 +5551,7 @@ states.agitation = {
 		else
 			shift_opposition(s)
 	},
-	next() {
+	done() {
 		clear_undo()
 		delete game.alfonso
 		goto_election()
@@ -5630,44 +5632,78 @@ function goto_redeploy_phase() {
 	game.prop.pieces = []
 	log_h2("Redeploy Phase")
 	game.current = GOVT
-	game.state = "redeploy"
+	if (is_redeploy_done())
+		game.state = "redeploy_optional"
+	else
+		game.state = "redeploy_mandatory"
 }
 
-states.redeploy = {
+function is_redeploy_done() {
+	for (let p = first_piece[GOVT][TROOPS]; p <= last_piece[GOVT][TROOPS]; ++p) {
+		let s = piece_space(p)
+		if (is_loc(s))
+			return false
+		if (is_dept(s) && !has_govt_base(s))
+			return false
+	}
+	return true
+}
+
+states.redeploy_mandatory = {
 	prompt() {
-		view.prompt = "Redeploy"
-
-		let done = true
-
+		view.prompt = "Redeploy Troops from LoCs and Departments without Base."
 		if (game.prop.who < 0) {
 			for_each_piece(GOVT, TROOPS, (p,s) => {
 				if (!set_has(game.prop.pieces, p)) {
-					if (is_loc(s)) {
-						done = false
+					if (is_loc(s))
 						gen_action_piece(p)
-					}
-					if (is_dept(s) && !has_govt_base(s)) {
-						done = false
+					if (is_dept(s) && !has_govt_base(s))
 						gen_action_piece(p)
-					}
 				}
 			})
-			if (done) {
-				for_each_piece(GOVT, TROOPS, (p,s) => {
-					if (s !== AVAILABLE && !set_has(game.prop.pieces, p))
-						gen_action_piece(p)
-				})
-				for_each_piece(GOVT, POLICE, (p,s) => {
-					if (s !== AVAILABLE && !set_has(game.prop.pieces, p))
-						gen_action_piece(p)
-				})
-			}
-		}
-
-		else {
+		} else {
 			let p = game.prop.who
 			view.who = p
-			done = false
+			gen_action_piece(p)
+			for (let s = first_space; s <= last_space; ++s)
+				if (is_redeploy_troops_space(s))
+					gen_action_space(s)
+		}
+	},
+	piece(p) {
+		if (game.prop.who === p)
+			game.prop.who = -1
+		else
+			game.prop.who = p
+	},
+	space(s) {
+		let p = game.prop.who
+		game.prop.who = -1
+		push_undo()
+		set_piece_space(p, s)
+		// NOTE: do not update control yet!
+		if (is_redeploy_done())
+			game.state = "redeploy_optional"
+	},
+}
+
+states.redeploy_optional = {
+	prompt() {
+		view.prompt = "Redeploy Troops and Police."
+
+		if (game.prop.who < 0) {
+			for_each_piece(GOVT, TROOPS, (p,s) => {
+				if (s !== AVAILABLE && !set_has(game.prop.pieces, p))
+					gen_action_piece(p)
+			})
+			for_each_piece(GOVT, POLICE, (p,s) => {
+				if (s !== AVAILABLE && !set_has(game.prop.pieces, p))
+					gen_action_piece(p)
+			})
+		} else {
+			let p = game.prop.who
+			view.who = p
+			gen_action_piece(p)
 			if (is_troops(p)) {
 				for (let s = first_space; s <= last_space; ++s)
 					if (is_redeploy_troops_space(s))
@@ -5680,7 +5716,7 @@ states.redeploy = {
 			}
 		}
 
-		view.actions.next = done ? 1 : 0
+		view.actions.done = 1
 	},
 	piece(p) {
 		if (game.prop.who === p)
@@ -5696,7 +5732,7 @@ states.redeploy = {
 		set_add(game.prop.pieces, p)
 		// NOTE: do not update control yet!
 	},
-	next() {
+	done() {
 		// NOTE: finally update control!
 		update_control()
 		goto_reset_phase()
