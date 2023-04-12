@@ -411,11 +411,6 @@ path.tip { stroke: yellow; }
 #this_card.card_10.c #unshaded_event { height: 59px; }
 #this_card.card_11.c #unshaded_event { top: 200px; height: 55px; }
 
-
-/* shaded box is off-center on card 61 */
-#this_card.card_61 #shaded_event { left: 16px; right: 23px; }
-#this_card.card_61 #unshaded_event { left: 10px; right: 17px; }
-
 .card.card_back{background-image:url(cards.1x/card_back.jpg)}
 .card.card_1{background-image:url(cards.1x/card_01.jpg)}
 .card.card_2{background-image:url(cards.1x/card_02.jpg)}
