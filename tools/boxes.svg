@@ -41,9 +41,9 @@
      inkscape:window-height="480"
      id="namedview6"
      showgrid="true"
-     inkscape:zoom="0.53295475"
-     inkscape:cx="864.23733"
-     inkscape:cy="1174.1586"
+     inkscape:zoom="1.3461235"
+     inkscape:cx="802.50318"
+     inkscape:cy="1865.5624"
      inkscape:current-layer="svg4"
      inkscape:document-rotation="0">
     <inkscape:grid
@@ -51,295 +51,15 @@
        id="grid12" />
   </sodipodi:namedview>
   <image
-     sodipodi:absref="/home/tor/src/rally/public/andean-abyss/tools/map75.png"
-     xlink:href="map75.png"
-     id="image2"
-     style="display:inline;image-rendering:pixelated"
-     height="2550"
-     width="1650"
-     y="0"
+     sodipodi:absref="/home/tor/src/rally/public/andean-abyss/map75.png"
+     xlink:href="../map75.png"
+     sodipodi:insensitive="true"
      x="0"
-     sodipodi:insensitive="true" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.493691;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect840"
-     width="187"
-     height="525"
-     x="21"
-     y="85"
-     ry="0.60471976"
-     inkscape:label="Government Troops &amp; Police" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.506976;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect842"
-     width="207"
-     height="149"
-     x="224"
-     y="461"
-     ry="0.60640913"
-     inkscape:label="Government Capabilities" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.274073;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect844"
-     width="177"
-     height="54.999989"
-     x="287"
-     y="371"
-     ry="0.2798028"
-     inkscape:label="Government Bases" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.48446;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect846"
-     width="75.998398"
-     height="168"
-     x="240.00162"
-     y="129"
-     ry="0.60329688"
-     inkscape:label="President Samper" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.524685;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect848"
-     width="78"
-     height="168"
-     x="322"
-     y="129"
-     ry="0.60329688"
-     inkscape:label="President Pastrana" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.517915;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect850"
-     width="76"
-     height="168"
-     x="406"
-     y="129"
-     ry="0.60329688"
-     inkscape:label="President Uribe" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.5;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect14"
-     width="361"
-     height="303"
-     x="1215"
-     y="83"
-     ry="0.610479"
-     inkscape:label="FARC Guerrillas" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.486173;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect852"
-     width="350"
-     height="207.99992"
-     x="21"
-     y="2266"
-     ry="0.57717991"
-     inkscape:label="AUC Guerrillas" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.334478;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect854"
-     width="358"
-     height="55.000072"
-     x="447"
-     y="2386"
-     ry="0.33576393"
-     inkscape:label="AUC Bases" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.331207;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect856"
-     width="543"
-     height="56.000008"
-     x="445"
-     y="2295"
-     ry="0.31078935"
-     inkscape:label="FARC Bases" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.348075;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect858"
-     width="145"
-     height="125"
-     x="1391"
-     y="1728"
-     ry="0.4488816"
-     inkscape:label="Shipments" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.5;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect860"
-     width="230"
-     height="200"
-     x="1350"
-     y="1870"
-     ry="0.610479"
-     inkscape:label="Cartels Guerrillas" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.398203;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect862"
-     width="183"
-     height="305"
-     x="1373"
-     y="2117"
-     ry="0.46549022"
-     inkscape:label="Cartels Bases" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.514317;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect866"
-     width="102.99951"
-     height="225.99954"
-     x="1113"
-     y="439.00049"
-     ry="0.62712717"
-     inkscape:label="Eligible Factions" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.511935;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect882"
-     width="103.00004"
-     height="229"
-     x="1458"
-     y="439"
-     ry="0.62133193"
-     inkscape:label="Ineligible Factions" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.507445;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect868"
-     width="103"
-     height="45"
-     x="1113"
-     y="666"
-     ry="0.610479"
-     inkscape:label="Pass" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.517845;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect870"
-     width="73"
-     height="72"
-     x="1262"
-     y="439"
-     ry="0.62792122"
-     inkscape:label="SOP A1" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.517845;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect872"
-     width="73"
-     height="72"
-     x="1337"
-     y="439"
-     ry="0.62792122"
-     inkscape:label="SOP A2" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.521429;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect874"
-     width="73"
-     height="73"
-     x="1262"
-     y="517"
-     ry="0.6366424"
-     inkscape:label="SOP B1" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.521429;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect876"
-     width="73"
-     height="73"
-     x="1337"
-     y="517"
-     ry="0.6366424"
-     inkscape:label="SOP B2" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.500286;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect878"
-     width="73"
-     height="72"
-     x="1262"
-     y="596"
-     ry="0.62792128"
-     inkscape:label="SOP C1" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.537393;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect880"
-     width="73"
-     height="72"
-     x="1337"
-     y="596"
-     ry="0.67622286"
-     inkscape:label="SOP C2" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.475;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect884"
-     width="57"
-     height="57"
-     x="1025"
-     y="662"
-     ry="0.57995504"
-     inkscape:label="Prop Card marker" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.508231;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect886"
-     width="447"
-     height="72"
-     x="1113"
-     y="719"
-     ry="0.62792122"
-     inkscape:label="Propaganda Track" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.494975;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect888"
-     width="58"
-     height="49"
-     x="19"
-     y="16"
-     ry="0.66474378"
-     inkscape:label="S0" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.494975;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect890"
-     width="50"
-     height="49"
-     x="79"
-     y="16"
-     ry="0.5982694"
-     inkscape:label="S1" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.5;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect892"
-     width="50"
-     height="50"
-     x="1589"
-     y="16"
-     ry="0.610479"
-     inkscape:label="S30" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.5;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect894"
-     width="50"
-     height="50"
-     x="1589"
-     y="2486"
-     ry="0.610479"
-     inkscape:label="S77" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.5;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect896"
-     width="50"
-     height="50"
-     x="444"
-     y="2486"
-     ry="0.610479"
-     inkscape:label="S99" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.498627;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect898"
-     width="196"
-     height="274"
-     x="220"
-     y="1935"
-     ry="0.61952311"
-     inkscape:label="Momentum 2" />
-  <rect
-     style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.501643;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
-     id="rect864"
-     width="197"
-     height="274"
-     x="14"
-     y="1935"
-     ry="0.60825908"
-     inkscape:label="Momentum 1"
-     sodipodi:insensitive="true" />
+     y="0"
+     width="1650"
+     height="2550"
+     style="display:inline;image-rendering:pixelated"
+     id="image2" />
   <rect
      style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.5;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
      id="rect935"
@@ -600,8 +320,7 @@
      x="666"
      y="1812"
      ry="0.610479"
-     inkscape:label="Putumayo"
-     sodipodi:insensitive="true" />
+     inkscape:label="Putumayo" />
   <rect
      style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.493054;stroke-miterlimit:10"
      id="rect193"
@@ -630,7 +349,7 @@
      x="610"
      y="1208.7765"
      ry="0.64194202"
-     inkscape:label="Bucaramanga / Bogota / Ibague"
+     inkscape:label="Bucaramanga / Ibague / Bogota"
      clip-path="none" />
   <rect
      style="fill:#000000;fill-opacity:0.25098;stroke:#fe0000;stroke-width:0.490613;stroke-miterlimit:10"

@@ -1,6 +1,8 @@
-// TODO: show selected op spaces with highlight / pawn ?
+"use strict"
 
 /* global view, data, player, send_action, action_button */
+
+// TODO: layout loc
 
 // Factions
 const GOVT = 0
@@ -16,6 +18,44 @@ const BASE = 0
 const GUERRILLA = 1
 const TROOPS = 2
 const POLICE = 3
+
+// Cities
+const BOGOTA = 0
+const CALI = 1
+const MEDELLIN = 2
+const BUCARAMANGA = 3
+const IBAGUE = 4
+const SANTA_MARTA = 5
+const CARTAGENA = 6
+const CUCUTA = 7
+const NEIVA = 8
+const PASTO = 9
+const SINCELEJO = 10
+
+// 1+ Pop Depts
+const ATLANTICO = 11
+const CHOCO = 12
+const NARINO = 13
+const META_WEST = 14
+const GUAVIARE = 15
+const PUTUMAYO = 16
+const CESAR = 17
+const ANTIOQUIA = 18
+const SANTANDER = 19
+const HUILA = 20
+const ARAUCA = 21
+const META_EAST = 22
+
+// 0 Pop Depts
+const VICHADA = 23
+const GUAINIA = 24
+const VAUPES = 25
+const AMAZONAS = 26
+
+// Foreign Countries
+const ECUADOR = 27
+const PANAMA = 28
+
 
 const first_piece = data.first_piece
 const last_piece = data.last_piece
@@ -184,99 +224,173 @@ function on_click_action(evt) {
 		send_action(evt.target.my_action, evt.target.my_id)
 }
 
-const center_xy = {
-	"Santa Marta": [682,436],
-	"Cartagena": [500,512],
-	"Sincelejo": [514,708],
-	"Medellin": [513,1066],
-	"Ibague": [507,1278],
-	"Cali": [391,1497],
-	"Pasto": [274,1783],
-	"Neiva": [589,1542],
-	"Bogota": [754,1336],
-	"Bucaramanga": [839,980],
-	"Cucuta": [951,864],
-	"Guainia": [1409,1542],
-	"Vaupes": [1167,1785],
-	"Amazonas": [1085,2064],
-	"Vichada": [1340,1274],
-	"Ecuador": [94,1792],
-	"Panama": [188,686],
-	"Cesar": [802,533],
-	"Atlantico": [646,642],
-	"Antioquia": [666,910],
-	"Choco": [373,1040],
-	"Narino": [212,1642],
-	"Huila": [457,1628],
-	"Santander": [818,1177],
-	"Arauca": [1092,1128],
-	"Meta East": [973,1410],
-	"Meta West": [720,1539],
-	"Guaviare": [976,1669],
-	"Putumayo": [680,1826],
-	"Sincelejo / Ayacucho": [642,696],
-	"Cucuta / Arauca": [994,977],
-	"Bucaramanga / Ibague / Bogota": [626,1224],
-	"Bogota / Yopal": [887,1276],
-	"Bogota / Neiva": [612,1414],
-	"Bogota / San Jose": [826,1474],
-	"Neiva / Pasto": [530,1698],
-	"Pasto / Tumaco": [146,1766],
-	"Cali / Pasto": [348,1625],
-	"Cali / Buenaventura": [368,1412],
-	"Ibague / Cali": [436,1362],
-	"Medellin / Ibague": [511,1169],
-	"Cartagena / Sincelejo": [514,613],
-	"Sincelejo / Medellin": [563,876],
-	"Bucaramanga / Ayacucho": [778,830],
-	"Cucuta / Ayacucho": [872,708],
-	"Santa Marta / Ayacucho": [746,601],
-	"Santa Marta / Cartagena": [588,466],
-	// TODO:
-	"Brasil": [10, 10],
-	"Peru": [30, 10],
-	"Venezuela": [40, 10],
-}
+// TODO: process LAYOUT into specific arrays for each layout type indexed by space number rather than string id
 
-const layout_xy = {
-	"Atlantico": [620,540],
-	"Choco": [370,1190],
-	"Narino": [260,1530],
-
-	"Cesar": [860,420],
-	"Antioquia": [640,1010],
-	"Santander": [710,1175],
-	"Huila": [525,1425],
-
-	"Arauca": [1210,1090],
-	"Vichada": [1210,1305],
-	"Meta East": [971,1320],
-
-	"Meta West": [720,1630],
-	"Guaviare": [860,1670],
-	"Putumayo": [840,1880],
-
-	"Guainia": [1310,1540],
-	"Vaupes": [1080,1810],
-	"Amazonas": [950,2080],
-
-	"Ecuador": [190,1870],
-	"Panama": [235,810],
-	"Brasil": [1300, 1900],
-	"Peru": [720, 2170],
-	"Venezuela": [1130, 880],
+// :r !python3 tools/genlayout.py
+const LAYOUT = {
+	"Santa Marta": [682, 436],
+	"Cartagena": [500, 512],
+	"Sincelejo": [514, 708],
+	"Medellin": [513, 1066],
+	"Ibague": [507, 1278],
+	"Cali": [391, 1497],
+	"Pasto": [274, 1783],
+	"Neiva": [589, 1542],
+	"Bogota": [754, 1336],
+	"Bucaramanga": [839, 980],
+	"Cucuta": [951, 864],
+	"Guainia": [1409, 1542],
+	"Vaupes": [1167, 1785],
+	"Amazonas": [1085, 2064],
+	"Vichada": [1340, 1274],
+	"Ecuador": [94, 1792],
+	"Panama": [188, 686],
+	"Cesar": [802, 533],
+	"Atlantico": [646, 642],
+	"Antioquia": [666, 910],
+	"Choco": [373, 1040],
+	"Narino": [212, 1642],
+	"Huila": [457, 1628],
+	"Santander": [818, 1177],
+	"Arauca": [1092, 1128],
+	"Meta East": [973, 1410],
+	"Meta West": [720, 1539],
+	"Guaviare": [976, 1669],
+	"Putumayo": [680, 1826],
+	"Sincelejo / Ayacucho": [642, 696],
+	"Cucuta / Arauca": [994, 977],
+	"Bucaramanga / Ibague / Bogota": [626, 1224],
+	"Bogota / Yopal": [887, 1276],
+	"Bogota / Neiva": [612, 1414],
+	"Bogota / San Jose": [826, 1474],
+	"Neiva / Pasto": [530, 1698],
+	"Pasto / Tumaco": [146, 1766],
+	"Cali / Pasto": [348, 1625],
+	"Cali / Buenaventura": [368, 1412],
+	"Ibague / Cali": [436, 1362],
+	"Medellin / Ibague": [511, 1169],
+	"Cartagena / Sincelejo": [514, 613],
+	"Sincelejo / Medellin": [563, 876],
+	"Bucaramanga / Ayacucho": [778, 830],
+	"Cucuta / Ayacucho": [872, 708],
+	"Santa Marta / Ayacucho": [746, 601],
+	"Santa Marta / Cartagena": [588, 466],
+	"Atlantico BASE": [714, 674],
+	"Putumayo INSURGENT": [822, 1866],
+	"Putumayo COIN": [551, 1835],
+	"Amazonas COIN": [841, 2057],
+	"Amazonas INSURGENT": [980, 2058],
+	"Vaupes COIN": [1195, 1696],
+	"Vaupes INSURGENT": [1068, 1824],
+	"Guaviare INSURGENT": [850, 1657],
+	"Guaviare COIN": [1100, 1620],
+	"Guainia INSURGENT": [1298, 1544],
+	"Guainia COIN": [1499, 1463],
+	"Vichada INSURGENT": [1213, 1298],
+	"Vichada COIN": [1463, 1226],
+	"Arauca INSURGENT": [1216, 1104],
+	"Arauca COIN": [992, 1114],
+	"Meta East COIN": [975, 1287],
+	"Meta East INSURGENT": [866, 1407],
+	"Meta West INSURGENT": [718, 1643],
+	"Meta West COIN": [825, 1546],
+	"Santander INSURGENT": [714, 1160],
+	"Santander COIN": [845, 833],
+	"Antioquia INSURGENT": [644, 1026],
+	"Antioquia COIN": [630, 767],
+	"Huila COIN": [608, 1343],
+	"Huila INSURGENT": [383, 1733],
+	"Narino INSURGENT": [276, 1520],
+	"Narino COIN": [189, 1729],
+	"Choco COIN": [416, 908],
+	"Choco INSURGENT": [377, 1157],
+	"Panama INSURGENT": [216, 816],
+	"Panama COIN": [97, 690],
+	"Ecuador COIN": [98, 1897],
+	"Ecuador INSURGENT": [203, 1862],
+	"Cesar INSURGENT": [908, 405],
+	"Cesar COIN": [817, 608],
+	"Atlantico INSURGENT": [617, 511],
+	"Atlantico COIN": [586, 562],
+	"Amazonas DRUGS": [934, 2155],
+	"Putumayo DRUGS": [890, 1935],
+	"Huila DRUGS": [516, 1434],
+	"Vaupes DRUGS": [1180, 1905],
+	"Guainia DRUGS": [1357, 1653],
+	"Vichada Drugs INSURGENT": [1217, 1393],
+	"Arauca DRUGS": [1075, 1213],
+	"Meta East DRUGS": [981, 1499],
+	"Guaviare DRUGS": [971, 1751],
+	"Meta West DRUGS": [690, 1458],
+	"Narino DRUGS": [155, 1565],
+	"Choco DRUGS": [359, 1251],
+	"Panama DRUGS": [201, 876],
+	"Antioquia DRUGS": [586, 1157],
+	"Santander DRUGS": [809, 1081],
+	"Atlantico DRUGS": [597, 626],
+	"Cesar DRUGS": [1021, 329],
+	"Ecuador DRUGS": [315, 1895],
+	"Bogota / Neiva 2": [664, 1410],
+	"Bogota / Neiva 1": [602, 1456],
+	"Bucaramanga / Ibague / Bogota 1": [641, 1165],
+	"Bucaramanga / Ibague / Bogota 2": [737, 1028],
+	"Bogota / Yopal 1": [911, 1237],
+	"Bogota / Yopal 2": [861, 1304],
+	"Cucuta / Arauca 1": [956, 953],
+	"Cucuta / Arauca 2": [1059, 983],
+	"Cucuta / Ayacucho 1": [911, 759],
+	"Cucuta / Ayacucho 2": [826, 740],
+	"Sincelejo / Ayacucho 2": [675, 721],
+	"Sincelejo / Ayacucho 1": [607, 676],
+	"Santa Marta / Ayacucho 1": [712, 554],
+	"Santa Marta / Ayacucho 2": [774, 653],
+	"Sincelejo / Medellin 1": [527, 825],
+	"Sincelejo / Medellin 2": [547, 941],
+	"Medellin / Ibague 1": [508, 1199],
+	"Medellin / Ibague 2": [511, 1143],
+	"Cali / Pasto 2": [303, 1664],
+	"Cali / Pasto 1": [372, 1595],
+	"Neiva / Pasto 1": [559, 1644],
+	"Neiva / Pasto 2": [490, 1743],
+	"Pasto / Tumaco 1": [188, 1792],
+	"Pasto / Tumaco 2": [93, 1732],
+	"Cali / Buenaventura 1": [306, 1397],
+	"Cali / Buenaventura 2": [350, 1399],
+	"Bucaramanga / Ayacucho 1": [787, 887],
+	"Bucaramanga / Ayacucho 2": [771, 779],
+	"Bogota / San Jose 1": [871, 1494],
+	"Bogota / San Jose 2": [786, 1446],
+	"Cartagena / Sincelejo 1": [517, 631],
+	"Cartagena / Sincelejo 2": [516, 589],
+	"Santa Marta / Cartagena 1": [566, 479],
+	"Santa Marta / Cartagena 2": [610, 441],
+	"Ibague / Cali 2": [425, 1403],
+	"Ibague / Cali 1": [450, 1335],
 }
 
 function get_center_xy(s) {
 	let id = data.spaces[s].id
-	return center_xy[id]
+	return LAYOUT[id]
 }
 
-function get_layout_xy(s) {
-	let id = data.spaces[s].id
-	if (layout_xy[id])
-		return layout_xy[id]
-	return center_xy[id]
+function get_layout_coin(s) {
+	let id = data.spaces[s].id + " COIN"
+	return LAYOUT[id]
+}
+
+function get_layout_loc(s, n) {
+	let id = data.spaces[s].id + " " + n
+	return LAYOUT[id]
+}
+
+function get_layout_insurgents(s) {
+	let id = data.spaces[s].id + " INSURGENT"
+	return LAYOUT[id]
+}
+
+function get_layout_shipments(s) {
+	let id = data.spaces[s].id + " DRUGS"
+	return LAYOUT[id]
 }
 
 function get_layout_radius(s) {
@@ -350,13 +464,19 @@ function init_ui() {
 	register_card_tip(ui.tokens.darien, EVT_DARIEN)
 	register_card_tip(ui.tokens.sucumbios, EVT_SUCUMBIOS)
 
+	ui.farc_zones = [
+		document.getElementById("tokens").appendChild(create("div", { className: "hide" })),
+		document.getElementById("tokens").appendChild(create("div", { className: "hide" })),
+		document.getElementById("tokens").appendChild(create("div", { className: "hide" })),
+	]
+
 	for (let i = 0; i < data.spaces.length; ++i) {
 		let id = data.spaces[i].id
 		let type = data.spaces[i].type
 		let e = null
 		if (type === "road" || type === "pipeline") {
 			e = document.createElement("div")
-			let [ x, y ] = center_xy[id]
+			let [ x, y ] = LAYOUT[id]
 			e.className = "box loc"
 			e.style.left = x - 28 + "px"
 			e.style.top = y - 28 + "px"
@@ -376,7 +496,7 @@ function init_ui() {
 		}
 
 		if (i <= last_pop) {
-			let [x, y] = center_xy[id]
+			let [x, y] = LAYOUT[id]
 			if (i <= last_city)
 				ui.support[i] = e = create("div", { className: "hide" })
 			else
@@ -386,14 +506,14 @@ function init_ui() {
 				e.style.left = (x - 20) + "px"
 				e.style.top = (y - 20 - r) + "px"
 			} else {
-				e.style.left = (x + 14) + "px"
-				e.style.top = (y - 45) + "px"
+				e.style.left = (x - 20) + "px"
+				e.style.top = (y - 20 - 40) + "px"
 			}
 			document.getElementById("tokens").appendChild(e)
 		}
 
-		if (i <= last_dept || id === "Panama" || id === "Ecuador") {
-			let [x, y] = center_xy[id]
+		if (i <= last_dept) {
+			let [x, y] = LAYOUT[id]
 			if (i <= last_city)
 				ui.control[i] = e = create("div", { className: "token govt_control" })
 			else
@@ -402,18 +522,18 @@ function init_ui() {
 				let r = get_layout_radius(i)
 				e.style.left = (x - 25 + r) + "px"
 				e.style.top = (y - 25) + "px"
-			} else if (i > last_pop) {
+			} else if (i <= last_pop) {
+				e.style.left = (x - 25 + 50) + "px"
+				e.style.top = (y - 25 - 25) + "px"
+			} else {
 				e.style.left = (x - 25) + "px"
 				e.style.top = (y - 25) + "px"
-			} else {
-				e.style.left = (x - 57) + "px"
-				e.style.top = (y - 49) + "px"
 			}
 			document.getElementById("tokens").appendChild(e)
 		}
 
 		if (i >= first_loc && i <= last_loc) {
-			let [x, y] = center_xy[id]
+			let [x, y] = LAYOUT[id]
 			ui.sabotage[i] = e = create("div", { className: "hide" })
 			e.style.left = (x - 20) + "px"
 			e.style.top = (y - 20) + "px"
@@ -443,12 +563,6 @@ function init_ui() {
 		for (let p = first_piece[faction][type]; p <= last_piece[faction][type]; ++p)
 			ui.pieces[p] = create_piece(c, "piece", p, x, y)
 	}
-
-	ui.farc_zones = [
-		document.getElementById("tokens").appendChild(create("div", { className: "hide" })),
-		document.getElementById("tokens").appendChild(create("div", { className: "hide" })),
-		document.getElementById("tokens").appendChild(create("div", { className: "hide" })),
-	]
 
 	ui.shipments = [
 		create_piece("token shipment", "shipment", 0, 0, 0),
@@ -529,22 +643,34 @@ function place_piece(p, x, y, z) {
 	p.my_z = z
 }
 
-function layout_space_bases(list, xc, yc, r) {
-	// base is 44x38
-	if (r > 0) {
-		let a = 45 * Math.PI / 180
-		let dx = Math.round((r) * Math.cos(a))
-		let dy = Math.round((r) * Math.sin(a))
-		if (list.length > 0)
-			place_piece(list[0], xc - 22 + dx, yc - 19 + dy)
-		if (list.length > 1)
-			place_piece(list[1], xc - 22 - dx, yc - 19 + dy)
-	} else {
-		if (list.length > 0)
-			place_piece(list[0], xc - 20 - 34, yc + 13)
-		if (list.length > 1)
-			place_piece(list[1], xc - 20 + 31, yc + 13)
+function layout_loc_pieces(list, xorig, yorig, dir) {
+	let a = (dir * Math.PI) / 4
+	let dx = Math.round(24 * Math.sin(a))
+	let dy = -Math.round(15 * Math.cos(a))
+	let sx = Math.round(24 * Math.sin(a + Math.PI/2))
+	let sy = -Math.round(15 * Math.cos(a + Math.PI/2))
+	// if (list.length > 3) { xorig += sx xorig += sy }
+	let n = 1.5
+	for (let i = 0; i < list.length; ++i) {
+		let x = xorig + dx * ((i&3)+n) + sx * ((i>>2)) + list[i].my_x_offset - 15
+		let y = yorig + dy * ((i&3)+n) + sy * ((i>>2)) + list[i].my_y_offset - 24
+		let z = (dy>0) ? 1 + i : list.length - i
+		place_piece(list[i], x, y, z)
 	}
+}
+
+function layout_loc_pieces2(list, xorig, yorig, dir) {
+	let a = (dir * Math.PI) / 4
+	let dx = Math.round(24 * 2 * Math.sin(a))
+	let dy = -Math.round(15 * 2 * Math.cos(a))
+	layout_pieces(list, xorig + dx, yorig + dy)
+}
+
+function layout_dept_bases(list, xc, yc) {
+	if (list.length > 0)
+		place_piece(list[0], xc - 21 - 25, yc - 19, 50)
+	if (list.length > 1)
+		place_piece(list[1], xc - 21 + 25, yc - 19, 50)
 }
 
 function layout_available_bases(list, x0, y0, cols, rows, dx, dy) {
@@ -709,21 +835,52 @@ function update_guerrillas_underground(faction, type, underground) {
 }
 
 function layout_terror(tix, s, n) {
+	let id = data.spaces[s].id
 	let [ tx, ty ] = get_center_xy(s)
 	tx -= 20
 	ty -= 20
 	if (s <= last_city) {
 		let r = get_layout_radius(s)
-		tx -= r
+		if (data.spaces[s].pop === 1)
+			r += 14
+		else if (data.spaces[s].pop === 2)
+			r += 12
+		else if (data.spaces[s].pop === 3)
+			r += 8
+		else if (data.spaces[s].pop === 8)
+			r += 8
+		let a = (312 * Math.PI) / 180
+		tx += Math.round(r * Math.cos(a))
+		ty += Math.round(r * Math.sin(a))
 	} else {
-		ty += -60
+		if (set_has(view.farc_zones, s)) {
+			if (s <= last_pop) {
+				ty -= 85
+			} else {
+				ty -= 52
+				tx += 25
+			}
+		} else {
+			if (s <= last_pop) {
+				ty -= 25
+				tx -= 45
+			} else {
+				ty -= 0
+				tx += 50
+			}
+		}
 	}
 	for (let i = 0; i < n; ++i) {
 		ui.terror[tix].className = "token terror"
 		ui.terror[tix].style.left = tx + "px"
 		ui.terror[tix].style.top = ty + "px"
-		tx += 5
-		ty += 5
+		if (s <= last_city || s > last_pop || set_has(view.farc_zones, s)) {
+			tx += 10
+			ty -= 10
+		} else {
+			tx -= 10
+			ty -= 10
+		}
 		++tix
 	}
 	return tix
@@ -732,7 +889,12 @@ function layout_terror(tix, s, n) {
 function layout_farc_zone(s, elt) {
 	let [x, y] = get_center_xy(s)
 	if (s <= last_pop) {
-		y -= 65
+		x -= 49
+		if (s === META_WEST)
+			y -= 25 + 40
+		else
+			y -= 25
+	
 	} else {
 		x += 55
 	}
@@ -749,24 +911,17 @@ const shipment_layout_city = [
 ]
 
 const shipment_layout_dept = [
-	[ -18,  -60, 2 ],
-	[  18,  -60, 3 ],
-	[ -54,  -60, 1 ],
-	[  54,  -60, 4 ],
+	[ -18, 0, 2 ],
+	[  18, 0, 3 ],
+	[ -54, 0, 1 ],
+	[  54, 0, 4 ],
 ]
 
-const shipment_layout_loc_ns = [
-	[ 36, 18, 3 ],
-	[ 36, -18, 2 ],
-	[ 36, 54, 4 ],
-	[ 36, -54, 1 ],
-]
-
-const shipment_layout_loc_ew = [
-	[ -18, 36, 2 ],
-	[ 18, 36, 3 ],
-	[ 54, 36, 4 ],
-	[ -54, 36, 1 ],
+const shipment_layout_loc = [
+	[  30, -18, 1 ],
+	[  30,  18, 1 ],
+	[ -30,  18, 1 ],
+	[ -30, -18, 1 ],
 ]
 
 function layout_shipments_push(list, pc, sh) {
@@ -779,32 +934,75 @@ function layout_shipments_push(list, pc, sh) {
 	list.push([pc, sh])
 }
 
-function layout_shipments(s, list, xc, yc) {
-	let shipment_layout = shipment_layout_dept
-	if (s <= last_city)
-		shipment_layout = shipment_layout_city
-	if (s >= first_loc)
-		shipment_layout = shipment_layout_loc_ew
-	if (list.length > 0) {
-		for (let i = 0; i < list.length; ++i) {
-			let [xo, yo, zo] = shipment_layout[i]
-			let x = xc + xo
-			let y = yc + yo
-			let z = zo * 4
-			let pc = list[i][0]
-			if (pc) {
-				pc.style.left = (x+5) + "px"
-				pc.style.top = (y-8) + "px"
-				pc.style.zIndex = z + 1
-			}
-			for (let k = 1; k < list[i].length; ++k) {
-				let sh = list[i][k]
-				sh.style.left = (x) + "px"
-				sh.style.top = (y) + "px"
-				sh.style.zIndex = z--
-				x += 8
-				y += 8
-			}
+function layout_dept_shipments(s, list, xc, yc) {
+	for (let i = 0; i < list.length; ++i) {
+		let [xo, yo, zo] = shipment_layout_dept[i]
+		let x = xc + xo - 27
+		let y = yc + yo - 27
+		let z = zo * 4
+		let pc = list[i][0]
+		if (pc) {
+			pc.style.left = (x+5) + "px"
+			pc.style.top = (y-8) + "px"
+			pc.style.zIndex = z + 1
+		}
+		for (let k = 1; k < list[i].length; ++k) {
+			let sh = list[i][k]
+			sh.style.left = (x) + "px"
+			sh.style.top = (y) + "px"
+			sh.style.zIndex = z--
+			x += 8
+			y += 8
+		}
+	}
+}
+
+function layout_city_shipments(s, list, xc, yc) {
+	let r = get_layout_radius(s) + 10
+	for (let i = 0; i < list.length; ++i) {
+		let a = (160 + i * 20) * Math.PI / 180
+		let xo = Math.round(r * Math.cos(a))
+		let yo = Math.round(r * Math.sin(a))
+		let zo = 4-i
+		let x = xc + xo - 27
+		let y = yc + yo - 27
+		let z = zo * 4
+		let pc = list[i][0]
+		if (pc) {
+			pc.style.left = (x+5) + "px"
+			pc.style.top = (y-8) + "px"
+			pc.style.zIndex = z + 1
+		}
+		for (let k = 1; k < list[i].length; ++k) {
+			let sh = list[i][k]
+			sh.style.left = (x) + "px"
+			sh.style.top = (y) + "px"
+			sh.style.zIndex = z--
+			x += 8
+			y += 8
+		}
+	}
+}
+
+function layout_loc_shipments(s, list, xc, yc) {
+	for (let i = 0; i < list.length; ++i) {
+		let [xo, yo, zo] = shipment_layout_loc[i]
+		let x = xc + xo - 27
+		let y = yc + yo - 27
+		let z = zo * 4
+		let pc = list[i][0]
+		if (pc) {
+			pc.style.left = (x+5) + "px"
+			pc.style.top = (y-8) + "px"
+			pc.style.zIndex = z + 1
+		}
+		for (let k = 1; k < list[i].length; ++k) {
+			let sh = list[i][k]
+			sh.style.left = (x) + "px"
+			sh.style.top = (y) + "px"
+			sh.style.zIndex = z--
+			x += 8
+			y += 8
 		}
 	}
 }
@@ -905,6 +1103,9 @@ function on_update() {
 
 	let list = []
 	for (let s = 0; s < data.spaces.length; ++s) {
+		let id = data.spaces[s].id
+		let xy
+
 		if (s <= last_pop) {
 			switch (view.support[s]) {
 				case -2: ui.support[s].className = "token active_opposition"; break
@@ -934,22 +1135,48 @@ function on_update() {
 				ui.control[s].className = "hide"
 		}
 
+		tix = layout_terror(tix, s, map_get(view.terror, s, 0) * 1)
+
 		update_guerrillas_underground(FARC, GUERRILLA, view.underground[FARC])
 		update_guerrillas_underground(AUC, GUERRILLA, view.underground[AUC])
 		update_guerrillas_underground(CARTELS, GUERRILLA, view.underground[CARTELS])
 
-		list.length = 0
-		filter_piece_list(list, s, FARC, GUERRILLA)
-		filter_piece_list(list, s, AUC, GUERRILLA)
-		filter_piece_list(list, s, CARTELS, GUERRILLA)
-		filter_piece_list(list, s, GOVT, TROOPS)
-		filter_piece_list(list, s, GOVT, POLICE)
-
-		tix = layout_terror(tix, s, map_get(view.terror, s, 0) * 1)
-
-		let xy = get_layout_xy(s)
-		if (xy)
+		if (s <= last_city) {
+			list.length = 0
+			filter_piece_list(list, s, FARC, GUERRILLA)
+			filter_piece_list(list, s, AUC, GUERRILLA)
+			filter_piece_list(list, s, CARTELS, GUERRILLA)
+			filter_piece_list(list, s, GOVT, TROOPS)
+			filter_piece_list(list, s, GOVT, POLICE)
+			xy = get_center_xy(s)
 			layout_pieces(list, xy[0], xy[1])
+		} else if (s <= last_dept) {
+			list.length = 0
+			filter_piece_list(list, s, FARC, GUERRILLA)
+			filter_piece_list(list, s, CARTELS, GUERRILLA)
+			xy = get_layout_insurgents(s)
+			layout_pieces(list, xy[0], xy[1])
+
+			list.length = 0
+			filter_piece_list(list, s, AUC, GUERRILLA)
+			filter_piece_list(list, s, GOVT, TROOPS)
+			filter_piece_list(list, s, GOVT, POLICE)
+			xy = get_layout_coin(s)
+			layout_pieces(list, xy[0], xy[1])
+		} else {
+			list.length = 0
+			filter_piece_list(list, s, FARC, GUERRILLA)
+			filter_piece_list(list, s, AUC, GUERRILLA)
+			filter_piece_list(list, s, CARTELS, GUERRILLA)
+			xy = get_layout_loc(s, 1)
+			layout_pieces(list, xy[0], xy[1])
+
+			list.length = 0
+			filter_piece_list(list, s, GOVT, TROOPS)
+			filter_piece_list(list, s, GOVT, POLICE)
+			xy = get_layout_loc(s, 2)
+			layout_pieces(list, xy[0], xy[1])
+		}
 
 		list.length = 0
 		filter_piece_list(list, s, GOVT, BASE)
@@ -958,10 +1185,14 @@ function on_update() {
 		filter_piece_list(list, s, CARTELS, BASE)
 
 		xy = get_center_xy(s)
-		if (xy)
-			layout_space_bases(list, xy[0], xy[1], s <= last_city ? get_layout_radius(s) : 0)
+		if (s <= last_city)
+			layout_dept_bases(list, xy[0], xy[1] + get_layout_radius(s) - 12)
+		else if (s === ATLANTICO)
+			layout_dept_bases(list, 714, 674)
+		else if (s <= last_pop)
+			layout_dept_bases(list, xy[0], xy[1] + 32, 0)
 		else
-			console.log("NO SPACE", s, data.space_name[s])
+			layout_dept_bases(list, xy[0], xy[1] + 32+25, 0)
 
 		list.length = 0
 		for (let i = 0; i < 4; ++i) {
@@ -973,7 +1204,18 @@ function on_update() {
 					layout_shipments_push(list, null, ui.shipments[i])
 			}
 		}
-		layout_shipments(s, list, xy[0]-26, xy[1]-26)
+		if (list.length > 0) {
+			if (s <= last_city) {
+				xy = get_center_xy(s)
+				layout_city_shipments(s, list, xy[0], xy[1])
+			} else if (s <= last_dept) {
+				xy = get_layout_shipments(s)
+				layout_dept_shipments(s, list, xy[0], xy[1])
+			} else {
+				xy = get_center_xy(s)
+				layout_loc_shipments(s, list, xy[0], xy[1])
+			}
+		}
 
 		ui.spaces[s].classList.toggle("action", is_action("space", s))
 		ui.spaces[s].classList.toggle("selected", view.where === s)
