@@ -3425,7 +3425,7 @@ function free_rally_elite_backing(s) {
 	game.state = "rally_space"
 	game.op.elite_backing = 1
 	game.op.where = s
-	game.op.count = rally_count()
+	game.op.count = 0
 }
 
 function rally_count() {
@@ -5287,14 +5287,14 @@ function goto_victory_phase() {
 	log_h2("Victory Phase")
 	let result = calc_victory(false)
 	if (result)
-		goto_game_over(result)
+		goto_game_end(result)
 	else
 		goto_sabotage_phase()
 }
 
 function goto_final_victory() {
 	log_h2("Final Victory")
-	goto_game_over(calc_victory(true))
+	goto_game_end(calc_victory(true))
 }
 
 // PROPAGANDA: SABOTAGE
@@ -6922,25 +6922,24 @@ states.vm_free_attack_terror = {
 	terror: vm_free_terror_space,
 }
 
-// === GAME OVER ===
+// === GAME END ===
 
-function goto_game_over(result) {
-	game.state = "game_over"
+function goto_game_end(result) {
+	game.state = "game_end"
 	game.current = -1
 	game.active = "None"
 	game.result = result
-	game.victory = result + " won!"
-	log_h1("Game Over")
-	log(game.victory)
+	log_br()
+	log(game.result = " won!")
 	return true
 }
 
-states.game_over = {
+states.game_end = {
 	get inactive() {
-		return game.victory
+		return game.result + " won!"
 	},
 	prompt() {
-		view.prompt = game.victory
+		view.prompt = game.result + " won!"
 	},
 }
 
@@ -7050,9 +7049,7 @@ exports.view = function (state, role) {
 	if (game.prop)
 		view.propaganda = game.prop.step
 
-	if (game.state === "game_over") {
-		view.prompt = game.victory
-	} else if (!is_current_role(role)) {
+	if (!is_current_role(role)) {
 		let inactive = states[game.state].inactive
 		if (!inactive) {
 			if (game.vm)
