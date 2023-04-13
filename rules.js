@@ -15,6 +15,8 @@
 // TODO: auto-skip civic action
 // TODO: auto-skip agitation
 
+// TODO: auto-end Extort ?
+
 const AUTOMATIC = true
 
 let states = {}
@@ -1218,6 +1220,7 @@ function place_terror(s) {
 }
 
 function remove_terror(s) {
+	log(`Removed Terror from S${s}.`)
 	let n = map_get(game.terror, s, 0)
 	if (n > 1)
 		map_set(game.terror, s, n - 1)
@@ -2042,7 +2045,7 @@ function adjust_eligibility(faction) {
 		game.cylinder[faction] = ELIGIBLE
 	else if (game.cylinder[faction] !== ELIGIBLE)
 		game.cylinder[faction] = INELIGIBLE
-	
+
 	if (game.marked & (1 << faction))
 		game.cylinder[faction] = INELIGIBLE
 	if (game.marked & (16 << faction))
@@ -5317,7 +5320,7 @@ function goto_sabotage_phase() {
 		if (can_sabotage_phase())
 			game.state = "sabotage"
 		else
-			goto_resources_phase()
+			end_sabotage_phase()
 	}
 }
 
@@ -5356,7 +5359,40 @@ states.sabotage = {
 	space(s) {
 		place_sabotage(s)
 		if (!can_sabotage_phase())
+			end_sabotage_phase()
+	},
+}
+
+function end_sabotage_phase() {
+	if (has_capability(CAP_7TH_SF) && (game.sabotage.length > 0 || game.terror.length > 0)) {
+		game.current = GOVT
+		game.state = "sabotage_7th_sf"
+		game.prop.count = 0
+	} else {
+		goto_resources_phase()
+	}
+}
+
+states.sabotage_7th_sf = {
+	prompt() {
+		view.prompt = "Remove 1-3 Terror or Sabotage."
+		for (let s of game.sabotage)
+			gen_action_space(s)
+		for (let i = 0; i < game.terror.length; i += 2)
+			gen_action_space(game.terror[i])
+		if (game.prop.count > 0)
+			view.actions.skip = 1
+	},
+	space(s) {
+		if (is_loc(s))
+			remove_sabotage(s)
+		else
+			remove_terror(s)
+		if (++game.prop.count === 3)
 			goto_resources_phase()
+	},
+	skip() {
+		goto_resources_phase()
 	},
 }
 
