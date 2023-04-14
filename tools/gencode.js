@@ -22,7 +22,8 @@ function emit(line) {
 	console.log("\t[ " + line.join(", ") + " ],")
 }
 
-console.log("const CODE = [")
+console.log("const CODE = []")
+let first = false
 
 for (let line of fs.readFileSync("events.txt", "utf-8").split("\n")) {
 	line = line.trim()
@@ -33,14 +34,24 @@ for (let line of fs.readFileSync("events.txt", "utf-8").split("\n")) {
 	line = line.split(" ")
 	switch (line[0]) {
 	case "EVENT":
-		emit(["return"])
+		if (first++) {
+			emit(["return"])
+			console.log("]")
+		}
 		UCODE[line[1]] = pc
+		console.log("")
 		console.log("// EVENT " + line[1])
+		console.log("CODE[" + line[1] + " * 2 + 0] = [")
 		break
 	case "SHADED":
-		emit(["return"])
+		if (first++) {
+			emit(["return"])
+			console.log("]")
+		}
 		SCODE[line[1]] = pc
+		console.log("")
 		console.log("// SHADED " + line[1])
+		console.log("CODE[" + line[1] + " * 2 + 1] = [")
 		break
 
 	case "if_space":
@@ -113,5 +124,3 @@ for (let line of fs.readFileSync("events.txt", "utf-8").split("\n")) {
 
 emit(["return"])
 console.log("]")
-console.log("const UCODE = " + JSON.stringify(UCODE))
-console.log("const SCODE = " + JSON.stringify(SCODE))
