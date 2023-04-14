@@ -15,6 +15,8 @@
 // TODO: auto-skip civic action
 // TODO: auto-skip agitation
 
+// TODO: don't auto-end free Rally with elite backing
+
 // TODO: auto-end Extort ?
 
 const AUTOMATIC = true
@@ -6421,7 +6423,9 @@ function vm_restore_space() {
 }
 
 function vm_space() {
-	if (can_vm_space()) {
+	let n = CODE[game.vm.pc][3]
+	let f = CODE[game.vm.pc][4]
+	if (can_vm_space(n, f)) {
 		game.state = "vm_space"
 	} else {
 		pop_vm_prompt()
@@ -6435,9 +6439,8 @@ function vm_endspace() {
 	vm_goto(vm_space, vm_endspace, -1, 0)
 }
 
-function can_vm_space() {
-	let f = CODE[game.vm.pc][4]
-	if (game.vm.ss.length < CODE[game.vm.pc][3])
+function can_vm_space(n, f) {
+	if (game.vm.ss.length < n)
 		for (let s = first_space; s <= last_space; ++s)
 			if (!set_has(game.vm.ss, s) && f(s))
 				return true
@@ -7002,17 +7005,8 @@ function goto_game_end(result) {
 	game.active = "None"
 	game.result = result
 	log_br()
-	log(game.result = " won!")
+	log(game.result + " won!")
 	return true
-}
-
-states.game_end = {
-	get inactive() {
-		return game.result + " won!"
-	},
-	prompt() {
-		view.prompt = game.result + " won!"
-	},
 }
 
 // === UNCOMMON TEMPLATE ===
@@ -7121,7 +7115,9 @@ exports.view = function (state, role) {
 	if (game.prop)
 		view.propaganda = game.prop.step
 
-	if (!is_current_role(role)) {
+	if (game.result) {
+		view.prompt = game.result + " won!"
+	} else if (!is_current_role(role)) {
 		let inactive = states[game.state].inactive
 		if (!inactive) {
 			if (game.vm)
@@ -7546,15 +7542,11 @@ const CODE = [
 // EVENT 14
 	[ vm_current, GOVT ],
 	[ vm_prompt, "Place 1 Base and 3 Troops into any Department." ],
+	[ vm_if, ()=>can_vm_space(1,(s)=>is_dept(s) && can_place_piece(s, GOVT, BASE)) ],
 	[ vm_space, true, 1, 1, (s)=>is_dept(s) && can_place_piece(s, GOVT, BASE) ],
-	[ vm_auto_place, false, 0, GOVT, BASE ],
-	[ vm_auto_place, false, 0, GOVT, TROOPS ],
-	[ vm_auto_place, false, 0, GOVT, TROOPS ],
-	[ vm_auto_place, false, 0, GOVT, TROOPS ],
-	[ vm_return ],
-	[ vm_endspace ],
-	[ vm_prompt, "Place 1 Base and 3 Troops into any Department." ],
+	[ vm_else ],
 	[ vm_space, true, 1, 1, (s)=>is_dept(s) && can_stack_any(s, GOVT) ],
+	[ vm_endif ],
 	[ vm_auto_place, false, 0, GOVT, BASE ],
 	[ vm_auto_place, false, 0, GOVT, TROOPS ],
 	[ vm_auto_place, false, 0, GOVT, TROOPS ],
@@ -7563,19 +7555,11 @@ const CODE = [
 	[ vm_return ],
 // SHADED 14
 	[ vm_prompt, "Remove 1 Government Base and 1 cube from a Department." ],
+	[ vm_if, ()=>can_vm_space(1,(s)=>is_dept(s) && ( has_govt_base(s) && has_cube(s) )) ],
 	[ vm_space, true, 1, 1, (s)=>is_dept(s) && ( has_govt_base(s) && has_cube(s) ) ],
-	[ vm_prompt, "Remove 1 Government Base." ],
-	[ vm_piece, false, 1, 1, (p,s)=>is_piece_in_event_space(p) && is_govt_base(p) ],
-	[ vm_remove ],
-	[ vm_endpiece ],
-	[ vm_prompt, "Remove 1 cube." ],
-	[ vm_piece, false, 1, 1, (p,s)=>is_piece_in_event_space(p) && is_cube(p) ],
-	[ vm_remove ],
-	[ vm_endpiece ],
-	[ vm_return ],
-	[ vm_endspace ],
-	[ vm_prompt, "Remove 1 Government Base and 1 cube from a Department." ],
+	[ vm_else ],
 	[ vm_space, true, 1, 1, (s)=>is_dept(s) && ( has_govt_base(s) || has_cube(s) ) ],
+	[ vm_endif ],
 	[ vm_prompt, "Remove 1 Government Base." ],
 	[ vm_piece, false, 1, 1, (p,s)=>is_piece_in_event_space(p) && is_govt_base(p) ],
 	[ vm_remove ],
@@ -7708,21 +7692,11 @@ const CODE = [
 	[ vm_return ],
 // SHADED 24
 	[ vm_prompt, "Remove 2 Troops from a space with FARC pieces." ],
+	[ vm_if, ()=>can_vm_space(1,(s)=>has_farc_piece(s) && count_pieces(s, GOVT, TROOPS) >= 2) ],
 	[ vm_space, true, 1, 1, (s)=>has_farc_piece(s) && count_pieces(s, GOVT, TROOPS) >= 2 ],
-	[ vm_prompt, "Remove 2 Troops." ],
-	[ vm_piece, false, 2, 2, (p,s)=>is_piece_in_event_space(p) && is_troops(p) ],
-	[ vm_remove ],
-	[ vm_endpiece ],
-	[ vm_save_space ],
-	[ vm_prompt, "Shift a City with Support to Neutral." ],
-	[ vm_space, true, 1, 1, (s)=>is_city(s) && is_support(s) ],
-	[ vm_set_neutral ],
-	[ vm_endspace ],
-	[ vm_restore_space ],
-	[ vm_return ],
-	[ vm_endspace ],
-	[ vm_prompt, "Remove 2 Troops from a space with FARC pieces." ],
+	[ vm_else ],
 	[ vm_space, true, 1, 1, (s)=>has_farc_piece(s) && has_troops(s) ],
+	[ vm_endif ],
 	[ vm_prompt, "Remove 2 Troops." ],
 	[ vm_piece, false, 2, 2, (p,s)=>is_piece_in_event_space(p) && is_troops(p) ],
 	[ vm_remove ],
@@ -7817,17 +7791,16 @@ const CODE = [
 	[ vm_return ],
 // EVENT 30
 	[ vm_prompt, "Remove 1 FARC Zone and 1 FARC Base there." ],
+	[ vm_if, ()=>can_vm_space(1,(s)=>is_farc_zone(s) && has_piece(s, FARC, BASE)) ],
 	[ vm_space, true, 1, 1, (s)=>is_farc_zone(s) && has_piece(s, FARC, BASE) ],
+	[ vm_else ],
+	[ vm_space, true, 1, 1, (s)=>is_farc_zone(s) ],
+	[ vm_endif ],
 	[ vm_remove_farc_zone ],
 	[ vm_prompt, "Remove 1 FARC Base." ],
 	[ vm_piece, false, 1, 1, (p,s)=>is_piece_in_event_space(p) && is_farc_base(p) ],
 	[ vm_remove ],
 	[ vm_endpiece ],
-	[ vm_return ],
-	[ vm_endspace ],
-	[ vm_prompt, "Remove 1 FARC Zone and 1 FARC Base there." ],
-	[ vm_space, true, 1, 1, (s)=>is_farc_zone(s) ],
-	[ vm_remove_farc_zone ],
 	[ vm_endspace ],
 	[ vm_return ],
 // SHADED 30
@@ -7887,14 +7860,11 @@ const CODE = [
 // SHADED 34
 	[ vm_current, FARC_AUC_CARTELS ],
 	[ vm_prompt, "Place 2 Guerrillas and 1 Base into a 0 Population Department." ],
+	[ vm_if, ()=>can_vm_space(1,(s)=>is_zero_pop_dept(s) && can_place_piece(s, game.current, BASE)) ],
 	[ vm_space, true, 1, 1, (s)=>is_zero_pop_dept(s) && can_place_piece(s, game.current, BASE) ],
-	[ vm_auto_place, false, 0, ()=>(game.current), BASE ],
-	[ vm_auto_place, false, 0, ()=>(game.current), GUERRILLA ],
-	[ vm_auto_place, false, 0, ()=>(game.current), GUERRILLA ],
-	[ vm_return ],
-	[ vm_endspace ],
-	[ vm_prompt, "Place 2 Guerrillas and 1 Base into a 0 Population Department." ],
+	[ vm_else ],
 	[ vm_space, true, 1, 1, (s)=>is_zero_pop_dept(s) && can_stack_any(s, game.current) ],
+	[ vm_endif ],
 	[ vm_auto_place, false, 0, ()=>(game.current), BASE ],
 	[ vm_auto_place, false, 0, ()=>(game.current), GUERRILLA ],
 	[ vm_auto_place, false, 0, ()=>(game.current), GUERRILLA ],
@@ -8038,19 +8008,17 @@ const CODE = [
 	[ vm_return ],
 // EVENT 43
 	[ vm_prompt, "Place 2 Terror and remove all FARC Bases from a Department with Troops." ],
+	[ vm_if, ()=>can_vm_space(1,(s)=>is_dept(s) && has_troops(s) && has_piece(s, FARC, BASE)) ],
 	[ vm_space, true, 1, 1, (s)=>is_dept(s) && has_troops(s) && has_piece(s, FARC, BASE) ],
+	[ vm_else ],
+	[ vm_space, true, 1, 1, (s)=>is_dept(s) && has_troops(s) ],
+	[ vm_endif ],
 	[ vm_terror ],
 	[ vm_terror ],
 	[ vm_prompt, "Remove all FARC Bases." ],
 	[ vm_piece, false, 999, 999, (p,s)=>is_piece_in_event_space(p) && is_farc_base(p) ],
 	[ vm_remove ],
 	[ vm_endpiece ],
-	[ vm_return ],
-	[ vm_endspace ],
-	[ vm_prompt, "Place 2 Terror and remove all FARC Bases from a Department with Troops." ],
-	[ vm_space, true, 1, 1, (s)=>is_dept(s) && has_troops(s) ],
-	[ vm_terror ],
-	[ vm_terror ],
 	[ vm_endspace ],
 	[ vm_return ],
 // SHADED 43
@@ -8162,13 +8130,11 @@ const CODE = [
 	[ vm_return ],
 // SHADED 49
 	[ vm_prompt, "Place an AUC Guerrilla and Base in any Department." ],
+	[ vm_if, ()=>can_vm_space(1,(s)=>is_dept(s) && can_place_piece(s, AUC, BASE)) ],
 	[ vm_space, true, 1, 1, (s)=>is_dept(s) && can_place_piece(s, AUC, BASE) ],
-	[ vm_auto_place, false, 0, AUC, BASE ],
-	[ vm_auto_place, false, 0, AUC, GUERRILLA ],
-	[ vm_return ],
-	[ vm_endspace ],
-	[ vm_prompt, "Place an AUC Guerrilla and Base in any Department." ],
+	[ vm_else ],
 	[ vm_space, true, 1, 1, (s)=>is_dept(s) && can_stack_any(s, AUC) ],
+	[ vm_endif ],
 	[ vm_auto_place, false, 0, AUC, BASE ],
 	[ vm_auto_place, false, 0, AUC, GUERRILLA ],
 	[ vm_endspace ],
@@ -8474,13 +8440,11 @@ const CODE = [
 	[ vm_return ],
 // EVENT 65
 	[ vm_prompt, "Place or remove 1 Shipment and Insurgent Base in any Mountain Department." ],
+	[ vm_if, ()=>can_vm_space(1,(s)=>is_mountain(s) && ( can_place_or_remove_shipment(s) && can_place_or_remove_insurgent_base(s) )) ],
 	[ vm_space, true, 1, 1, (s)=>is_mountain(s) && ( can_place_or_remove_shipment(s) && can_place_or_remove_insurgent_base(s) ) ],
-	[ vm_place_or_remove_shipment ],
-	[ vm_place_or_remove_insurgent_base ],
-	[ vm_return ],
-	[ vm_endspace ],
-	[ vm_prompt, "Place or remove 1 Shipment and Insurgent Base in any Mountain Department." ],
+	[ vm_else ],
 	[ vm_space, true, 1, 1, (s)=>is_mountain(s) && ( can_place_or_remove_shipment(s) || can_place_or_remove_insurgent_base(s) ) ],
+	[ vm_endif ],
 	[ vm_place_or_remove_shipment ],
 	[ vm_place_or_remove_insurgent_base ],
 	[ vm_endspace ],
@@ -8618,5 +8582,5 @@ const CODE = [
 	[ vm_endif ],
 	[ vm_return ],
 ]
-const UCODE = [0,1,7,13,19,29,47,62,68,75,81,87,93,99,105,146,154,161,167,174,186,202,214,222,242,274,289,300,308,325,346,363,377,384,404,421,437,447,463,479,493,518,532,542,565,577,593,610,635,649,666,698,712,730,758,780,795,806,823,838,861,880,894,904,919,938,950,960,965,987,1014,1030,1050]
-const SCODE = [0,4,10,16,24,41,52,65,73,78,84,90,96,102,122,149,159,164,170,0,195,208,219,234,248,282,295,305,316,335,360,372,382,391,406,431,0,453,471,484,501,527,538,558,571,582,0,619,644,654,676,707,717,0,0,790,797,814,829,848,870,889,899,0,929,0,955,962,982,0,1019,1037,1059]
+const UCODE = [0,1,7,13,19,29,47,62,68,75,81,87,93,99,105,134,142,149,155,162,174,190,202,210,230,252,267,278,286,303,324,340,354,361,381,395,411,421,437,453,467,492,506,516,537,549,565,582,607,621,636,668,682,700,728,750,765,776,793,808,831,850,864,874,889,908,918,928,933,955,982,998,1018]
+const SCODE = [0,4,10,16,24,41,52,65,73,78,84,90,96,102,118,137,147,152,158,0,183,196,207,222,236,260,273,283,294,313,337,349,359,368,383,405,0,427,445,458,475,501,512,530,543,554,0,591,616,626,646,677,687,0,0,760,767,784,799,818,840,859,869,0,899,0,923,930,950,0,987,1005,1027]

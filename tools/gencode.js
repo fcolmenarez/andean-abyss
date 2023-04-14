@@ -43,6 +43,17 @@ for (let line of fs.readFileSync("events.txt", "utf-8").split("\n")) {
 		console.log("// SHADED " + line[1])
 		break
 
+	case "if_space":
+		emit([ "if", "()=>can_vm_space(1,(s)=>" + line.slice(1).join(" ") + ")" ])
+		emit([ "space", true, 1, 1, "(s)=>" + line.slice(1).join(" ") ])
+		emit([ "else" ])
+		break
+
+	case "or_space":
+		emit([ "space", true, 1, 1, "(s)=>" + line.slice(1).join(" ") ])
+		emit([ "endif" ])
+		break
+
 	case "space_no_undo":
 		emit([ "space", false, line[1], line[1], "(s)=>" + line.slice(2).join(" ") ])
 		break
