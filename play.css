@@ -60,6 +60,9 @@ main { background-color: #777; }
 #cities { position: absolute; }
 #boxes { position: absolute; }
 
+#map.hide_pieces #pieces { display: none; }
+#map.hide_tokens #tokens { display: none; }
+
 #capabilities .token {
 	position: static;
 	pointer-events: auto;

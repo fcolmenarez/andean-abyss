@@ -319,9 +319,7 @@ exports.setup = function (seed, scenario, options) {
 				game.deck.push(i)
 	}
 
-	game.deck[0] = /* TEST */ 24
-	game.capabilities = [ EVT_SUCUMBIOS, EVT_DARIEN ]
-	log("DECK " + game.deck.join(", "))
+	log("DEBUG: DECK " + game.deck.join(", "))
 
 	update_control()
 

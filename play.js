@@ -1,6 +1,6 @@
 "use strict"
 
-/* global view, data, player, send_action, action_button */
+/* global view, data, player, send_action, action_button, scroll_with_middle_mouse */
 
 // :r !python3 tools/genlayout.py
 // BEGIN LAYOUT DATA
@@ -181,6 +181,17 @@ const LAYOUT = {
 }
 // END LAYOUT DATA
 
+const LAYOUT_CACHE = {
+	Center: [],
+	Govt: [],
+	FARC: [],
+	AUC: [],
+	Cartels: [],
+	COIN: [],
+	INSURGENTS: [],
+	DRUGS: [],
+}
+
 // Factions
 const GOVT = 0
 const FARC = 1
@@ -196,43 +207,7 @@ const GUERRILLA = 1
 const TROOPS = 2
 const POLICE = 3
 
-// Cities
-const BOGOTA = 0
-const CALI = 1
-const MEDELLIN = 2
-const BUCARAMANGA = 3
-const IBAGUE = 4
-const SANTA_MARTA = 5
-const CARTAGENA = 6
-const CUCUTA = 7
-const NEIVA = 8
-const PASTO = 9
-const SINCELEJO = 10
-
-// 1+ Pop Depts
-const ATLANTICO = 11
-const CHOCO = 12
-const NARINO = 13
 const META_WEST = 14
-const GUAVIARE = 15
-const PUTUMAYO = 16
-const CESAR = 17
-const ANTIOQUIA = 18
-const SANTANDER = 19
-const HUILA = 20
-const ARAUCA = 21
-const META_EAST = 22
-
-// 0 Pop Depts
-const VICHADA = 23
-const GUAINIA = 24
-const VAUPES = 25
-const AMAZONAS = 26
-
-// Foreign Countries
-const ECUADOR = 27
-const PANAMA = 28
-
 
 const first_piece = data.first_piece
 const last_piece = data.last_piece
@@ -288,6 +263,7 @@ const senado_class_list = [
 ]
 
 let ui = {
+	map: document.getElementById("map"),
 	favicon: document.getElementById("favicon"),
 	header: document.querySelector("header"),
 	status: document.getElementById("status"),
@@ -393,7 +369,14 @@ function is_action(action, arg) {
 }
 
 function toggle_pieces() {
-	document.getElementById("pieces").classList.toggle("hide")
+	if (ui.map.classList.contains("hide_tokens")) {
+		ui.map.classList.remove("hide_tokens")
+		ui.map.classList.remove("hide_pieces")
+	} else if (ui.map.classList.contains("hide_pieces")) {
+		ui.map.classList.add("hide_tokens")
+	} else {
+		ui.map.classList.add("hide_pieces")
+	}
 }
 
 function on_click_action(evt) {
@@ -401,24 +384,12 @@ function on_click_action(evt) {
 		send_action(evt.target.my_action, evt.target.my_id)
 }
 
-function get_center_xy(s) {
-	let id = data.spaces[s].id
-	return LAYOUT[id]
-}
-
-function get_layout_dept(s, f) {
-	let id = data.spaces[s].id + " " + f
-	return LAYOUT[id]
-}
-
-function get_layout_loc(s, f) {
-	let id = data.spaces[s].id + " " + f
-	return LAYOUT[id]
-}
-
-function get_layout_shipments(s) {
-	let id = data.spaces[s].id + " DRUGS"
-	return LAYOUT[id]
+function get_layout_xy(s, f = "Center") {
+	if (!LAYOUT_CACHE[f][s]) {
+		let id = (f !== "Center") ? data.spaces[s].id + " " + f : data.spaces[s].id
+		LAYOUT_CACHE[f][s] = LAYOUT[id]
+	}
+	return LAYOUT_CACHE[f][s]
 }
 
 function get_layout_radius(s) {
@@ -631,7 +602,7 @@ function filter_piece_list(list, space, faction, type) {
 function layout_available(faction, type, xorig, yorig) {
 	let list = []
 	filter_piece_list(list, AVAILABLE, faction, type)
-	layout_pieces(list, xorig, yorig, null)
+	layout_pieces(list, xorig, yorig + 35, null, AVAILABLE)
 }
 
 function layout_pieces(list, xorig, yorig, bases, s) {
@@ -659,7 +630,7 @@ function layout_pieces(list, xorig, yorig, bases, s) {
 		let ncol = Math.ceil(list.length / nrow)
 		let z = 50
 		let i = 0
-		if (s <= last_city || s >= first_loc) {
+		if ((s >= 0 && s <= last_city) || s >= first_loc) {
 			off_x = (nrow - ncol) * 6
 			off_y = (nrow - 1) * 8
 		}
@@ -682,22 +653,6 @@ function place_piece(p, x, y, z) {
 	p.my_z = z
 }
 
-function layout_loc_pieces(list, xorig, yorig, dir) {
-	let a = (dir * Math.PI) / 4
-	let dx = Math.round(24 * Math.sin(a))
-	let dy = -Math.round(15 * Math.cos(a))
-	let sx = Math.round(24 * Math.sin(a + Math.PI/2))
-	let sy = -Math.round(15 * Math.cos(a + Math.PI/2))
-	// if (list.length > 3) { xorig += sx xorig += sy }
-	let n = 1.5
-	for (let i = 0; i < list.length; ++i) {
-		let x = xorig + dx * ((i&3)+n) + sx * ((i>>2)) + list[i].my_x_offset - 15
-		let y = yorig + dy * ((i&3)+n) + sy * ((i>>2)) + list[i].my_y_offset - 24
-		let z = (dy>0) ? 1 + i : list.length - i
-		place_piece(list[i], x, y, z)
-	}
-}
-
 function layout_dept_bases(list, xc, yc, s) {
 	if (data.spaces[s].type !== "mountain") {
 		if (list.length > 0)
@@ -709,20 +664,6 @@ function layout_dept_bases(list, xc, yc, s) {
 			place_piece(list[0], xc - 20 - 32, yc - 10, 51)
 		if (list.length > 1)
 			place_piece(list[1], xc - 20 + 32, yc - 10, 52)
-	}
-}
-
-function layout_dept_bases2(list, xc, yc, s) {
-	if (1||data.spaces[s].type === "mountain") {
-		if (list.length > 0)
-			place_piece(list[0], xc - 20 + 25, yc - 16, 51)
-		if (list.length > 1)
-			place_piece(list[1], xc - 20 - 25, yc - 16, 52)
-	} else {
-		if (list.length > 0)
-			place_piece(list[0], xc - 20 - 32, yc - 11, 51)
-		if (list.length > 1)
-			place_piece(list[1], xc - 20 + 32, yc - 11, 52)
 	}
 }
 
@@ -895,8 +836,7 @@ function update_guerrillas_underground(faction, type, underground) {
 }
 
 function layout_terror(tix, s, n) {
-	let id = data.spaces[s].id
-	let [ tx, ty ] = get_center_xy(s)
+	let [ tx, ty ] = get_layout_xy(s)
 	tx -= 20
 	ty -= 20
 	if (s <= last_city) {
@@ -947,7 +887,7 @@ function layout_terror(tix, s, n) {
 }
 
 function layout_farc_zone(s, elt) {
-	let [x, y] = get_center_xy(s)
+	let [x, y] = get_layout_xy(s)
 	if (s <= last_pop) {
 		x -= 49
 		if (s === META_WEST)
@@ -962,13 +902,6 @@ function layout_farc_zone(s, elt) {
 	elt.style.top = (y - 25) + "px"
 	elt.style.left = (x - 25) + "px"
 }
-
-const shipment_layout_city = [
-	[ -60,    0, 3 ],
-	[ -48,  -30, 2 ],
-	[ -36,  -60, 1 ],
-	[ -72,   30, 4 ],
-]
 
 const shipment_layout_dept = [
 	[ -18, 0, 2 ],
@@ -1202,8 +1135,6 @@ function on_update() {
 		update_guerrillas_underground(AUC, GUERRILLA, view.underground[AUC])
 		update_guerrillas_underground(CARTELS, GUERRILLA, view.underground[CARTELS])
 
-		console.log("LAYOUT", id)
-
 		if (s <= last_city) {
 			list.length = bases.length = 0
 			filter_piece_list(list, s, FARC, GUERRILLA)
@@ -1215,46 +1146,46 @@ function on_update() {
 			filter_piece_list(bases, s, FARC, BASE)
 			filter_piece_list(bases, s, AUC, BASE)
 			filter_piece_list(bases, s, CARTELS, BASE)
-			xy = get_center_xy(s)
+			xy = get_layout_xy(s)
 			layout_pieces(list, xy[0], xy[1], null, s)
 			layout_city_bases(bases, xy[0], xy[1] + get_layout_radius(s) - 12)
 		} else if (s <= last_dept) {
 			list.length = bases.length = 0
 			filter_piece_list(list, s, FARC, GUERRILLA)
 			filter_piece_list(bases, s, FARC, BASE)
-			xy = get_layout_dept(s, "FARC")
+			xy = get_layout_xy(s, "FARC")
 			layout_pieces(list, xy[0], xy[1], bases, s)
 
 			list.length = bases.length = 0
 			filter_piece_list(list, s, AUC, GUERRILLA)
 			filter_piece_list(bases, s, AUC, BASE)
-			xy = get_layout_dept(s, "AUC")
+			xy = get_layout_xy(s, "AUC")
 			layout_pieces(list, xy[0], xy[1], bases, s)
 
 			list.length = bases.length = 0
 			filter_piece_list(list, s, CARTELS, GUERRILLA)
 			filter_piece_list(bases, s, CARTELS, BASE)
-			xy = get_layout_dept(s, "Cartels")
+			xy = get_layout_xy(s, "Cartels")
 			layout_pieces(list, xy[0], xy[1], bases, s)
 
 			list.length = bases.length = 0
 			filter_piece_list(list, s, GOVT, TROOPS)
 			filter_piece_list(list, s, GOVT, POLICE)
 			filter_piece_list(bases, s, GOVT, BASE)
-			xy = get_layout_dept(s, "Govt")
+			xy = get_layout_xy(s, "Govt")
 			layout_pieces(list, xy[0], xy[1], bases, s)
 		} else {
 			list.length = 0
 			filter_piece_list(list, s, FARC, GUERRILLA)
 			filter_piece_list(list, s, AUC, GUERRILLA)
 			filter_piece_list(list, s, CARTELS, GUERRILLA)
-			xy = get_layout_loc(s, "INSURGENTS")
+			xy = get_layout_xy(s, "INSURGENTS")
 			layout_pieces(list, xy[0], xy[1], null, s)
 
 			list.length = 0
 			filter_piece_list(list, s, GOVT, TROOPS)
 			filter_piece_list(list, s, GOVT, POLICE)
-			xy = get_layout_loc(s, "COIN")
+			xy = get_layout_xy(s, "COIN")
 			layout_pieces(list, xy[0], xy[1], null, s)
 		}
 
@@ -1270,13 +1201,13 @@ function on_update() {
 		}
 		if (list.length > 0) {
 			if (s <= last_city) {
-				xy = get_center_xy(s)
+				xy = get_layout_xy(s)
 				layout_city_shipments(s, list, xy[0], xy[1])
 			} else if (s <= last_dept) {
-				xy = get_layout_shipments(s)
+				xy = get_layout_xy(s, "DRUGS")
 				layout_dept_shipments(s, list, xy[0], xy[1])
 			} else {
-				xy = get_center_xy(s)
+				xy = get_layout_xy(s)
 				layout_loc_shipments(s, list, xy[0], xy[1])
 			}
 		}
@@ -1408,11 +1339,11 @@ function register_card_tip(e, c) {
 }
 
 function on_focus_card_tip(c) {
-	card_tip.className = "card card_" + c
+	ui.card_tip.className = "card card_" + c
 }
 
 function on_blur_card_tip() {
-	card_tip.className = "hide"
+	ui.card_tip.className = "hide"
 }
 
 function on_focus_space_tip(s) {
