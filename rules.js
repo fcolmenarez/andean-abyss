@@ -631,6 +631,14 @@ function count_matching_spaces(f) {
 	return n
 }
 
+function count_matching_pieces(f) {
+	let n = 0
+	for (let p = all_first_piece; p <= all_last_piece; ++p)
+		if (f(p, piece_space(p)))
+			++n
+	return n
+}
+
 function count_faction_pieces(s, faction) {
 	switch (faction) {
 		case GOVT:

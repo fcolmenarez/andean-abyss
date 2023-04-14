@@ -1046,14 +1046,20 @@ EVENT 64
 	endrepeat
 
 SHADED 64
-	prompt "Cartels Resources +2 for each Cartels Base in a City."
-	piece all is_cartels_base(p) && is_city(s)
-		auto_resources CARTELS 2
-	endpiece
-	prompt "Cartels Resources +1 for each Cartels Base in a Department."
-	piece all is_cartels_base(p) && is_dept(s)
-		auto_resources CARTELS 1
-	endpiece
+	if AUTOMATIC
+		asm game.vm.n = count_matching_pieces((p,s) => is_cartels_base(p) && is_city(s)) * 2
+		asm game.vm.n += count_matching_pieces((p,s) => is_cartels_base(p) && is_dept(s))
+		resources CARTELS (game.vm.n)
+	else
+		prompt "Cartels Resources +2 for each Cartels Base in a City."
+		piece all is_cartels_base(p) && is_city(s)
+			auto_resources CARTELS 2
+		endpiece
+		prompt "Cartels Resources +1 for each Cartels Base in a Department."
+		piece all is_cartels_base(p) && is_dept(s)
+			auto_resources CARTELS 1
+		endpiece
+	endif
 
 EVENT 65
 	# 5.1.3 - do both shipment and base if possible
