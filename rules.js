@@ -15,9 +15,8 @@
 // TODO: auto-skip civic action
 // TODO: auto-skip agitation
 
-// TODO: don't auto-end free Rally with elite backing
-
-// TODO: auto-end Extort ?
+// TODO: don't auto-end 7th sf remove terror/sabotage (no undo suprise)
+// TODO: don't auto-end free Rally with elite backing (no undo suprise)
 
 const AUTOMATIC = true
 
@@ -3510,7 +3509,7 @@ states.rally_space = {
 		view.prompt = `Rally: Place up to ${rally_count()} Guerrillas, build Base, or Move.`
 		view.where = game.op.where
 
-		if (count_pieces(game.op.where, game.current, GUERRILLA) >= 2 && can_stack_base(game.op.where, game.current))
+		if (count_pieces(game.op.where, game.current, GUERRILLA) >= 2 && count_bases(game.op.where) < 2)
 			view.actions.base = 1
 		else
 			view.actions.base = 0
@@ -4273,7 +4272,7 @@ states.air_lift_move = {
 	piece(p) {
 		push_undo()
 		move_piece(p, game.sa.to)
-		if (--game.sa.count === 0 || count_cubes(game.sa.from) === 0 || !can_stack_any(game.sa.to))
+		if (--game.sa.count === 0 || count_cubes(game.sa.from) === 0 || !can_stack_any(game.sa.to, GOVT))
 			end_special_activity()
 	},
 	end_air_lift() {
