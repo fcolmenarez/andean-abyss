@@ -10,13 +10,12 @@
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="1650"
    height="2550"
-   viewBox="0 0 1650 2550"
    version="1.1"
-   id="svg4"
+   id="svg328"
    sodipodi:docname="layout.svg"
    inkscape:version="1.0.2 (e86c870879, 2021-01-15)">
   <metadata
-     id="metadata10">
+     id="metadata334">
     <rdf:RDF>
       <cc:Work
          rdf:about="">
@@ -27,7 +26,7 @@
     </rdf:RDF>
   </metadata>
   <defs
-     id="defs8" />
+     id="defs332" />
   <sodipodi:namedview
      pagecolor="#ffffff"
      bordercolor="#666666"
@@ -39,17 +38,13 @@
      inkscape:pageshadow="2"
      inkscape:window-width="640"
      inkscape:window-height="480"
-     id="namedview6"
-     showgrid="true"
-     inkscape:zoom="2.0178853"
-     inkscape:cx="557.0476"
-     inkscape:cy="1406.6856"
-     inkscape:current-layer="svg4"
-     inkscape:document-rotation="0">
-    <inkscape:grid
-       type="xygrid"
-       id="grid12" />
-  </sodipodi:namedview>
+     id="namedview330"
+     showgrid="false"
+     inkscape:zoom="1.0464316"
+     inkscape:cx="932.7326"
+     inkscape:cy="650.77941"
+     inkscape:current-layer="svg328"
+     inkscape:document-rotation="0" />
   <image
      sodipodi:absref="/home/tor/src/rally/public/andean-abyss/map75.jpg"
      xlink:href="../map75.jpg"
@@ -57,790 +52,1357 @@
      y="0"
      width="1650"
      height="2550"
-     style="display:inline;image-rendering:pixelated"
-     id="board" />
-  <rect
-     style="fill:#ff5757;fill-opacity:0.349594;stroke-width:2.01289;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="rect831"
-     width="113.46967"
-     height="46.991089"
-     x="656.53033"
-     y="651.17676"
-     ry="0.61036325"
-     inkscape:label="Atlantico BASE" />
-  <ellipse
-     style="fill:#faff23;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="path847"
-     cx="821.71857"
-     cy="1865.5933"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Putumayo INSURGENT" />
-  <ellipse
-     style="fill:#23ffff;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="path847-3"
-     cx="551.06122"
-     cy="1834.8098"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Putumayo COIN" />
-  <ellipse
-     style="fill:#23ffff;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse893"
-     cx="841.44849"
-     cy="2057.3931"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Amazonas COIN" />
-  <ellipse
-     style="fill:#faff23;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse895"
-     cx="979.77069"
-     cy="2058.1609"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Amazonas INSURGENT" />
-  <ellipse
-     style="fill:#23ffff;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse897"
-     cx="1194.6422"
-     cy="1695.9675"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Vaupes COIN" />
-  <ellipse
-     style="fill:#faff23;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse899"
-     cx="1068.3137"
-     cy="1824.4529"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Vaupes INSURGENT" />
-  <ellipse
-     style="fill:#faff23;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse901"
-     cx="850.08185"
-     cy="1656.6271"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Guaviare INSURGENT" />
-  <ellipse
-     style="fill:#23ffff;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse903"
-     cx="1099.7336"
-     cy="1620.0236"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Guaviare COIN" />
-  <ellipse
-     style="fill:#faff23;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse923"
-     cx="1298.3999"
-     cy="1544.4958"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Guainia INSURGENT" />
-  <ellipse
-     style="fill:#23ffff;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse925"
-     cx="1498.7815"
-     cy="1463.3098"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Guainia COIN" />
-  <ellipse
-     style="fill:#faff23;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse927"
-     cx="1213.4673"
-     cy="1298.0275"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Vichada INSURGENT" />
-  <ellipse
-     style="fill:#23ffff;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse929"
-     cx="1462.9934"
-     cy="1226.4136"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Vichada COIN" />
-  <ellipse
-     style="fill:#faff23;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse931"
-     cx="1215.7032"
-     cy="1103.6714"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Arauca INSURGENT" />
-  <ellipse
-     style="fill:#23ffff;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse933"
-     cx="992.04993"
-     cy="1114.1803"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Arauca COIN" />
-  <ellipse
-     style="fill:#23ffff;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse935"
-     cx="974.78748"
-     cy="1286.8606"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Meta East COIN" />
-  <ellipse
-     style="fill:#faff23;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse937"
-     cx="866.47168"
-     cy="1406.8763"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Meta East INSURGENT" />
-  <ellipse
-     style="fill:#faff23;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse939"
-     cx="718.11243"
-     cy="1642.7832"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Meta West INSURGENT" />
-  <ellipse
-     style="fill:#23ffff;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse941"
-     cx="824.59546"
-     cy="1546.0435"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Meta West COIN" />
-  <ellipse
-     style="fill:#faff23;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse943"
-     cx="713.95709"
-     cy="1160.3865"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Santander INSURGENT" />
-  <ellipse
-     style="fill:#23e4ff;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse945"
-     cx="844.80853"
-     cy="832.81464"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Santander COIN" />
-  <ellipse
-     style="fill:#faff23;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse947"
-     cx="644.14142"
-     cy="1026.3208"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Antioquia INSURGENT" />
-  <ellipse
-     style="fill:#23ffff;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse949"
-     cx="630.17358"
-     cy="766.72473"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Antioquia COIN" />
-  <ellipse
-     style="fill:#23ffff;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse951"
-     cx="608.1076"
-     cy="1343.2896"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Huila COIN" />
-  <ellipse
-     style="fill:#faff23;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse953"
-     cx="382.87402"
-     cy="1733.3823"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Huila INSURGENT" />
-  <ellipse
-     style="fill:#faff23;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse955"
-     cx="276.37039"
-     cy="1519.9783"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Narino INSURGENT" />
-  <ellipse
-     style="fill:#23ffff;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse957"
-     cx="188.54849"
-     cy="1728.8357"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Narino COIN" />
-  <ellipse
-     style="fill:#23ffff;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse959"
-     cx="415.78534"
-     cy="907.65546"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Choco COIN" />
-  <ellipse
-     style="fill:#faff23;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse961"
-     cx="376.83643"
-     cy="1157.1735"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Choco INSURGENT" />
-  <ellipse
-     style="fill:#faff23;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse963"
-     cx="216.12793"
-     cy="816.09753"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Panama INSURGENT" />
-  <ellipse
-     style="fill:#23fffa;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse965"
-     cx="97.446869"
-     cy="690.03168"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Panama COIN" />
-  <ellipse
-     style="fill:#23dfff;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse967"
-     cx="98.207031"
-     cy="1897.3101"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Ecuador COIN" />
-  <ellipse
-     style="fill:#faff23;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse969"
-     cx="203.16486"
-     cy="1862.1837"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Ecuador INSURGENT" />
-  <ellipse
-     style="fill:#faff23;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse971"
-     cx="907.6908"
-     cy="404.95953"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Cesar INSURGENT" />
-  <ellipse
-     style="fill:#23ffff;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse973"
-     cx="817.27185"
-     cy="608.40936"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Cesar COIN" />
-  <ellipse
-     style="fill:#faff23;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse975"
-     cx="617.40442"
-     cy="511.20871"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Atlantico INSURGENT" />
-  <ellipse
-     style="fill:#23cfff;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="ellipse977"
-     cx="585.80151"
-     cy="561.57281"
-     rx="50"
-     ry="35"
-     inkscape:transform-center-x="-37.246603"
-     inkscape:transform-center-y="79.630668"
-     inkscape:label="Atlantico COIN" />
-  <rect
-     style="fill:#ff5757;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="rect981"
-     width="120"
-     height="50"
-     x="874.46167"
-     y="2130.4414"
-     ry="0.76309872"
-     inkscape:label="Amazonas DRUGS" />
-  <rect
-     style="fill:#ff5757;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="rect994"
-     width="120"
-     height="50"
-     x="830"
-     y="1910"
-     ry="0.76309872"
-     inkscape:label="Putumayo DRUGS" />
-  <rect
-     style="fill:#ff5757;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="rect996"
-     width="120"
-     height="50"
-     x="455.8833"
-     y="1408.6779"
-     ry="0.76309872"
-     inkscape:label="Huila DRUGS" />
-  <rect
-     style="fill:#ff5757;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="rect998"
-     width="120"
-     height="50"
-     x="1120"
-     y="1880"
-     ry="0.76309872"
-     inkscape:label="Vaupes DRUGS" />
-  <rect
-     style="fill:#ff5757;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="rect1000"
-     width="120"
-     height="50"
-     x="1296.8048"
-     y="1627.8364"
-     ry="0.76309872"
-     inkscape:label="Guainia DRUGS" />
-  <rect
-     style="fill:#ff5757;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="rect1002"
-     width="120"
-     height="50"
-     x="1157.3679"
-     y="1367.9188"
-     ry="0.76309872"
-     inkscape:label="Vichada Drugs INSURGENT" />
-  <rect
-     style="fill:#ff5757;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="rect1004"
-     width="120"
-     height="50"
-     x="1015.0145"
-     y="1187.9541"
-     ry="0.76309872"
-     inkscape:label="Arauca DRUGS" />
-  <rect
-     style="fill:#ff5757;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="rect1006"
-     width="120"
-     height="50"
-     x="920.51288"
-     y="1474.4927"
-     ry="0.76309872"
-     inkscape:label="Meta East DRUGS" />
-  <rect
-     style="fill:#ff5757;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="rect1008"
-     width="120"
-     height="50"
-     x="911"
-     y="1726"
-     ry="0.76309872"
-     inkscape:label="Guaviare DRUGS" />
-  <rect
-     style="fill:#ff5757;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="rect1010"
-     width="120"
-     height="50"
-     x="630"
-     y="1433"
-     ry="0.76309872"
-     inkscape:label="Meta West DRUGS" />
-  <rect
-     style="fill:#ff5757;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="rect1012"
-     width="120"
-     height="50"
-     x="94.765198"
-     y="1540.1451"
-     ry="0.76309872"
-     inkscape:label="Narino DRUGS" />
-  <rect
-     style="fill:#ff5757;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="rect1014"
-     width="120"
-     height="50"
-     x="299.2511"
-     y="1226.458"
-     ry="0.76309872"
-     inkscape:label="Choco DRUGS" />
-  <rect
-     style="fill:#ff5757;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="rect1016"
-     width="120"
-     height="50"
-     x="141.0954"
-     y="850.96411"
-     ry="0.76309872"
-     inkscape:label="Panama DRUGS" />
-  <rect
-     style="fill:#ff5757;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="rect1018"
-     width="120"
-     height="50"
-     x="525.9303"
-     y="1131.8228"
-     ry="0.76309872"
-     inkscape:label="Antioquia DRUGS" />
-  <rect
-     style="fill:#ff5757;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="rect1020"
-     width="120"
-     height="50"
-     x="748.66882"
-     y="1056.3224"
-     ry="0.76309872"
-     inkscape:label="Santander DRUGS" />
-  <rect
-     style="fill:#ff5757;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="rect1022"
-     width="120"
-     height="50"
-     x="536.53033"
-     y="601.17676"
-     ry="0.76309872"
-     inkscape:label="Atlantico DRUGS" />
-  <rect
-     style="fill:#ff5757;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="rect1024"
-     width="120"
-     height="50"
-     x="961"
-     y="304"
-     ry="0.76309872"
-     inkscape:label="Cesar DRUGS" />
-  <rect
-     style="fill:#ff5757;fill-opacity:0.349594;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:0.581301"
-     id="rect1026"
-     width="120"
-     height="50"
-     x="255"
-     y="1870"
-     ry="0.76309872"
-     inkscape:label="Ecuador DRUGS" />
-  <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle890"
-     cx="663.70923"
-     cy="1409.8788"
-     r="15"
-     inkscape:label="Bogota / Neiva 2" />
-  <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle892"
-     cx="601.77673"
-     cy="1455.9117"
-     r="15"
-     inkscape:label="Bogota / Neiva 1" />
-  <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle894"
-     cx="641.37469"
-     cy="1165.2909"
-     r="15"
-     inkscape:label="Bucaramanga / Ibague / Bogota 1" />
-  <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle896"
-     cx="736.83411"
-     cy="1028.1122"
-     r="15"
-     inkscape:label="Bucaramanga / Ibague / Bogota 2" />
-  <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle898"
-     cx="910.91309"
-     cy="1237.2157"
-     r="15"
-     inkscape:label="Bogota / Yopal 1" />
-  <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle900"
-     cx="861.26099"
-     cy="1303.9882"
-     r="15"
-     inkscape:label="Bogota / Yopal 2" />
-  <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle902"
-     cx="955.89471"
-     cy="953.00348"
-     r="15"
-     inkscape:label="Cucuta / Arauca 1" />
-  <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle904"
-     cx="1059.0409"
-     cy="983.20764"
-     r="15"
-     inkscape:label="Cucuta / Arauca 2" />
-  <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle906"
-     cx="911.19659"
-     cy="758.53296"
-     r="15"
-     inkscape:label="Cucuta / Ayacucho 1" />
-  <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle908"
-     cx="826.46509"
-     cy="740.02686"
-     r="15"
-     inkscape:label="Cucuta / Ayacucho 2" />
-  <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle910"
-     cx="675.01428"
-     cy="720.54156"
-     r="15"
-     inkscape:label="Sincelejo / Ayacucho 2" />
-  <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle912"
-     cx="607.04877"
-     cy="675.6593"
-     r="15"
-     inkscape:label="Sincelejo / Ayacucho 1" />
-  <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle914"
-     cx="712.22498"
-     cy="554.26031"
-     r="15"
-     inkscape:label="Santa Marta / Ayacucho 1" />
-  <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle916"
-     cx="774.2583"
-     cy="653.20776"
-     r="15"
-     inkscape:label="Santa Marta / Ayacucho 2" />
-  <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle918"
-     cx="526.50665"
-     cy="824.5907"
-     r="15"
-     inkscape:label="Sincelejo / Medellin 1" />
-  <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle920"
-     cx="546.73438"
-     cy="941.22528"
-     r="15"
-     inkscape:label="Sincelejo / Medellin 2" />
-  <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle922"
-     cx="508.43851"
-     cy="1198.8612"
-     r="15"
-     inkscape:label="Medellin / Ibague 1" />
-  <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle924"
-     cx="511.26694"
-     cy="1143.3706"
-     r="15"
+     image-rendering="pixelated"
      sodipodi:insensitive="true"
-     inkscape:label="Medellin / Ibague 2" />
+     id="image2" />
+  <text
+     x="-205.52834"
+     y="113.16729"
+     text-anchor="end"
+     font-size="40px"
+     id="text4">Atlantico</text>
+  <ellipse
+     inkscape:label="Atlantico Govt"
+     cx="619.15558"
+     cy="503.72638"
+     rx="50"
+     ry="40"
+     fill="#00ffff"
+     fill-opacity="0.5"
+     id="ellipse6" />
+  <ellipse
+     inkscape:label="Atlantico AUC"
+     cx="580.13245"
+     cy="602.68201"
+     rx="50"
+     ry="40"
+     fill="#ffff00"
+     fill-opacity="0.5"
+     id="ellipse8" />
+  <ellipse
+     inkscape:label="Atlantico Cartels"
+     cx="633.73376"
+     cy="547.95563"
+     rx="50"
+     ry="40"
+     fill="#32cd32"
+     fill-opacity="0.5"
+     id="ellipse10" />
+  <ellipse
+     inkscape:label="Atlantico FARC"
+     cx="701.94098"
+     cy="664"
+     rx="50"
+     ry="40"
+     fill="#ff0000"
+     fill-opacity="0.5"
+     id="ellipse12" />
+  <rect
+     inkscape:label="Atlantico DRUGS"
+     x="667"
+     y="545"
+     width="92"
+     height="56"
+     fill="#ffffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="rect14" />
+  <text
+     x="-205.52834"
+     y="213.1673"
+     text-anchor="end"
+     font-size="40px"
+     id="text16">Choco</text>
+  <ellipse
+     inkscape:label="Choco Govt"
+     cx="337.60086"
+     cy="1096.6433"
+     rx="50"
+     ry="40"
+     fill="#00ffff"
+     fill-opacity="0.5"
+     id="ellipse18" />
+  <ellipse
+     inkscape:label="Choco AUC"
+     cx="365.7764"
+     cy="915.03894"
+     rx="50"
+     ry="40"
+     fill="#ffff00"
+     fill-opacity="0.5"
+     id="ellipse20" />
+  <ellipse
+     inkscape:label="Choco Cartels"
+     cx="337.04401"
+     cy="1274.7484"
+     rx="50"
+     ry="40"
+     fill="#32cd32"
+     fill-opacity="0.5"
+     id="ellipse22" />
+  <ellipse
+     inkscape:label="Choco FARC"
+     cx="395.81378"
+     cy="1185.5511"
+     rx="50"
+     ry="40"
+     fill="#ff0000"
+     fill-opacity="0.5"
+     id="ellipse24" />
+  <rect
+     inkscape:label="Choco DRUGS"
+     x="410.02856"
+     y="929.33215"
+     width="92"
+     height="56"
+     fill="#ffffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="rect26" />
+  <text
+     x="-205.52834"
+     y="313.1673"
+     text-anchor="end"
+     font-size="40px"
+     id="text28">Narino</text>
+  <ellipse
+     inkscape:label="Narino Govt"
+     cx="184.92387"
+     cy="1561.5864"
+     rx="50"
+     ry="40"
+     fill="#00ffff"
+     fill-opacity="0.5"
+     id="ellipse30" />
+  <ellipse
+     inkscape:label="Narino AUC"
+     cx="292.76273"
+     cy="1553.6095"
+     rx="50"
+     ry="40"
+     fill="#ffff00"
+     fill-opacity="0.5"
+     id="ellipse32" />
+  <ellipse
+     inkscape:label="Narino Cartels"
+     cx="216.92455"
+     cy="1687.7061"
+     rx="50"
+     ry="40"
+     fill="#32cd32"
+     fill-opacity="0.5"
+     id="ellipse34" />
+  <ellipse
+     inkscape:label="Narino FARC"
+     cx="139.77777"
+     cy="1686.5125"
+     rx="50"
+     ry="40"
+     fill="#ff0000"
+     fill-opacity="0.5"
+     id="ellipse36" />
+  <rect
+     inkscape:label="Narino DRUGS"
+     x="227.59502"
+     y="1440.8683"
+     width="92"
+     height="56"
+     fill="#ffffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="rect38" />
+  <text
+     x="-205.52834"
+     y="413.1673"
+     text-anchor="end"
+     font-size="40px"
+     id="text40">Meta West</text>
+  <ellipse
+     inkscape:label="Meta West Govt"
+     cx="677.94604"
+     cy="1461.0995"
+     rx="50"
+     ry="40"
+     fill="#00ffff"
+     fill-opacity="0.5"
+     id="ellipse42" />
+  <ellipse
+     inkscape:label="Meta West AUC"
+     cx="679.24133"
+     cy="1548.5797"
+     rx="50"
+     ry="40"
+     fill="#ffff00"
+     fill-opacity="0.5"
+     id="ellipse44" />
+  <ellipse
+     inkscape:label="Meta West Cartels"
+     cx="818.63788"
+     cy="1539.9271"
+     rx="50"
+     ry="40"
+     fill="#32cd32"
+     fill-opacity="0.5"
+     id="ellipse46" />
+  <ellipse
+     inkscape:label="Meta West FARC"
+     cx="702.18896"
+     cy="1632.2654"
+     rx="50"
+     ry="40"
+     fill="#ff0000"
+     fill-opacity="0.5"
+     id="ellipse48" />
+  <rect
+     inkscape:label="Meta West DRUGS"
+     x="717.08447"
+     y="1452.4297"
+     width="92"
+     height="56"
+     fill="#ffffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="rect50" />
+  <text
+     x="-205.52834"
+     y="513.1673"
+     text-anchor="end"
+     font-size="40px"
+     id="text52">Guaviare</text>
+  <ellipse
+     inkscape:label="Guaviare Govt"
+     cx="907.16626"
+     cy="1615.1239"
+     rx="50"
+     ry="40"
+     fill="#00ffff"
+     fill-opacity="0.5"
+     id="ellipse54" />
+  <ellipse
+     inkscape:label="Guaviare AUC"
+     cx="1090.8909"
+     cy="1603.4321"
+     rx="50"
+     ry="40"
+     fill="#ffff00"
+     fill-opacity="0.5"
+     id="ellipse56" />
+  <ellipse
+     inkscape:label="Guaviare Cartels"
+     cx="972.17194"
+     cy="1723.9517"
+     rx="50"
+     ry="40"
+     fill="#32cd32"
+     fill-opacity="0.5"
+     id="ellipse58" />
+  <ellipse
+     inkscape:label="Guaviare FARC"
+     cx="837.39929"
+     cy="1682.1871"
+     rx="50"
+     ry="40"
+     fill="#ff0000"
+     fill-opacity="0.5"
+     id="ellipse60" />
+  <rect
+     inkscape:label="Guaviare DRUGS"
+     x="923.38812"
+     y="1556.0155"
+     width="92"
+     height="56"
+     fill="#ffffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="rect62" />
+  <text
+     x="-205.52834"
+     y="613.1673"
+     text-anchor="end"
+     font-size="40px"
+     id="text64">Putumayo</text>
+  <ellipse
+     inkscape:label="Putumayo Govt"
+     cx="552.08099"
+     cy="1798.2782"
+     rx="50"
+     ry="40"
+     fill="#00ffff"
+     fill-opacity="0.5"
+     id="ellipse66" />
+  <ellipse
+     inkscape:label="Putumayo AUC"
+     cx="620.93982"
+     cy="1866.4153"
+     rx="50"
+     ry="40"
+     fill="#ffff00"
+     fill-opacity="0.5"
+     id="ellipse68" />
+  <ellipse
+     inkscape:label="Putumayo Cartels"
+     cx="882.20087"
+     cy="1875.6802"
+     rx="50"
+     ry="40"
+     fill="#32cd32"
+     fill-opacity="0.5"
+     id="ellipse70" />
+  <ellipse
+     inkscape:label="Putumayo FARC"
+     cx="749.04181"
+     cy="1885.8511"
+     rx="50"
+     ry="40"
+     fill="#ff0000"
+     fill-opacity="0.5"
+     id="ellipse72" />
+  <rect
+     inkscape:label="Putumayo DRUGS"
+     x="592.4621"
+     y="1687.1282"
+     width="92"
+     height="56"
+     fill="#ffffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="rect74" />
+  <text
+     x="-205.52834"
+     y="713.1673"
+     text-anchor="end"
+     font-size="40px"
+     id="text76">Cesar</text>
+  <ellipse
+     inkscape:label="Cesar Govt"
+     cx="805.49731"
+     cy="436.80988"
+     rx="50"
+     ry="40"
+     fill="#00ffff"
+     fill-opacity="0.5"
+     id="ellipse78" />
+  <ellipse
+     inkscape:label="Cesar AUC"
+     cx="818.93475"
+     cy="583.78754"
+     rx="50"
+     ry="40"
+     fill="#ffff00"
+     fill-opacity="0.5"
+     id="ellipse80" />
+  <ellipse
+     inkscape:label="Cesar Cartels"
+     cx="984.92932"
+     cy="337.58875"
+     rx="50"
+     ry="40"
+     fill="#32cd32"
+     fill-opacity="0.5"
+     id="ellipse82" />
+  <ellipse
+     inkscape:label="Cesar FARC"
+     cx="900.82361"
+     cy="398.77252"
+     rx="50"
+     ry="40"
+     fill="#ff0000"
+     fill-opacity="0.5"
+     id="ellipse84" />
+  <rect
+     inkscape:label="Cesar DRUGS"
+     x="1007.8267"
+     y="270.09128"
+     width="92"
+     height="56"
+     fill="#ffffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="rect86" />
+  <text
+     x="-205.52834"
+     y="813.1673"
+     text-anchor="end"
+     font-size="40px"
+     id="text88">Antioquia</text>
+  <ellipse
+     inkscape:label="Antioquia Govt"
+     cx="621.47797"
+     cy="766.08405"
+     rx="50"
+     ry="40"
+     fill="#00ffff"
+     fill-opacity="0.5"
+     id="ellipse90" />
+  <ellipse
+     inkscape:label="Antioquia AUC"
+     cx="714.72656"
+     cy="807.43933"
+     rx="50"
+     ry="40"
+     fill="#ffff00"
+     fill-opacity="0.5"
+     id="ellipse92" />
+  <ellipse
+     inkscape:label="Antioquia Cartels"
+     cx="602.64801"
+     cy="978.3158"
+     rx="50"
+     ry="40"
+     fill="#32cd32"
+     fill-opacity="0.5"
+     id="ellipse94" />
+  <ellipse
+     inkscape:label="Antioquia FARC"
+     cx="703.26514"
+     cy="965.04877"
+     rx="50"
+     ry="40"
+     fill="#ff0000"
+     fill-opacity="0.5"
+     id="ellipse96" />
+  <rect
+     inkscape:label="Antioquia DRUGS"
+     x="547.55762"
+     y="1110.0782"
+     width="92"
+     height="56"
+     fill="#ffffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="rect98" />
+  <text
+     x="-205.52834"
+     y="913.1673"
+     text-anchor="end"
+     font-size="40px"
+     id="text100">Santander</text>
+  <ellipse
+     inkscape:label="Santander Govt"
+     cx="848.409"
+     cy="823.65759"
+     rx="50"
+     ry="40"
+     fill="#00ffff"
+     fill-opacity="0.5"
+     id="ellipse102" />
+  <ellipse
+     inkscape:label="Santander AUC"
+     cx="779.13574"
+     cy="1073.6304"
+     rx="50"
+     ry="40"
+     fill="#ffff00"
+     fill-opacity="0.5"
+     id="ellipse104" />
+  <ellipse
+     inkscape:label="Santander Cartels"
+     cx="823.70892"
+     cy="1219.3402"
+     rx="50"
+     ry="40"
+     fill="#32cd32"
+     fill-opacity="0.5"
+     id="ellipse106" />
+  <ellipse
+     inkscape:label="Santander FARC"
+     cx="716.46106"
+     cy="1180.0559"
+     rx="50"
+     ry="40"
+     fill="#ff0000"
+     fill-opacity="0.5"
+     id="ellipse108" />
+  <rect
+     inkscape:label="Santander DRUGS"
+     x="833.58704"
+     y="1060.5879"
+     width="92"
+     height="56"
+     fill="#ffffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="rect110" />
+  <text
+     x="-205.52834"
+     y="1013.1673"
+     text-anchor="end"
+     font-size="40px"
+     id="text112">Huila</text>
+  <ellipse
+     inkscape:label="Huila Govt"
+     cx="618.23529"
+     cy="1318.4364"
+     rx="50"
+     ry="40"
+     fill="#00ffff"
+     fill-opacity="0.5"
+     id="ellipse114" />
+  <ellipse
+     inkscape:label="Huila AUC"
+     cx="504.02094"
+     cy="1497.7329"
+     rx="50"
+     ry="40"
+     fill="#ffff00"
+     fill-opacity="0.5"
+     id="ellipse116" />
+  <ellipse
+     inkscape:label="Huila Cartels"
+     cx="546.95453"
+     cy="1402.1168"
+     rx="50"
+     ry="40"
+     fill="#32cd32"
+     fill-opacity="0.5"
+     id="ellipse118" />
+  <ellipse
+     inkscape:label="Huila FARC"
+     cx="409.64783"
+     cy="1687.5505"
+     rx="50"
+     ry="40"
+     fill="#ff0000"
+     fill-opacity="0.5"
+     id="ellipse120" />
+  <rect
+     inkscape:label="Huila DRUGS"
+     x="337.48947"
+     y="1737.989"
+     width="92"
+     height="56"
+     fill="#ffffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="rect122" />
+  <text
+     x="-205.52834"
+     y="1113.1672"
+     text-anchor="end"
+     font-size="40px"
+     id="text124">Arauca</text>
+  <ellipse
+     inkscape:label="Arauca Govt"
+     cx="980.58771"
+     cy="1113.1672"
+     rx="50"
+     ry="40"
+     fill="#00ffff"
+     fill-opacity="0.5"
+     id="ellipse126" />
+  <ellipse
+     inkscape:label="Arauca AUC"
+     cx="1217.1794"
+     cy="1035.7775"
+     rx="50"
+     ry="40"
+     fill="#ffff00"
+     fill-opacity="0.5"
+     id="ellipse128" />
+  <ellipse
+     inkscape:label="Arauca Cartels"
+     cx="1196.375"
+     cy="1117.799"
+     rx="50"
+     ry="40"
+     fill="#32cd32"
+     fill-opacity="0.5"
+     id="ellipse130" />
+  <ellipse
+     inkscape:label="Arauca FARC"
+     cx="1062.3942"
+     cy="1195.3604"
+     rx="50"
+     ry="40"
+     fill="#ff0000"
+     fill-opacity="0.5"
+     id="ellipse132" />
+  <rect
+     inkscape:label="Arauca DRUGS"
+     x="1026.655"
+     y="1004.5025"
+     width="92"
+     height="56"
+     fill="#ffffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="rect134" />
+  <text
+     x="-205.52834"
+     y="1213.1672"
+     text-anchor="end"
+     font-size="40px"
+     id="text136">Meta East</text>
+  <ellipse
+     inkscape:label="Meta East Govt"
+     cx="964.20801"
+     cy="1283.2871"
+     rx="50"
+     ry="40"
+     fill="#00ffff"
+     fill-opacity="0.5"
+     id="ellipse138" />
+  <ellipse
+     inkscape:label="Meta East AUC"
+     cx="869.97131"
+     cy="1385.483"
+     rx="50"
+     ry="40"
+     fill="#ffff00"
+     fill-opacity="0.5"
+     id="ellipse140" />
+  <ellipse
+     inkscape:label="Meta East Cartels"
+     cx="1035.5688"
+     cy="1444.801"
+     rx="50"
+     ry="40"
+     fill="#32cd32"
+     fill-opacity="0.5"
+     id="ellipse142" />
+  <ellipse
+     inkscape:label="Meta East FARC"
+     cx="931.43378"
+     cy="1460.4385"
+     rx="50"
+     ry="40"
+     fill="#ff0000"
+     fill-opacity="0.5"
+     id="ellipse144" />
+  <rect
+     inkscape:label="Meta East DRUGS"
+     x="1009.0693"
+     y="1298.2498"
+     width="92"
+     height="56"
+     fill="#ffffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="rect146" />
+  <text
+     x="-205.52834"
+     y="1313.1672"
+     text-anchor="end"
+     font-size="40px"
+     id="text148">Vichada</text>
+  <ellipse
+     inkscape:label="Vichada Govt"
+     cx="1246.3472"
+     cy="1255.1846"
+     rx="50"
+     ry="40"
+     fill="#00ffff"
+     fill-opacity="0.5"
+     id="ellipse150" />
+  <ellipse
+     inkscape:label="Vichada AUC"
+     cx="1278.1866"
+     cy="1344.0496"
+     rx="50"
+     ry="40"
+     fill="#ffff00"
+     fill-opacity="0.5"
+     id="ellipse152" />
+  <ellipse
+     inkscape:label="Vichada Cartels"
+     cx="1391.5193"
+     cy="1333.1716"
+     rx="50"
+     ry="40"
+     fill="#32cd32"
+     fill-opacity="0.5"
+     id="ellipse154" />
+  <ellipse
+     inkscape:label="Vichada FARC"
+     cx="1415.3964"
+     cy="1220.3065"
+     rx="50"
+     ry="40"
+     fill="#ff0000"
+     fill-opacity="0.5"
+     id="ellipse156" />
+  <rect
+     inkscape:label="Vichada DRUGS"
+     x="1269.3851"
+     y="1154.1056"
+     width="92"
+     height="56"
+     fill="#ffffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="rect158" />
+  <text
+     x="-205.52834"
+     y="1413.1672"
+     text-anchor="end"
+     font-size="40px"
+     id="text160">Guainia</text>
+  <ellipse
+     inkscape:label="Guainia Govt"
+     cx="1314.0579"
+     cy="1497.677"
+     rx="50"
+     ry="40"
+     fill="#00ffff"
+     fill-opacity="0.5"
+     id="ellipse162" />
+  <ellipse
+     inkscape:label="Guainia AUC"
+     cx="1490.2821"
+     cy="1459.7725"
+     rx="50"
+     ry="40"
+     fill="#ffff00"
+     fill-opacity="0.5"
+     id="ellipse164" />
+  <ellipse
+     inkscape:label="Guainia Cartels"
+     cx="1489.2178"
+     cy="1581.8478"
+     rx="50"
+     ry="40"
+     fill="#32cd32"
+     fill-opacity="0.5"
+     id="ellipse166" />
+  <ellipse
+     inkscape:label="Guainia FARC"
+     cx="1328.0775"
+     cy="1595.9828"
+     rx="50"
+     ry="40"
+     fill="#ff0000"
+     fill-opacity="0.5"
+     id="ellipse168" />
+  <rect
+     inkscape:label="Guainia DRUGS"
+     x="1366.6522"
+     y="1599.6589"
+     width="92"
+     height="56"
+     fill="#ffffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="rect170" />
+  <text
+     x="-205.52834"
+     y="1513.1672"
+     text-anchor="end"
+     font-size="40px"
+     id="text172">Vaupes</text>
+  <ellipse
+     inkscape:label="Vaupes Govt"
+     cx="1100.7959"
+     cy="1752.1694"
+     rx="50"
+     ry="40"
+     fill="#00ffff"
+     fill-opacity="0.5"
+     id="ellipse174" />
+  <ellipse
+     inkscape:label="Vaupes AUC"
+     cx="1211.8374"
+     cy="1720.4739"
+     rx="50"
+     ry="40"
+     fill="#ffff00"
+     fill-opacity="0.5"
+     id="ellipse176" />
+  <ellipse
+     inkscape:label="Vaupes Cartels"
+     cx="1182.505"
+     cy="1870.524"
+     rx="50"
+     ry="40"
+     fill="#32cd32"
+     fill-opacity="0.5"
+     id="ellipse178" />
+  <ellipse
+     inkscape:label="Vaupes FARC"
+     cx="1091.4261"
+     cy="1834.8876"
+     rx="50"
+     ry="40"
+     fill="#ff0000"
+     fill-opacity="0.5"
+     id="ellipse180" />
+  <rect
+     inkscape:label="Vaupes DRUGS"
+     x="1213.3019"
+     y="1772.5411"
+     width="92"
+     height="56"
+     fill="#ffffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="rect182" />
+  <text
+     x="-205.52834"
+     y="1613.1672"
+     text-anchor="end"
+     font-size="40px"
+     id="text184">Amazonas</text>
+  <ellipse
+     inkscape:label="Amazonas Govt"
+     cx="986.92365"
+     cy="2037.7451"
+     rx="50"
+     ry="40"
+     fill="#00ffff"
+     fill-opacity="0.5"
+     id="ellipse186" />
+  <ellipse
+     inkscape:label="Amazonas AUC"
+     cx="881.28503"
+     cy="2072.3257"
+     rx="50"
+     ry="40"
+     fill="#ffff00"
+     fill-opacity="0.5"
+     id="ellipse188" />
+  <ellipse
+     inkscape:label="Amazonas Cartels"
+     cx="1047.7527"
+     cy="2132.4722"
+     rx="50"
+     ry="40"
+     fill="#32cd32"
+     fill-opacity="0.5"
+     id="ellipse190" />
+  <ellipse
+     inkscape:label="Amazonas FARC"
+     cx="939.67639"
+     cy="2154.063"
+     rx="50"
+     ry="40"
+     fill="#ff0000"
+     fill-opacity="0.5"
+     id="ellipse192" />
+  <rect
+     inkscape:label="Amazonas DRUGS"
+     x="1030.8683"
+     y="1940.4235"
+     width="92"
+     height="56"
+     fill="#ffffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="rect194" />
+  <text
+     x="-205.52834"
+     y="1713.1672"
+     text-anchor="end"
+     font-size="40px"
+     id="text196">Ecuador</text>
+  <ellipse
+     inkscape:label="Ecuador Govt"
+     cx="42.499142"
+     cy="1780.3719"
+     rx="50"
+     ry="40"
+     fill="#00ffff"
+     fill-opacity="0.5"
+     id="ellipse198" />
+  <ellipse
+     inkscape:label="Ecuador AUC"
+     cx="56.941696"
+     cy="1830.5342"
+     rx="50"
+     ry="40"
+     fill="#ffff00"
+     fill-opacity="0.5"
+     id="ellipse200" />
+  <ellipse
+     inkscape:label="Ecuador Cartels"
+     cx="176.57443"
+     cy="1853.6278"
+     rx="50"
+     ry="40"
+     fill="#32cd32"
+     fill-opacity="0.5"
+     id="ellipse202" />
+  <ellipse
+     inkscape:label="Ecuador FARC"
+     cx="110.64832"
+     cy="1856.5065"
+     rx="50"
+     ry="40"
+     fill="#ff0000"
+     fill-opacity="0.5"
+     id="ellipse204" />
+  <rect
+     inkscape:label="Ecuador DRUGS"
+     x="212.03867"
+     y="1860.8184"
+     width="92"
+     height="56"
+     fill="#ffffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="rect206" />
+  <text
+     x="-205.52834"
+     y="1813.1672"
+     text-anchor="end"
+     font-size="40px"
+     id="text208">Panama</text>
+  <ellipse
+     inkscape:label="Panama Govt"
+     cx="65.419937"
+     cy="666.0979"
+     rx="50"
+     ry="40"
+     fill="#00ffff"
+     fill-opacity="0.5"
+     id="ellipse210" />
+  <ellipse
+     inkscape:label="Panama AUC"
+     cx="228.45033"
+     cy="841.6026"
+     rx="50"
+     ry="40"
+     fill="#ffff00"
+     fill-opacity="0.5"
+     id="ellipse212" />
+  <ellipse
+     inkscape:label="Panama Cartels"
+     cx="134.67325"
+     cy="709.26874"
+     rx="50"
+     ry="40"
+     fill="#32cd32"
+     fill-opacity="0.5"
+     id="ellipse214" />
+  <ellipse
+     inkscape:label="Panama FARC"
+     cx="222.04271"
+     cy="754.31036"
+     rx="50"
+     ry="40"
+     fill="#ff0000"
+     fill-opacity="0.5"
+     id="ellipse216" />
+  <rect
+     inkscape:label="Panama DRUGS"
+     x="155.47014"
+     y="878.97614"
+     width="92"
+     height="56"
+     fill="#ffffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="rect218" />
+  <text
+     x="1800"
+     y="110"
+     font-size="40"
+     id="text220">Sincelejo / Ayacucho</text>
   <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle926"
-     cx="302.58243"
-     cy="1664.4843"
+     inkscape:label="Sincelejo / Ayacucho COIN"
+     cx="700.41351"
+     cy="730.71942"
      r="15"
-     inkscape:label="Cali / Pasto 2" />
+     fill="#00ffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle222" />
   <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle928"
-     cx="371.8735"
-     cy="1594.8569"
+     inkscape:label="Sincelejo / Ayacucho INSURGENTS"
+     cx="613.53711"
+     cy="675.74841"
      r="15"
-     inkscape:label="Cali / Pasto 1" />
+     fill="#ff0000"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle224" />
+  <text
+     x="1800"
+     y="210"
+     font-size="40"
+     id="text226">Bucaramanga / Ayacucho</text>
   <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle930"
-     cx="558.64307"
-     cy="1644.0022"
+     inkscape:label="Bucaramanga / Ayacucho COIN"
+     cx="771.35297"
+     cy="779.36981"
      r="15"
-     inkscape:label="Neiva / Pasto 1" />
+     fill="#00ffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle228" />
   <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle932"
-     cx="490.11145"
-     cy="1743.2944"
+     inkscape:label="Bucaramanga / Ayacucho INSURGENTS"
+     cx="782.45239"
+     cy="874.552"
      r="15"
-     inkscape:label="Neiva / Pasto 2" />
+     fill="#ff0000"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle230" />
+  <text
+     x="1800"
+     y="310"
+     font-size="40"
+     id="text232">Cucuta / Ayacucho</text>
   <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle934"
-     cx="187.91862"
-     cy="1792.177"
+     inkscape:label="Cucuta / Ayacucho COIN"
+     cx="828.94531"
+     cy="740.49335"
      r="15"
-     inkscape:label="Pasto / Tumaco 1" />
+     fill="#00ffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle234" />
   <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle936"
-     cx="93.068954"
-     cy="1731.5269"
+     inkscape:label="Cucuta / Ayacucho INSURGENTS"
+     cx="899.43079"
+     cy="736.08081"
      r="15"
-     inkscape:label="Pasto / Tumaco 2" />
+     fill="#ff0000"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle236" />
+  <text
+     x="1800"
+     y="410"
+     font-size="40"
+     id="text238">Santa Marta / Ayacucho</text>
   <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle938"
-     cx="305.89505"
-     cy="1396.8805"
+     inkscape:label="Santa Marta / Ayacucho COIN"
+     cx="766.38696"
+     cy="642.50763"
      r="15"
-     inkscape:label="Cali / Buenaventura 1" />
+     fill="#00ffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle240" />
   <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle940"
-     cx="350.00513"
-     cy="1398.524"
+     inkscape:label="Santa Marta / Ayacucho INSURGENTS"
+     cx="716.23871"
+     cy="563.87891"
      r="15"
-     inkscape:label="Cali / Buenaventura 2" />
+     fill="#ff0000"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle242" />
+  <text
+     x="1800"
+     y="510"
+     font-size="40"
+     id="text244">Bogota / Yopal</text>
   <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle942"
-     cx="787.16791"
-     cy="886.78687"
+     inkscape:label="Bogota / Yopal COIN"
+     cx="852.91376"
+     cy="1308.6348"
      r="15"
-     inkscape:label="Bucaramanga / Ayacucho 1" />
+     fill="#00ffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle246" />
   <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle944"
-     cx="771.16791"
-     cy="778.78687"
+     inkscape:label="Bogota / Yopal INSURGENTS"
+     cx="912.43079"
+     cy="1230.938"
      r="15"
-     inkscape:label="Bucaramanga / Ayacucho 2" />
+     fill="#ff0000"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle248" />
+  <text
+     x="1800"
+     y="610"
+     font-size="40"
+     id="text250">Bogota / Neiva</text>
   <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle946"
-     cx="870.53571"
-     cy="1494.4539"
+     inkscape:label="Bogota / Neiva COIN"
+     cx="655.479"
+     cy="1412.7731"
      r="15"
-     inkscape:label="Bogota / San Jose 1" />
+     fill="#00ffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle252" />
   <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle948"
-     cx="786.06989"
-     cy="1446.0952"
+     inkscape:label="Bogota / Neiva INSURGENTS"
+     cx="599.53711"
+     cy="1458.295"
      r="15"
-     inkscape:label="Bogota / San Jose 2" />
+     fill="#ff0000"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle254" />
+  <text
+     x="1800"
+     y="710"
+     font-size="40"
+     id="text256">Bogota / San Jose</text>
   <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle950"
-     cx="517.04877"
-     cy="630.6593"
+     inkscape:label="Bogota / San Jose COIN"
+     cx="783.76801"
+     cy="1446.5593"
      r="15"
-     inkscape:label="Cartagena / Sincelejo 1" />
+     fill="#00ffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle258" />
   <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle952"
-     cx="516.04877"
-     cy="588.6593"
+     inkscape:label="Bogota / San Jose INSURGENTS"
+     cx="871.01324"
+     cy="1494.5643"
      r="15"
-     inkscape:label="Cartagena / Sincelejo 2" />
+     fill="#ff0000"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle260" />
+  <text
+     x="1800"
+     y="810"
+     font-size="40"
+     id="text262">Bucaramanga / Ibague / Bogota</text>
   <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle954"
-     cx="565.59393"
-     cy="479.23947"
+     inkscape:label="Bucaramanga / Ibague / Bogota COIN"
+     cx="658.96643"
+     cy="1255.9956"
      r="15"
-     inkscape:label="Santa Marta / Cartagena 1" />
+     fill="#00ffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle264" />
   <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle956"
-     cx="609.58752"
-     cy="440.97626"
+     inkscape:label="Bucaramanga / Ibague / Bogota INSURGENTS"
+     cx="640.15509"
+     cy="1166.4681"
      r="15"
-     inkscape:label="Santa Marta / Cartagena 2" />
+     fill="#ff0000"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle266" />
+  <text
+     x="1800"
+     y="910"
+     font-size="40"
+     id="text268">Cucuta / Arauca</text>
   <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle99"
-     cx="424.80762"
-     cy="1402.9027"
+     inkscape:label="Cucuta / Arauca COIN"
+     cx="951.06201"
+     cy="947.45398"
      r="15"
-     inkscape:label="Ibague / Cali 2" />
+     fill="#00ffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle270" />
   <circle
-     style="fill:#ffffff;fill-opacity:0.703252;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:bevel;stroke-opacity:1"
-     id="circle888"
-     cx="450.0816"
-     cy="1335.0099"
+     inkscape:label="Cucuta / Arauca INSURGENTS"
+     cx="1052.6858"
+     cy="984.59479"
      r="15"
-     inkscape:label="Ibague / Cali 1" />
+     fill="#ff0000"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle272" />
+  <text
+     x="1800"
+     y="1010"
+     font-size="40"
+     id="text274">Neiva / Pasto</text>
+  <circle
+     inkscape:label="Neiva / Pasto COIN"
+     cx="544.57111"
+     cy="1652.205"
+     r="15"
+     fill="#00ffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle276" />
+  <circle
+     inkscape:label="Neiva / Pasto INSURGENTS"
+     cx="491.93985"
+     cy="1734.972"
+     r="15"
+     fill="#ff0000"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle278" />
+  <text
+     x="1800"
+     y="1110"
+     font-size="40"
+     id="text280">Pasto / Tumaco</text>
+  <circle
+     inkscape:label="Pasto / Tumaco COIN"
+     cx="182.0511"
+     cy="1789.4501"
+     r="15"
+     fill="#00ffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle282" />
+  <circle
+     inkscape:label="Pasto / Tumaco INSURGENTS"
+     cx="109.55576"
+     cy="1743.9281"
+     r="15"
+     fill="#ff0000"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle284" />
+  <text
+     x="1800"
+     y="1210"
+     font-size="40"
+     id="text286">Cali / Pasto</text>
+  <circle
+     inkscape:label="Cali / Pasto COIN"
+     cx="311.99545"
+     cy="1650.2531"
+     r="15"
+     fill="#00ffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle288" />
+  <circle
+     inkscape:label="Cali / Pasto INSURGENTS"
+     cx="372.75519"
+     cy="1594.7992"
+     r="15"
+     fill="#ff0000"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle290" />
+  <text
+     x="1800"
+     y="1310"
+     font-size="40"
+     id="text292">Cali / Buenaventura</text>
+  <circle
+     inkscape:label="Cali / Buenaventura COIN"
+     cx="343.48096"
+     cy="1399.8375"
+     r="15"
+     fill="#00ffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle294" />
+  <circle
+     inkscape:label="Cali / Buenaventura INSURGENTS"
+     cx="303.81573"
+     cy="1393.9758"
+     r="15"
+     fill="#ff0000"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle296" />
+  <text
+     x="1800"
+     y="1410"
+     font-size="40"
+     id="text298">Ibague / Cali</text>
+  <circle
+     inkscape:label="Ibague / Cali COIN"
+     cx="423.73108"
+     cy="1407.4491"
+     r="15"
+     fill="#00ffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle300" />
+  <circle
+     inkscape:label="Ibague / Cali INSURGENTS"
+     cx="452.21161"
+     cy="1339.58"
+     r="15"
+     fill="#ff0000"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle302" />
+  <text
+     x="1800"
+     y="1510"
+     font-size="40"
+     id="text304">Medellin / Ibague</text>
+  <circle
+     inkscape:label="Medellin / Ibague COIN"
+     cx="508.3938"
+     cy="1192.9"
+     r="15"
+     fill="#00ffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle306" />
+  <circle
+     inkscape:label="Medellin / Ibague INSURGENTS"
+     cx="512.01276"
+     cy="1142.1016"
+     r="15"
+     fill="#ff0000"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle308" />
+  <text
+     x="1800"
+     y="1610"
+     font-size="40"
+     id="text310">Cartagena / Sincelejo</text>
+  <circle
+     inkscape:label="Cartagena / Sincelejo COIN"
+     cx="521.73846"
+     cy="643.24609"
+     r="15"
+     fill="#00ffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle312" />
+  <circle
+     inkscape:label="Cartagena / Sincelejo INSURGENTS"
+     cx="529.18506"
+     cy="578.65375"
+     r="15"
+     fill="#ff0000"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle314" />
+  <text
+     x="1800"
+     y="1710"
+     font-size="40"
+     id="text316">Sincelejo / Medellin</text>
+  <circle
+     inkscape:label="Sincelejo / Medellin COIN"
+     cx="549.73578"
+     cy="930.95599"
+     r="15"
+     fill="#00ffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle318" />
+  <circle
+     inkscape:label="Sincelejo / Medellin INSURGENTS"
+     cx="540.86963"
+     cy="831.48621"
+     r="15"
+     fill="#ff0000"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle320" />
+  <text
+     x="1800"
+     y="1810"
+     font-size="40"
+     id="text322">Santa Marta / Cartagena</text>
+  <circle
+     inkscape:label="Santa Marta / Cartagena COIN"
+     cx="563.4408"
+     cy="469.13724"
+     r="15"
+     fill="#00ffff"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle324" />
+  <circle
+     inkscape:label="Santa Marta / Cartagena INSURGENTS"
+     cx="607.58832"
+     cy="441.0451"
+     r="15"
+     fill="#ff0000"
+     fill-opacity="0.5"
+     stroke="#000000"
+     id="circle326" />
 </svg>

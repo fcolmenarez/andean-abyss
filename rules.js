@@ -319,7 +319,8 @@ exports.setup = function (seed, scenario, options) {
 				game.deck.push(i)
 	}
 
-	// game.deck[1] = /* TEST */ 73
+	game.deck[0] = /* TEST */ 24
+	game.capabilities = [ EVT_SUCUMBIOS, EVT_DARIEN ]
 	log("DECK " + game.deck.join(", "))
 
 	update_control()
@@ -4992,7 +4993,7 @@ states.process_place_shipments = {
 				view.actions.end_process = 1
 		} else {
 			for (let s = first_space; s <= last_space; ++s) {
-				if (has_cartels_base(s)) {
+				{ // XXX if (has_cartels_base(s)) {
 					gen_piece_in_space(s, FARC, GUERRILLA)
 					gen_piece_in_space(s, AUC, GUERRILLA)
 					gen_piece_in_space(s, CARTELS, GUERRILLA)

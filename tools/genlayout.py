@@ -25,6 +25,9 @@ def readsvg(filename):
 			mode = 'circle'
 			x = y = w = h = 0
 			name = None
+		elif line == "<text":
+			flush()
+			mode = None
 		if line.startswith('x="'): x = round(float(line.split('"')[1]))
 		if line.startswith('y="'): y = round(float(line.split('"')[1]))
 		if line.startswith('width="'): w = round(float(line.split('"')[1]))

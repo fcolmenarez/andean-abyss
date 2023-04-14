@@ -2,7 +2,184 @@
 
 /* global view, data, player, send_action, action_button */
 
-// TODO: layout loc
+// :r !python3 tools/genlayout.py
+// BEGIN LAYOUT DATA
+const LAYOUT = {
+	"Santa Marta": [682, 436],
+	"Cartagena": [500, 512],
+	"Sincelejo": [514, 708],
+	"Medellin": [513, 1066],
+	"Ibague": [507, 1278],
+	"Cali": [391, 1497],
+	"Pasto": [274, 1783],
+	"Neiva": [589, 1542],
+	"Bogota": [754, 1336],
+	"Bucaramanga": [839, 980],
+	"Cucuta": [951, 864],
+	"Guainia": [1409, 1542],
+	"Vaupes": [1167, 1785],
+	"Amazonas": [1085, 2064],
+	"Vichada": [1340, 1274],
+	"Ecuador": [94, 1792],
+	"Panama": [188, 686],
+	"Cesar": [802, 533],
+	"Atlantico": [646, 642],
+	"Antioquia": [666, 910],
+	"Choco": [373, 1040],
+	"Narino": [212, 1642],
+	"Huila": [457, 1628],
+	"Santander": [818, 1177],
+	"Arauca": [1092, 1128],
+	"Meta East": [973, 1410],
+	"Meta West": [720, 1539],
+	"Guaviare": [976, 1669],
+	"Putumayo": [680, 1826],
+	"Sincelejo / Ayacucho": [642, 696],
+	"Cucuta / Arauca": [994, 977],
+	"Bucaramanga / Ibague / Bogota": [626, 1224],
+	"Bogota / Yopal": [887, 1276],
+	"Bogota / Neiva": [612, 1414],
+	"Bogota / San Jose": [826, 1474],
+	"Neiva / Pasto": [530, 1698],
+	"Pasto / Tumaco": [146, 1766],
+	"Cali / Pasto": [348, 1625],
+	"Cali / Buenaventura": [368, 1412],
+	"Ibague / Cali": [436, 1362],
+	"Medellin / Ibague": [511, 1169],
+	"Cartagena / Sincelejo": [514, 613],
+	"Sincelejo / Medellin": [563, 876],
+	"Bucaramanga / Ayacucho": [778, 830],
+	"Cucuta / Ayacucho": [872, 708],
+	"Santa Marta / Ayacucho": [746, 601],
+	"Santa Marta / Cartagena": [588, 466],
+	"Atlantico Govt": [619, 504],
+	"Atlantico AUC": [580, 603],
+	"Atlantico Cartels": [634, 548],
+	"Atlantico FARC": [702, 664],
+	"Atlantico DRUGS": [713, 573],
+	"Choco Govt": [338, 1097],
+	"Choco AUC": [366, 915],
+	"Choco Cartels": [337, 1275],
+	"Choco FARC": [396, 1186],
+	"Choco DRUGS": [456, 957],
+	"Narino Govt": [185, 1562],
+	"Narino AUC": [293, 1554],
+	"Narino Cartels": [217, 1688],
+	"Narino FARC": [140, 1687],
+	"Narino DRUGS": [274, 1469],
+	"Meta West Govt": [678, 1461],
+	"Meta West AUC": [679, 1549],
+	"Meta West Cartels": [819, 1540],
+	"Meta West FARC": [702, 1632],
+	"Meta West DRUGS": [763, 1480],
+	"Guaviare Govt": [907, 1615],
+	"Guaviare AUC": [1091, 1603],
+	"Guaviare Cartels": [972, 1724],
+	"Guaviare FARC": [837, 1682],
+	"Guaviare DRUGS": [969, 1584],
+	"Putumayo Govt": [552, 1798],
+	"Putumayo AUC": [621, 1866],
+	"Putumayo Cartels": [882, 1876],
+	"Putumayo FARC": [749, 1886],
+	"Putumayo DRUGS": [638, 1715],
+	"Cesar Govt": [805, 437],
+	"Cesar AUC": [819, 584],
+	"Cesar Cartels": [985, 338],
+	"Cesar FARC": [901, 399],
+	"Cesar DRUGS": [1054, 298],
+	"Antioquia Govt": [621, 766],
+	"Antioquia AUC": [715, 807],
+	"Antioquia Cartels": [603, 978],
+	"Antioquia FARC": [703, 965],
+	"Antioquia DRUGS": [594, 1138],
+	"Santander Govt": [848, 824],
+	"Santander AUC": [779, 1074],
+	"Santander Cartels": [824, 1219],
+	"Santander FARC": [716, 1180],
+	"Santander DRUGS": [880, 1089],
+	"Huila Govt": [618, 1318],
+	"Huila AUC": [504, 1498],
+	"Huila Cartels": [547, 1402],
+	"Huila FARC": [410, 1688],
+	"Huila DRUGS": [383, 1766],
+	"Arauca Govt": [981, 1113],
+	"Arauca AUC": [1217, 1036],
+	"Arauca Cartels": [1196, 1118],
+	"Arauca FARC": [1062, 1195],
+	"Arauca DRUGS": [1073, 1033],
+	"Meta East Govt": [964, 1283],
+	"Meta East AUC": [870, 1385],
+	"Meta East Cartels": [1036, 1445],
+	"Meta East FARC": [931, 1460],
+	"Meta East DRUGS": [1055, 1326],
+	"Vichada Govt": [1246, 1255],
+	"Vichada AUC": [1278, 1344],
+	"Vichada Cartels": [1392, 1333],
+	"Vichada FARC": [1415, 1220],
+	"Vichada DRUGS": [1315, 1182],
+	"Guainia Govt": [1314, 1498],
+	"Guainia AUC": [1490, 1460],
+	"Guainia Cartels": [1489, 1582],
+	"Guainia FARC": [1328, 1596],
+	"Guainia DRUGS": [1413, 1628],
+	"Vaupes Govt": [1101, 1752],
+	"Vaupes AUC": [1212, 1720],
+	"Vaupes Cartels": [1183, 1871],
+	"Vaupes FARC": [1091, 1835],
+	"Vaupes DRUGS": [1259, 1801],
+	"Amazonas Govt": [987, 2038],
+	"Amazonas AUC": [881, 2072],
+	"Amazonas Cartels": [1048, 2132],
+	"Amazonas FARC": [940, 2154],
+	"Amazonas DRUGS": [1077, 1968],
+	"Ecuador Govt": [42, 1780],
+	"Ecuador AUC": [57, 1831],
+	"Ecuador Cartels": [177, 1854],
+	"Ecuador FARC": [111, 1857],
+	"Ecuador DRUGS": [258, 1889],
+	"Panama Govt": [65, 666],
+	"Panama AUC": [228, 842],
+	"Panama Cartels": [135, 709],
+	"Panama FARC": [222, 754],
+	"Panama DRUGS": [201, 907],
+	"Sincelejo / Ayacucho COIN": [700, 731],
+	"Sincelejo / Ayacucho INSURGENTS": [614, 676],
+	"Bucaramanga / Ayacucho COIN": [771, 779],
+	"Bucaramanga / Ayacucho INSURGENTS": [782, 875],
+	"Cucuta / Ayacucho COIN": [829, 740],
+	"Cucuta / Ayacucho INSURGENTS": [899, 736],
+	"Santa Marta / Ayacucho COIN": [766, 643],
+	"Santa Marta / Ayacucho INSURGENTS": [716, 564],
+	"Bogota / Yopal COIN": [853, 1309],
+	"Bogota / Yopal INSURGENTS": [912, 1231],
+	"Bogota / Neiva COIN": [655, 1413],
+	"Bogota / Neiva INSURGENTS": [600, 1458],
+	"Bogota / San Jose COIN": [784, 1447],
+	"Bogota / San Jose INSURGENTS": [871, 1495],
+	"Bucaramanga / Ibague / Bogota COIN": [659, 1256],
+	"Bucaramanga / Ibague / Bogota INSURGENTS": [640, 1166],
+	"Cucuta / Arauca COIN": [951, 947],
+	"Cucuta / Arauca INSURGENTS": [1053, 985],
+	"Neiva / Pasto COIN": [545, 1652],
+	"Neiva / Pasto INSURGENTS": [492, 1735],
+	"Pasto / Tumaco COIN": [182, 1789],
+	"Pasto / Tumaco INSURGENTS": [110, 1744],
+	"Cali / Pasto COIN": [312, 1650],
+	"Cali / Pasto INSURGENTS": [373, 1595],
+	"Cali / Buenaventura COIN": [343, 1400],
+	"Cali / Buenaventura INSURGENTS": [304, 1394],
+	"Ibague / Cali COIN": [424, 1407],
+	"Ibague / Cali INSURGENTS": [452, 1340],
+	"Medellin / Ibague COIN": [508, 1193],
+	"Medellin / Ibague INSURGENTS": [512, 1142],
+	"Cartagena / Sincelejo COIN": [522, 643],
+	"Cartagena / Sincelejo INSURGENTS": [529, 579],
+	"Sincelejo / Medellin COIN": [550, 931],
+	"Sincelejo / Medellin INSURGENTS": [541, 831],
+	"Santa Marta / Cartagena COIN": [563, 469],
+	"Santa Marta / Cartagena INSURGENTS": [608, 441],
+}
+// END LAYOUT DATA
 
 // Factions
 const GOVT = 0
@@ -224,167 +401,18 @@ function on_click_action(evt) {
 		send_action(evt.target.my_action, evt.target.my_id)
 }
 
-// TODO: process LAYOUT into specific arrays for each layout type indexed by space number rather than string id
-
-// :r !python3 tools/genlayout.py
-const LAYOUT = {
-	"Santa Marta": [682, 436],
-	"Cartagena": [500, 512],
-	"Sincelejo": [514, 708],
-	"Medellin": [513, 1066],
-	"Ibague": [507, 1278],
-	"Cali": [391, 1497],
-	"Pasto": [274, 1783],
-	"Neiva": [589, 1542],
-	"Bogota": [754, 1336],
-	"Bucaramanga": [839, 980],
-	"Cucuta": [951, 864],
-	"Guainia": [1409, 1542],
-	"Vaupes": [1167, 1785],
-	"Amazonas": [1085, 2064],
-	"Vichada": [1340, 1274],
-	"Ecuador": [94, 1792],
-	"Panama": [188, 686],
-	"Cesar": [802, 533],
-	"Atlantico": [646, 642],
-	"Antioquia": [666, 910],
-	"Choco": [373, 1040],
-	"Narino": [212, 1642],
-	"Huila": [457, 1628],
-	"Santander": [818, 1177],
-	"Arauca": [1092, 1128],
-	"Meta East": [973, 1410],
-	"Meta West": [720, 1539],
-	"Guaviare": [976, 1669],
-	"Putumayo": [680, 1826],
-	"Sincelejo / Ayacucho": [642, 696],
-	"Cucuta / Arauca": [994, 977],
-	"Bucaramanga / Ibague / Bogota": [626, 1224],
-	"Bogota / Yopal": [887, 1276],
-	"Bogota / Neiva": [612, 1414],
-	"Bogota / San Jose": [826, 1474],
-	"Neiva / Pasto": [530, 1698],
-	"Pasto / Tumaco": [146, 1766],
-	"Cali / Pasto": [348, 1625],
-	"Cali / Buenaventura": [368, 1412],
-	"Ibague / Cali": [436, 1362],
-	"Medellin / Ibague": [511, 1169],
-	"Cartagena / Sincelejo": [514, 613],
-	"Sincelejo / Medellin": [563, 876],
-	"Bucaramanga / Ayacucho": [778, 830],
-	"Cucuta / Ayacucho": [872, 708],
-	"Santa Marta / Ayacucho": [746, 601],
-	"Santa Marta / Cartagena": [588, 466],
-	"Atlantico BASE": [714, 674],
-	"Putumayo INSURGENT": [822, 1866],
-	"Putumayo COIN": [551, 1835],
-	"Amazonas COIN": [841, 2057],
-	"Amazonas INSURGENT": [980, 2058],
-	"Vaupes COIN": [1195, 1696],
-	"Vaupes INSURGENT": [1068, 1824],
-	"Guaviare INSURGENT": [850, 1657],
-	"Guaviare COIN": [1100, 1620],
-	"Guainia INSURGENT": [1298, 1544],
-	"Guainia COIN": [1499, 1463],
-	"Vichada INSURGENT": [1213, 1298],
-	"Vichada COIN": [1463, 1226],
-	"Arauca INSURGENT": [1216, 1104],
-	"Arauca COIN": [992, 1114],
-	"Meta East COIN": [975, 1287],
-	"Meta East INSURGENT": [866, 1407],
-	"Meta West INSURGENT": [718, 1643],
-	"Meta West COIN": [825, 1546],
-	"Santander INSURGENT": [714, 1160],
-	"Santander COIN": [845, 833],
-	"Antioquia INSURGENT": [644, 1026],
-	"Antioquia COIN": [630, 767],
-	"Huila COIN": [608, 1343],
-	"Huila INSURGENT": [383, 1733],
-	"Narino INSURGENT": [276, 1520],
-	"Narino COIN": [189, 1729],
-	"Choco COIN": [416, 908],
-	"Choco INSURGENT": [377, 1157],
-	"Panama INSURGENT": [216, 816],
-	"Panama COIN": [97, 690],
-	"Ecuador COIN": [98, 1897],
-	"Ecuador INSURGENT": [203, 1862],
-	"Cesar INSURGENT": [908, 405],
-	"Cesar COIN": [817, 608],
-	"Atlantico INSURGENT": [617, 511],
-	"Atlantico COIN": [586, 562],
-	"Amazonas DRUGS": [934, 2155],
-	"Putumayo DRUGS": [890, 1935],
-	"Huila DRUGS": [516, 1434],
-	"Vaupes DRUGS": [1180, 1905],
-	"Guainia DRUGS": [1357, 1653],
-	"Vichada Drugs INSURGENT": [1217, 1393],
-	"Arauca DRUGS": [1075, 1213],
-	"Meta East DRUGS": [981, 1499],
-	"Guaviare DRUGS": [971, 1751],
-	"Meta West DRUGS": [690, 1458],
-	"Narino DRUGS": [155, 1565],
-	"Choco DRUGS": [359, 1251],
-	"Panama DRUGS": [201, 876],
-	"Antioquia DRUGS": [586, 1157],
-	"Santander DRUGS": [809, 1081],
-	"Atlantico DRUGS": [597, 626],
-	"Cesar DRUGS": [1021, 329],
-	"Ecuador DRUGS": [315, 1895],
-	"Bogota / Neiva 2": [664, 1410],
-	"Bogota / Neiva 1": [602, 1456],
-	"Bucaramanga / Ibague / Bogota 1": [641, 1165],
-	"Bucaramanga / Ibague / Bogota 2": [737, 1028],
-	"Bogota / Yopal 1": [911, 1237],
-	"Bogota / Yopal 2": [861, 1304],
-	"Cucuta / Arauca 1": [956, 953],
-	"Cucuta / Arauca 2": [1059, 983],
-	"Cucuta / Ayacucho 1": [911, 759],
-	"Cucuta / Ayacucho 2": [826, 740],
-	"Sincelejo / Ayacucho 2": [675, 721],
-	"Sincelejo / Ayacucho 1": [607, 676],
-	"Santa Marta / Ayacucho 1": [712, 554],
-	"Santa Marta / Ayacucho 2": [774, 653],
-	"Sincelejo / Medellin 1": [527, 825],
-	"Sincelejo / Medellin 2": [547, 941],
-	"Medellin / Ibague 1": [508, 1199],
-	"Medellin / Ibague 2": [511, 1143],
-	"Cali / Pasto 2": [303, 1664],
-	"Cali / Pasto 1": [372, 1595],
-	"Neiva / Pasto 1": [559, 1644],
-	"Neiva / Pasto 2": [490, 1743],
-	"Pasto / Tumaco 1": [188, 1792],
-	"Pasto / Tumaco 2": [93, 1732],
-	"Cali / Buenaventura 1": [306, 1397],
-	"Cali / Buenaventura 2": [350, 1399],
-	"Bucaramanga / Ayacucho 1": [787, 887],
-	"Bucaramanga / Ayacucho 2": [771, 779],
-	"Bogota / San Jose 1": [871, 1494],
-	"Bogota / San Jose 2": [786, 1446],
-	"Cartagena / Sincelejo 1": [517, 631],
-	"Cartagena / Sincelejo 2": [516, 589],
-	"Santa Marta / Cartagena 1": [566, 479],
-	"Santa Marta / Cartagena 2": [610, 441],
-	"Ibague / Cali 2": [425, 1403],
-	"Ibague / Cali 1": [450, 1335],
-}
-
 function get_center_xy(s) {
 	let id = data.spaces[s].id
 	return LAYOUT[id]
 }
 
-function get_layout_coin(s) {
-	let id = data.spaces[s].id + " COIN"
+function get_layout_dept(s, f) {
+	let id = data.spaces[s].id + " " + f
 	return LAYOUT[id]
 }
 
-function get_layout_loc(s, n) {
-	let id = data.spaces[s].id + " " + n
-	return LAYOUT[id]
-}
-
-function get_layout_insurgents(s) {
-	let id = data.spaces[s].id + " INSURGENT"
+function get_layout_loc(s, f) {
+	let id = data.spaces[s].id + " " + f
 	return LAYOUT[id]
 }
 
@@ -603,34 +631,45 @@ function filter_piece_list(list, space, faction, type) {
 function layout_available(faction, type, xorig, yorig) {
 	let list = []
 	filter_piece_list(list, AVAILABLE, faction, type)
-	layout_pieces(list, xorig, yorig)
+	layout_pieces(list, xorig, yorig, null)
 }
 
-function layout_pieces(list, xorig, yorig) {
+function layout_pieces(list, xorig, yorig, bases, s) {
 	const dx = 17
 	const dy = 11
-	function layout_piece(nrow, ncol, row, col, e, z) {
+	let off_x = 0
+	let off_y = 0
+	if (bases && bases.length === 0)
+		off_y = 25
+	function layout_piece_rowcol(nrow, ncol, row, col, e, z) {
 		// basic piece size = 29x36
-		let x = xorig - (row * dx - col * dx) - 15 + (nrow-ncol) * 6
-		let y = yorig - (row * dy + col * dy) - 24 + (nrow-1) * 8
+		let x = xorig - (row * dx - col * dx) - 15 + off_x
+		let y = yorig - (row * dy + col * dy) - 24 + off_y
 		let xo = e.my_x_offset
 		let yo = e.my_y_offset
 		e.style.left = (xo + x) + "px"
 		e.style.top = (yo + y) + "px"
-		e.style.zIndex = z
+		e.style.zIndex = y
 		e.my_x = x + 15
 		e.my_y = y + 24
 		e.my_z = z
 	}
 	if (list.length > 0) {
-		let ncol = Math.round(Math.sqrt(list.length))
-		let nrow = Math.ceil(list.length / ncol)
+		let nrow = Math.round(Math.sqrt(list.length))
+		let ncol = Math.ceil(list.length / nrow)
 		let z = 50
 		let i = 0
+		if (s <= last_city || s >= first_loc) {
+			off_x = (nrow - ncol) * 6
+			off_y = (nrow - 1) * 8
+		}
 		for (let row = 0; row < nrow; ++row)
-			for (let col = 0; col < ncol && i < list.length; ++col)
-				layout_piece(nrow, ncol, row, col, list[list.length-(++i)], z--)
+			for (let col = 0; col < ncol; ++col)
+				if (i < list.length)
+					layout_piece_rowcol(nrow, ncol, row, col, list[list.length-(++i)], z--)
 	}
+	if (bases)
+		layout_dept_bases(bases, xorig + off_x, yorig + 12 + off_y, s)
 }
 
 function place_piece(p, x, y, z) {
@@ -659,18 +698,39 @@ function layout_loc_pieces(list, xorig, yorig, dir) {
 	}
 }
 
-function layout_loc_pieces2(list, xorig, yorig, dir) {
-	let a = (dir * Math.PI) / 4
-	let dx = Math.round(24 * 2 * Math.sin(a))
-	let dy = -Math.round(15 * 2 * Math.cos(a))
-	layout_pieces(list, xorig + dx, yorig + dy)
+function layout_dept_bases(list, xc, yc, s) {
+	if (data.spaces[s].type !== "mountain") {
+		if (list.length > 0)
+			place_piece(list[0], xc - 20 + 32, yc - 10, 51)
+		if (list.length > 1)
+			place_piece(list[1], xc - 20 - 32, yc - 10, 52)
+	} else {
+		if (list.length > 0)
+			place_piece(list[0], xc - 20 - 32, yc - 10, 51)
+		if (list.length > 1)
+			place_piece(list[1], xc - 20 + 32, yc - 10, 52)
+	}
 }
 
-function layout_dept_bases(list, xc, yc) {
+function layout_dept_bases2(list, xc, yc, s) {
+	if (1||data.spaces[s].type === "mountain") {
+		if (list.length > 0)
+			place_piece(list[0], xc - 20 + 25, yc - 16, 51)
+		if (list.length > 1)
+			place_piece(list[1], xc - 20 - 25, yc - 16, 52)
+	} else {
+		if (list.length > 0)
+			place_piece(list[0], xc - 20 - 32, yc - 11, 51)
+		if (list.length > 1)
+			place_piece(list[1], xc - 20 + 32, yc - 11, 52)
+	}
+}
+
+function layout_city_bases(list, xc, yc) {
 	if (list.length > 0)
-		place_piece(list[0], xc - 21 - 25, yc - 19, 50)
+		place_piece(list[0], xc - 21 + 25, yc - 20, 51)
 	if (list.length > 1)
-		place_piece(list[1], xc - 21 + 25, yc - 19, 50)
+		place_piece(list[1], xc - 21 - 25, yc - 20, 52)
 }
 
 function layout_available_bases(list, x0, y0, cols, rows, dx, dy) {
@@ -1102,6 +1162,7 @@ function on_update() {
 	let tix = 0
 
 	let list = []
+	let bases = []
 	for (let s = 0; s < data.spaces.length; ++s) {
 		let id = data.spaces[s].id
 		let xy
@@ -1141,58 +1202,61 @@ function on_update() {
 		update_guerrillas_underground(AUC, GUERRILLA, view.underground[AUC])
 		update_guerrillas_underground(CARTELS, GUERRILLA, view.underground[CARTELS])
 
-		if (s <= last_city) {
-			list.length = 0
-			filter_piece_list(list, s, FARC, GUERRILLA)
-			filter_piece_list(list, s, AUC, GUERRILLA)
-			filter_piece_list(list, s, CARTELS, GUERRILLA)
-			filter_piece_list(list, s, GOVT, TROOPS)
-			filter_piece_list(list, s, GOVT, POLICE)
-			xy = get_center_xy(s)
-			layout_pieces(list, xy[0], xy[1])
-		} else if (s <= last_dept) {
-			list.length = 0
-			filter_piece_list(list, s, FARC, GUERRILLA)
-			filter_piece_list(list, s, CARTELS, GUERRILLA)
-			xy = get_layout_insurgents(s)
-			layout_pieces(list, xy[0], xy[1])
+		console.log("LAYOUT", id)
 
-			list.length = 0
+		if (s <= last_city) {
+			list.length = bases.length = 0
+			filter_piece_list(list, s, FARC, GUERRILLA)
 			filter_piece_list(list, s, AUC, GUERRILLA)
+			filter_piece_list(list, s, CARTELS, GUERRILLA)
 			filter_piece_list(list, s, GOVT, TROOPS)
 			filter_piece_list(list, s, GOVT, POLICE)
-			xy = get_layout_coin(s)
-			layout_pieces(list, xy[0], xy[1])
+			filter_piece_list(bases, s, GOVT, BASE)
+			filter_piece_list(bases, s, FARC, BASE)
+			filter_piece_list(bases, s, AUC, BASE)
+			filter_piece_list(bases, s, CARTELS, BASE)
+			xy = get_center_xy(s)
+			layout_pieces(list, xy[0], xy[1], null, s)
+			layout_city_bases(bases, xy[0], xy[1] + get_layout_radius(s) - 12)
+		} else if (s <= last_dept) {
+			list.length = bases.length = 0
+			filter_piece_list(list, s, FARC, GUERRILLA)
+			filter_piece_list(bases, s, FARC, BASE)
+			xy = get_layout_dept(s, "FARC")
+			layout_pieces(list, xy[0], xy[1], bases, s)
+
+			list.length = bases.length = 0
+			filter_piece_list(list, s, AUC, GUERRILLA)
+			filter_piece_list(bases, s, AUC, BASE)
+			xy = get_layout_dept(s, "AUC")
+			layout_pieces(list, xy[0], xy[1], bases, s)
+
+			list.length = bases.length = 0
+			filter_piece_list(list, s, CARTELS, GUERRILLA)
+			filter_piece_list(bases, s, CARTELS, BASE)
+			xy = get_layout_dept(s, "Cartels")
+			layout_pieces(list, xy[0], xy[1], bases, s)
+
+			list.length = bases.length = 0
+			filter_piece_list(list, s, GOVT, TROOPS)
+			filter_piece_list(list, s, GOVT, POLICE)
+			filter_piece_list(bases, s, GOVT, BASE)
+			xy = get_layout_dept(s, "Govt")
+			layout_pieces(list, xy[0], xy[1], bases, s)
 		} else {
 			list.length = 0
 			filter_piece_list(list, s, FARC, GUERRILLA)
 			filter_piece_list(list, s, AUC, GUERRILLA)
 			filter_piece_list(list, s, CARTELS, GUERRILLA)
-			xy = get_layout_loc(s, 1)
-			layout_pieces(list, xy[0], xy[1])
+			xy = get_layout_loc(s, "INSURGENTS")
+			layout_pieces(list, xy[0], xy[1], null, s)
 
 			list.length = 0
 			filter_piece_list(list, s, GOVT, TROOPS)
 			filter_piece_list(list, s, GOVT, POLICE)
-			xy = get_layout_loc(s, 2)
-			layout_pieces(list, xy[0], xy[1])
+			xy = get_layout_loc(s, "COIN")
+			layout_pieces(list, xy[0], xy[1], null, s)
 		}
-
-		list.length = 0
-		filter_piece_list(list, s, GOVT, BASE)
-		filter_piece_list(list, s, FARC, BASE)
-		filter_piece_list(list, s, AUC, BASE)
-		filter_piece_list(list, s, CARTELS, BASE)
-
-		xy = get_center_xy(s)
-		if (s <= last_city)
-			layout_dept_bases(list, xy[0], xy[1] + get_layout_radius(s) - 12)
-		else if (s === ATLANTICO)
-			layout_dept_bases(list, 714, 674)
-		else if (s <= last_pop)
-			layout_dept_bases(list, xy[0], xy[1] + 32, 0)
-		else
-			layout_dept_bases(list, xy[0], xy[1] + 32+25, 0)
 
 		list.length = 0
 		for (let i = 0; i < 4; ++i) {

@@ -154,6 +154,11 @@ path.tip { stroke: yellow; }
 .farc.guerrilla.active { background-image: url(images/farc_guerrilla_active.svg) }
 .farc.base { background-image: url(images/farc_base.svg) }
 
+.base { border-radius: 15px; }
+.guerrilla { border-radius: 8px; }
+.police, .troops { border-radius: 14px 14px / 10px 10px; }
+
+
 /* TOKENS */
 
 .token {
