@@ -40,21 +40,20 @@
      inkscape:window-height="480"
      id="namedview330"
      showgrid="false"
-     inkscape:zoom="1.0464316"
+     inkscape:zoom="0.93445935"
      inkscape:cx="932.7326"
-     inkscape:cy="650.77941"
+     inkscape:cy="1036.0289"
      inkscape:current-layer="svg328"
      inkscape:document-rotation="0" />
   <image
      sodipodi:absref="/home/tor/src/rally/public/andean-abyss/map75.jpg"
      xlink:href="../map75.jpg"
-     x="0"
-     y="0"
      width="1650"
      height="2550"
      image-rendering="pixelated"
      sodipodi:insensitive="true"
-     id="image2" />
+     y="0"
+     x="0" />
   <text
      x="-205.52834"
      y="113.16729"
@@ -133,8 +132,8 @@
      id="ellipse20" />
   <ellipse
      inkscape:label="Choco Cartels"
-     cx="337.04401"
-     cy="1274.7484"
+     cx="364.86758"
+     cy="1271.538"
      rx="50"
      ry="40"
      fill="#32cd32"
@@ -142,8 +141,8 @@
      id="ellipse22" />
   <ellipse
      inkscape:label="Choco FARC"
-     cx="395.81378"
-     cy="1185.5511"
+     cx="407.5853"
+     cy="1179.1302"
      rx="50"
      ry="40"
      fill="#ff0000"
@@ -151,8 +150,8 @@
      id="ellipse24" />
   <rect
      inkscape:label="Choco DRUGS"
-     x="410.02856"
-     y="929.33215"
+     x="250.57806"
+     y="1156.2014"
      width="92"
      height="56"
      fill="#ffffff"
@@ -255,8 +254,8 @@
      id="ellipse48" />
   <rect
      inkscape:label="Meta West DRUGS"
-     x="717.08447"
-     y="1452.4297"
+     x="705.31299"
+     y="1547.6719"
      width="92"
      height="56"
      fill="#ffffff"
@@ -307,8 +306,8 @@
      id="ellipse60" />
   <rect
      inkscape:label="Guaviare DRUGS"
-     x="923.38812"
-     y="1556.0155"
+     x="952.2818"
+     y="1547.4545"
      width="92"
      height="56"
      fill="#ffffff"
@@ -359,8 +358,8 @@
      id="ellipse72" />
   <rect
      inkscape:label="Putumayo DRUGS"
-     x="592.4621"
-     y="1687.1282"
+     x="576.41003"
+     y="1676.4268"
      width="92"
      height="56"
      fill="#ffffff"
@@ -540,8 +539,8 @@
      id="ellipse114" />
   <ellipse
      inkscape:label="Huila AUC"
-     cx="504.02094"
-     cy="1497.7329"
+     cx="507.23135"
+     cy="1467.7692"
      rx="50"
      ry="40"
      fill="#ffff00"
@@ -549,8 +548,8 @@
      id="ellipse116" />
   <ellipse
      inkscape:label="Huila Cartels"
-     cx="546.95453"
-     cy="1402.1168"
+     cx="550.16492"
+     cy="1387.1349"
      rx="50"
      ry="40"
      fill="#32cd32"
@@ -567,8 +566,8 @@
      id="ellipse120" />
   <rect
      inkscape:label="Huila DRUGS"
-     x="337.48947"
-     y="1737.989"
+     x="440.22269"
+     y="1525.0316"
      width="92"
      height="56"
      fill="#ffffff"

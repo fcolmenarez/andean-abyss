@@ -59,9 +59,9 @@ const LAYOUT = {
 	"Atlantico DRUGS": [713, 573],
 	"Choco Govt": [338, 1097],
 	"Choco AUC": [366, 915],
-	"Choco Cartels": [337, 1275],
-	"Choco FARC": [396, 1186],
-	"Choco DRUGS": [456, 957],
+	"Choco Cartels": [365, 1272],
+	"Choco FARC": [408, 1179],
+	"Choco DRUGS": [297, 1184],
 	"Narino Govt": [185, 1562],
 	"Narino AUC": [293, 1554],
 	"Narino Cartels": [217, 1688],
@@ -71,17 +71,17 @@ const LAYOUT = {
 	"Meta West AUC": [679, 1549],
 	"Meta West Cartels": [819, 1540],
 	"Meta West FARC": [702, 1632],
-	"Meta West DRUGS": [763, 1480],
+	"Meta West DRUGS": [751, 1576],
 	"Guaviare Govt": [907, 1615],
 	"Guaviare AUC": [1091, 1603],
 	"Guaviare Cartels": [972, 1724],
 	"Guaviare FARC": [837, 1682],
-	"Guaviare DRUGS": [969, 1584],
+	"Guaviare DRUGS": [998, 1575],
 	"Putumayo Govt": [552, 1798],
 	"Putumayo AUC": [621, 1866],
 	"Putumayo Cartels": [882, 1876],
 	"Putumayo FARC": [749, 1886],
-	"Putumayo DRUGS": [638, 1715],
+	"Putumayo DRUGS": [622, 1704],
 	"Cesar Govt": [805, 437],
 	"Cesar AUC": [819, 584],
 	"Cesar Cartels": [985, 338],
@@ -98,10 +98,10 @@ const LAYOUT = {
 	"Santander FARC": [716, 1180],
 	"Santander DRUGS": [880, 1089],
 	"Huila Govt": [618, 1318],
-	"Huila AUC": [504, 1498],
-	"Huila Cartels": [547, 1402],
+	"Huila AUC": [507, 1468],
+	"Huila Cartels": [550, 1387],
 	"Huila FARC": [410, 1688],
-	"Huila DRUGS": [383, 1766],
+	"Huila DRUGS": [486, 1553],
 	"Arauca Govt": [981, 1113],
 	"Arauca AUC": [1217, 1036],
 	"Arauca Cartels": [1196, 1118],
@@ -667,11 +667,18 @@ function layout_dept_bases(list, xc, yc, s) {
 	}
 }
 
-function layout_city_bases(list, xc, yc) {
-	if (list.length > 0)
-		place_piece(list[0], xc - 21 + 25, yc - 20, 51)
-	if (list.length > 1)
-		place_piece(list[1], xc - 21 - 25, yc - 20, 52)
+function layout_city_bases(list, xc, yc, s) {
+	if (data.spaces[s].pop > 1) {
+		if (list.length > 0)
+			place_piece(list[0], xc - 21 + 25, yc - 20, 51)
+		if (list.length > 1)
+			place_piece(list[1], xc - 21 - 25, yc - 20, 52)
+	} else {
+		if (list.length > 0)
+			place_piece(list[0], xc - 21 - 25, yc - 20, 51)
+		if (list.length > 1)
+			place_piece(list[1], xc - 21 + 25, yc - 20, 52)
+	}
 }
 
 function layout_available_bases(list, x0, y0, cols, rows, dx, dy) {
@@ -1148,7 +1155,7 @@ function on_update() {
 			filter_piece_list(bases, s, CARTELS, BASE)
 			xy = get_layout_xy(s)
 			layout_pieces(list, xy[0], xy[1], null, s)
-			layout_city_bases(bases, xy[0], xy[1] + get_layout_radius(s) - 12)
+			layout_city_bases(bases, xy[0], xy[1] + get_layout_radius(s) - 12, s)
 		} else if (s <= last_dept) {
 			list.length = bases.length = 0
 			filter_piece_list(list, s, FARC, GUERRILLA)
