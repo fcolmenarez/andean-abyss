@@ -499,6 +499,28 @@ function set_piece_space(p, s) {
 	game.pieces[p] = s
 }
 
+function piece_type(p) {
+	if (p >= first_piece[GOVT][TROOPS] && p <= last_piece[GOVT][TROOPS])
+		return TROOPS
+	if (p >= first_piece[GOVT][POLICE] && p <= last_piece[GOVT][POLICE])
+		return POLICE
+	if (p >= first_piece[GOVT][BASE] && p <= last_piece[GOVT][BASE])
+		return BASE
+	if (p >= first_piece[FARC][GUERRILLA] && p <= last_piece[FARC][GUERRILLA])
+		return GUERRILLA
+	if (p >= first_piece[FARC][BASE] && p <= last_piece[FARC][BASE])
+		return BASE
+	if (p >= first_piece[AUC][GUERRILLA] && p <= last_piece[AUC][GUERRILLA])
+		return GUERRILLA
+	if (p >= first_piece[AUC][BASE] && p <= last_piece[AUC][BASE])
+		return BASE
+	if (p >= first_piece[CARTELS][GUERRILLA] && p <= last_piece[CARTELS][GUERRILLA])
+		return GUERRILLA
+	if (p >= first_piece[CARTELS][BASE] && p <= last_piece[CARTELS][BASE])
+		return BASE
+	throw "IMPOSSIBLE"
+}
+
 function piece_faction(p) {
 	if (p >= first_piece[GOVT][TROOPS] && p <= last_piece[GOVT][TROOPS])
 		return GOVT
@@ -1205,6 +1227,8 @@ function move_piece(p, s) {
 }
 
 function place_piece(p, s) {
+	if (piece_space(p) === AVAILABLE)
+		p = find_piece(AVAILABLE, piece_faction(p), piece_type(p))
 	log(`Placed ${piece_name(p)} in S${s}.`)
 	set_underground(p)
 	set_piece_space(p, s)
