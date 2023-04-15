@@ -211,6 +211,7 @@ const MOM_SENADO_FARC = 5
 const MOM_SENADO_AUC = 6
 const MOM_SENADO_CARTELS = 7
 
+const ATLANTICO = 11
 const META_WEST = 14
 
 const first_piece = data.first_piece
@@ -218,6 +219,7 @@ const last_piece = data.last_piece
 
 const last_city = data.last_city
 const last_pop = data.last_pop
+const first_dept = data.first_dept
 const last_dept = data.last_dept
 const first_loc = data.first_loc
 const last_loc = data.last_loc
@@ -295,6 +297,7 @@ let ui = {
 	spaces: [],
 	control: [],
 	support: [],
+	farc_zone: [],
 	sabotage: [],
 	terror: [],
 	card_tip: document.getElementById("card_tip"),
@@ -512,6 +515,7 @@ function init_ui() {
 
 		if (i <= last_dept) {
 			let [x, y] = LAYOUT[id]
+
 			if (i <= last_city)
 				ui.control[i] = e = create("div", { className: "token govt_control" })
 			else
@@ -528,7 +532,23 @@ function init_ui() {
 				e.style.top = (y - 25) + "px"
 			}
 			document.getElementById("tokens").appendChild(e)
+
+			if (i >= first_dept) {
+				ui.farc_zone[i] = e = create("div", { className: "token farc_zone hide" })
+				if (i <= last_pop) {
+					e.style.left = (x - 25 - 49) + "px"
+					if (i === ATLANTICO || i === META_WEST)
+						e.style.top = (y - 25 - 50) + "px"
+					else
+						e.style.top = (y - 25 - 25) + "px"
+				} else {
+					e.style.top = (y - 25) + "px"
+					e.style.left = (x - 25 + 55) + "px"
+				}
+			}
+			document.getElementById("tokens").appendChild(e)
 		}
+
 
 		if (i >= first_loc && i <= last_loc) {
 			let [x, y] = LAYOUT[id]
@@ -859,7 +879,7 @@ function layout_terror(tix, s, n) {
 		tx += Math.round(r * Math.cos(a))
 		ty += Math.round(r * Math.sin(a))
 	} else {
-		if (set_has(view.farc_zones, s)) {
+		if (view.farc_zones & (1<<s)) {
 			if (s <= last_pop) {
 				ty -= 85
 			} else {
@@ -880,7 +900,7 @@ function layout_terror(tix, s, n) {
 		ui.terror[tix].className = "token terror"
 		ui.terror[tix].style.left = tx + "px"
 		ui.terror[tix].style.top = ty + "px"
-		if (s <= last_city || s > last_pop || set_has(view.farc_zones, s)) {
+		if (s <= last_city || s > last_pop || (view.farc_zones & (1<<s))) {
 			tx += 10
 			ty -= 10
 		} else {
@@ -890,23 +910,6 @@ function layout_terror(tix, s, n) {
 		++tix
 	}
 	return tix
-}
-
-function layout_farc_zone(s, elt) {
-	let [x, y] = get_layout_xy(s)
-	if (s <= last_pop) {
-		x -= 49
-		if (s === META_WEST)
-			y -= 25 + 40
-		else
-			y -= 25
-	
-	} else {
-		x += 55
-	}
-	elt.className = "token farc_zone"
-	elt.style.top = (y - 25) + "px"
-	elt.style.left = (x - 25) + "px"
 }
 
 const shipment_layout_dept = [
@@ -1111,11 +1114,12 @@ function on_update() {
 			else
 				ui.sabotage[s].className = "hide"
 		}
-	
+
+		if (s >= first_dept && s <= last_dept) {
+			ui.farc_zone[s].classList.toggle("hide", !(view.farc_zones & (1<<s)))
+		}
+
 		if (s <= last_dept) {
-			for (let i = 0; i < view.farc_zones.length; ++i)
-				if (view.farc_zones[i] === s)
-					layout_farc_zone(s, ui.farc_zones[i])
 			if (view.govt_control & (1<<s))
 				ui.control[s].className = "token govt_control"
 			else if (view.farc_control & (1<<s))

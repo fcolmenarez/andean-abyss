@@ -2,15 +2,10 @@
 
 // TODO: rules material - reference 6.3.3 Drug Profits to 5.2.2 should be 4.5.3
 
-// TODO: compact game.memory array instead of president/aid/cylinder/resources/samper/pieces/support/control
-// TODO: bit array for momentum and capabilities instead of set lists
+// TODO: compact game.memory array instead of president/aid/cylinder/resources/pieces/support/control
 // TODO: clean up init_free_operation stuff
 
 // TODO: check how often and where to push_undo
-
-// TODO: log when resource/aid is capped
-
-// TODO: CODE separated by functions - CODE[game.vm.fp][game.vm.ip]
 
 // TODO: auto-skip civic action
 // TODO: auto-skip agitation
@@ -277,6 +272,7 @@ exports.setup = function (seed, scenario, options) {
 		govt_control: 0,
 		farc_control: 0,
 		auc_control: 0,
+		farc_zones: 0,
 		cylinder: [ ELIGIBLE, ELIGIBLE, ELIGIBLE, ELIGIBLE ],
 		resources: [ 0, 0, 0, 0 ],
 		shipments: [ 0, 0, 0, 0 ],
@@ -285,7 +281,6 @@ exports.setup = function (seed, scenario, options) {
 		support: Array(23).fill(NEUTRAL),
 
 		deck: [],
-		farc_zones: [],
 		terror: [],
 		sabotage: [],
 
@@ -419,7 +414,7 @@ function setup_quick() {
 	setup_support(ARAUCA, NEUTRAL)
 	setup_piece(AUC, GUERRILLA, 1, ARAUCA)
 
-	set_add(game.farc_zones, META_WEST)
+	add_farc_zone(META_WEST)
 	setup_piece(FARC, GUERRILLA, 4, META_WEST)
 
 	setup_support(HUILA, ACTIVE_OPPOSITION)
@@ -930,8 +925,22 @@ function has_capability(bit) {
 	return game.capabilities & (1 << bit)
 }
 
+function has_any_farc_zones() {
+	return game.farc_zones !== 0
+}
+
 function is_farc_zone(s) {
-	return set_has(game.farc_zones, s)
+	return (s <= last_dept) && game.farc_zones & (1 << s)
+}
+
+function add_farc_zone(s) {
+	log(`FARC Zone in S${s}.`)
+	game.farc_zones |= (1 << s)
+}
+
+function remove_farc_zone(s) {
+	log(`Removed Farc Zone from S${s}.`)
+	game.farc_zones &= ~(1 << s)
 }
 
 function has_govt_control(s) {
@@ -1180,18 +1189,24 @@ function transfer_resources(from, to, n) {
 }
 
 function add_resources(faction, n) {
-	if (n > 0)
+	if (n > 0) {
 		log(faction_name[faction] + " Resources +" + n + ".")
-	else
+		if (game.aid + n > 99)
+			log("Resources capped at 99.")
+	} else {
 		log(faction_name[faction] + " Resources " + n + ".")
+	}
 	game.resources[faction] = Math.max(0, Math.min(99, game.resources[faction] + n))
 }
 
 function add_aid(n) {
-	if (n > 0)
+	if (n > 0) {
 		log("Aid +" + n + ".")
-	else
+		if (game.aid + n > 29)
+			log("Aid capped at 29.")
+	} else {
 		log("Aid " + n + ".")
+	}
 	game.aid = Math.max(0, Math.min(29, game.aid + n))
 }
 
@@ -5643,7 +5658,7 @@ function goto_election() {
 		log_h3("Election")
 		log("Uribe is El Presidente!")
 		game.president = URIBE
-		if (game.farc_zones.length > 0) {
+		if (has_any_farc_zones()) {
 			game.state = "remove_farc_zones"
 			return
 		}
@@ -5654,13 +5669,13 @@ function goto_election() {
 states.remove_farc_zones = {
 	prompt() {
 		view.prompt = "Election: Remove all FARC Zones."
-		for (let s of game.farc_zones)
-			gen_action_space(s)
+		for (let s = first_dept; s <= last_dept; ++s)
+			if (is_farc_zone(s))
+				gen_action_space(s)
 	},
 	space(s) {
-		log(`Removed Farc Zone from S${s}.`)
-		set_delete(game.farc_zones, s)
-		if (game.farc_zones.length === 0)
+		remove_farc_zone(s)
+		if (!has_any_farc_zones())
 			goto_elite_backing()
 	},
 }
@@ -5851,8 +5866,8 @@ function vm_place_farc_zone() {
 }
 
 function has_govt_in_farc_zone() {
-	for (let s of game.farc_zones)
-		if (has_govt_piece(s))
+	for (let s = first_dept; s <= last_dept; ++s)
+		if (is_farc_zone(s) && has_govt_piece(s))
 			return true
 	return false
 }
@@ -5866,8 +5881,7 @@ states.farc_zone_place = {
 	},
 	space(s) {
 		push_undo()
-		log(`FARC Zone in S${s}.`)
-		set_add(game.farc_zones, s)
+		add_farc_zone(s)
 
 		if (game.vm)
 			game.vm.farc_zone = s
@@ -5885,10 +5899,12 @@ states.farc_zone_redeploy = {
 	prompt() {
 		view.prompt = "Redeploy Government from FARC Zone."
 		if (game.redeploy < 0) {
-			for (let s of game.farc_zones) {
-				gen_piece_in_space(s, GOVT, TROOPS)
-				gen_piece_in_space(s, GOVT, POLICE)
-				gen_piece_in_space(s, GOVT, BASE)
+			for (let s = first_dept; s <= last_dept; ++s) {
+				if (is_farc_zone(s)) {
+					gen_piece_in_space(s, GOVT, TROOPS)
+					gen_piece_in_space(s, GOVT, POLICE)
+					gen_piece_in_space(s, GOVT, BASE)
+				}
 			}
 		} else {
 			let p = game.redeploy
@@ -6183,7 +6199,7 @@ function vm_remove() {
 }
 
 function vm_remove_farc_zone() {
-	set_delete(game.farc_zones, game.vm.s)
+	remove_farc_zone(game.vm.s)
 	vm_next()
 }
 
@@ -7130,8 +7146,8 @@ exports.view = function (state, role) {
 		underground: game.underground,
 		govt_control: game.govt_control,
 		farc_control: game.farc_control,
-		support: game.support,
 		farc_zones: game.farc_zones,
+		support: game.support,
 		terror: game.terror,
 		sabotage: game.sabotage,
 	}
