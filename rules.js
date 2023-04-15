@@ -324,7 +324,7 @@ exports.setup = function (seed, scenario, options) {
 				game.deck.push(i)
 	}
 
-	log("DEBUG: DECK " + game.deck.join(", "))
+	log("DEBUG DECK " + game.deck.join(", "))
 
 	update_control()
 
@@ -1603,6 +1603,8 @@ states.remove_pieces = {
 		view.actions.done = 1
 	},
 	piece(p) {
+		if (game.op)
+			game.op.pass = 0
 		remove_piece(p)
 	},
 	done() {
@@ -2188,6 +2190,7 @@ function goto_eligible() {
 			ship: 1,
 			spaces: [],
 			pieces: [],
+			pass: 1
 		}
 		if (is_final_event_card() || did_option(SOP_1ST_OP_ONLY) || did_option(SOP_1ST_OP_AND_SA)) {
 			game.op.limited = 1
@@ -2217,7 +2220,8 @@ states.eligible = {
 			gen_any_operation()
 			gen_any_event()
 		}
-		view.actions.pass = 1
+		view.actions.remove_pieces = 1
+		view.actions.pass = game.op.pass ? 1 : 0
 	},
 	train: goto_train,
 	patrol: goto_patrol,
