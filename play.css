@@ -80,7 +80,7 @@ main { background-color: #777; }
 	pointer-events: none;
 	display: flex;
 	flex-wrap: wrap;
-	gap: 17px;
+	gap: 20px;
 }
 
 /* SPACES */

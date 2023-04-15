@@ -27,7 +27,7 @@ EVENT 1
 
 SHADED 1
 	log "Civic Action requires at least 2 Troops and 2 Police."
-	shaded_capability CAP_1ST_DIV
+	capability S_CAP_1ST_DIV
 
 EVENT 2
 	log "Sweep costs 1 Resource per space."
@@ -35,7 +35,7 @@ EVENT 2
 
 SHADED 2
 	log "Sweep Operations may target only 1 space per card."
-	shaded_capability CAP_OSPINA
+	capability S_CAP_OSPINA
 
 EVENT 3
 	log "Assault costs 1 Resource per space."
@@ -43,7 +43,7 @@ EVENT 3
 
 SHADED 3
 	log "Assault Operations may target only 1 space per card."
-	shaded_capability CAP_TAPIAS
+	capability S_CAP_TAPIAS
 
 EVENT 4
 	prompt "Add twice Econ of unsabotaged pipelines to Government Resources."
@@ -100,7 +100,7 @@ EVENT 7
 
 SHADED 7
 	log "Sabotage phase - Sabotage LoCs with any Guerrillas equal to cubes."
-	shaded_capability CAP_7TH_SF
+	capability S_CAP_7TH_SF
 
 EVENT 8
 	current GOVT
@@ -117,7 +117,7 @@ EVENT 9
 
 SHADED 9
 	log "Assault in Mountain removes only 1 piece for 4 Troops."
-	shaded_capability CAP_MTN_BNS
+	capability S_CAP_MTN_BNS
 
 EVENT 10
 	log "Air Lift moves any number of Troops."
@@ -125,7 +125,7 @@ EVENT 10
 
 SHADED 10
 	log "Air Lift moves only 1 Troops cube."
-	shaded_capability CAP_BLACK_HAWKS
+	capability S_CAP_BLACK_HAWKS
 
 EVENT 11
 	log "1 Police may enter each Sweep space."
@@ -133,7 +133,7 @@ EVENT 11
 
 SHADED 11
 	log "Operation Activates Guerrillas via Troops or Police, not both."
-	shaded_capability CAP_NDSC
+	capability S_CAP_NDSC
 
 EVENT 12
 	resources GOVT (Math.min(game.aid,20))
@@ -149,7 +149,7 @@ EVENT 13
 
 SHADED 13
 	log "Patrols do not conduct a free Assault."
-	shaded_capability CAP_METEORO
+	capability S_CAP_METEORO
 
 EVENT 14
 	current GOVT
@@ -615,8 +615,18 @@ EVENT 42
 
 SHADED 42
 	log `No Sweep or Assault against ${faction_name[game.current]} until next Propaganda.`
-	asm game.senado = game.current
-	momentum MOM_SENADO_CAMARA
+	if game.current === GOVT
+		log "No effect."
+	endif
+	if game.current === FARC
+		momentum MOM_SENADO_FARC
+	endif
+	if game.current === AUC
+		momentum MOM_SENADO_AUC
+	endif
+	if game.current === CARTELS
+		momentum MOM_SENADO_CARTELS
+	endif
 
 EVENT 43
 	# 5.1.3 - farc bases if possible

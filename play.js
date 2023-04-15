@@ -207,6 +207,10 @@ const GUERRILLA = 1
 const TROOPS = 2
 const POLICE = 3
 
+const MOM_SENADO_FARC = 5
+const MOM_SENADO_AUC = 6
+const MOM_SENADO_CARTELS = 7
+
 const META_WEST = 14
 
 const first_piece = data.first_piece
@@ -233,34 +237,16 @@ const SOP_C2 = 6
 const SOP_PASS = 7
 const INELIGIBLE = 8
 
-const capability_events = [ 1, 2, 3, 7, 9, 10, 11, 13 ]
-const momentum_events = [ 12, 17, 22, 27, 42, 67 ]
+const capability_cards = [ 1, 2, 3, 7, 9, 10, 11, 13, 1, 2, 3, 7, 9, 10, 11, 13, 17, 18 ]
+const momentum_cards = [ 12, 17, 22, 27, 67, 42, 42, 42 ]
 
-const CAP_1ST_DIV = 1
-const CAP_OSPINA = 2
-const CAP_TAPIAS = 3
-const CAP_7TH_SF = 7
-const CAP_MTN_BNS = 9
-const CAP_BLACK_HAWKS = 10
-const CAP_NDSC = 11
-const CAP_METEORO = 13
+function has_momentum(bit) {
+	return view.momentum & (1 << bit)
+}
 
-const MOM_PLAN_COLOMBIA = 12
-const MOM_MADRID_DONORS = 17
-const MOM_ALFONSO_CANO = 22
-const MOM_MISIL_ANTIAEREO = 27
-const MOM_SENADO_CAMARA = 42
-const MOM_MEXICAN_TRAFFICKERS = 67
-
-const EVT_SUCUMBIOS = 33
-const EVT_DARIEN = 71
-
-const senado_class_list = [
-	"token reminder hide",
-	"token reminder senado_farc",
-	"token reminder senado_auc",
-	"token reminder senado_cartels",
-]
+function has_capability(bit) {
+	return view.capabilities & (1 << bit)
+}
 
 let ui = {
 	map: document.getElementById("map"),
@@ -276,24 +262,36 @@ let ui = {
 		document.getElementById("role_FARC_+_Cartels"),
 		document.getElementById("role_AUC_+_Cartels"),
 	],
-	capabilities: {
-		[CAP_1ST_DIV]: document.getElementById("cap_first_div"),
-		[CAP_OSPINA]: document.getElementById("cap_ospina"),
-		[CAP_TAPIAS]: document.getElementById("cap_tapias"),
-		[CAP_7TH_SF]: document.getElementById("cap_seventh_sf"),
-		[CAP_MTN_BNS]: document.getElementById("cap_mtn_bns"),
-		[CAP_BLACK_HAWKS]: document.getElementById("cap_black_hawks"),
-		[CAP_NDSC]: document.getElementById("cap_ndsc"),
-		[CAP_METEORO]: document.getElementById("cap_meteoro"),
-	},
-	momentum: {
-		[MOM_PLAN_COLOMBIA]: document.getElementById("mom_12"),
-		[MOM_MADRID_DONORS]: document.getElementById("mom_17"),
-		[MOM_ALFONSO_CANO]: document.getElementById("mom_22"),
-		[MOM_MISIL_ANTIAEREO]: document.getElementById("mom_27"),
-		[MOM_SENADO_CAMARA]: document.getElementById("mom_42"),
-		[MOM_MEXICAN_TRAFFICKERS]: document.getElementById("mom_67"),
-	},
+	capabilities: [
+		document.getElementById("cap_first_div"),
+		document.getElementById("cap_ospina"),
+		document.getElementById("cap_tapias"),
+		document.getElementById("cap_seventh_sf"),
+		document.getElementById("cap_mtn_bns"),
+		document.getElementById("cap_black_hawks"),
+		document.getElementById("cap_ndsc"),
+		document.getElementById("cap_meteoro"),
+		document.getElementById("s_cap_first_div"),
+		document.getElementById("s_cap_ospina"),
+		document.getElementById("s_cap_tapias"),
+		document.getElementById("s_cap_seventh_sf"),
+		document.getElementById("s_cap_mtn_bns"),
+		document.getElementById("s_cap_black_hawks"),
+		document.getElementById("s_cap_ndsc"),
+		document.getElementById("s_cap_meteoro"),
+		document.getElementById("rem_darien"),
+		document.getElementById("rem_sucumbios"),
+	],
+	momentum: [
+		document.getElementById("mom_12"),
+		document.getElementById("mom_17"),
+		document.getElementById("mom_22"),
+		document.getElementById("mom_27"),
+		document.getElementById("mom_67"),
+		document.getElementById("mom_42_farc"),
+		document.getElementById("mom_42_auc"),
+		document.getElementById("mom_42_cartels"),
+	],
 	spaces: [],
 	control: [],
 	support: [],
@@ -311,9 +309,9 @@ let ui = {
 		oppose_plus_bases: document.getElementById("token_oppose_plus_bases"),
 		president: document.getElementById("token_el_presidente"),
 		propaganda: document.getElementById("token_prop_card"),
-		senado: document.getElementById("rem_senado"),
-		darien: document.getElementById("rem_darien"),
-		sucumbios: document.getElementById("rem_sucumbios"),
+		senado_farc: document.getElementById("rem_senado_farc"),
+		senado_auc: document.getElementById("rem_senado_auc"),
+		senado_cartels: document.getElementById("rem_senado_cartels"),
 	},
 	pieces: [],
 	resources: [
@@ -455,13 +453,14 @@ function init_ui() {
 	ui.next_card.onmouseenter = on_focus_next_event
 	ui.next_card.onmouseleave = on_blur_event
 
-	for (let c of momentum_events)
-		register_card_tip(ui.momentum[c], c)
-	for (let c of capability_events)
-		register_card_tip(ui.capabilities[c], c)
-	register_card_tip(ui.tokens.senado, MOM_SENADO_CAMARA)
-	register_card_tip(ui.tokens.darien, EVT_DARIEN)
-	register_card_tip(ui.tokens.sucumbios, EVT_SUCUMBIOS)
+	for (let i = 0; i < momentum_cards.length; ++i)
+		register_card_tip(ui.momentum[i], momentum_cards[i])
+	for (let i = 0; i < capability_cards.length; ++i)
+		register_card_tip(ui.capabilities[i], capability_cards[i])
+
+	register_card_tip(ui.tokens.senado_farc, 42)
+	register_card_tip(ui.tokens.senado_auc, 42)
+	register_card_tip(ui.tokens.senado_cartels, 42)
 
 	ui.farc_zones = [
 		document.getElementById("tokens").appendChild(create("div", { className: "hide" })),
@@ -1050,26 +1049,15 @@ function on_update() {
 	ui.player[AUC_CARTELS].classList.toggle("active",  view.current === AUC || view.current === CARTELS)
 
 	ui.tokens.president.style.left = [ 0, "254px", "337px", "420px" ][view.president]
-	ui.tokens.senado.classList = senado_class_list[view.senado]
 
-	ui.tokens.darien.classList.toggle("hide", !set_has(view.capabilities, EVT_DARIEN))
-	ui.tokens.sucumbios.classList.toggle("hide", !set_has(view.capabilities, EVT_SUCUMBIOS))
+	ui.tokens.senado_farc.classList.toggle("hide", !has_momentum(MOM_SENADO_FARC))
+	ui.tokens.senado_auc.classList.toggle("hide", !has_momentum(MOM_SENADO_AUC))
+	ui.tokens.senado_cartels.classList.toggle("hide", !has_momentum(MOM_SENADO_CARTELS))
 
-	for (let cap of capability_events) {
-		let shaded = set_has(view.capabilities, -cap)
-		let unshaded = set_has(view.capabilities, cap)
-		if (shaded || unshaded) {
-			ui.capabilities[cap].classList.toggle("shaded", shaded)
-			ui.capabilities[cap].classList.toggle("unshaded", unshaded)
-			ui.capabilities[cap].classList.toggle("hide", false)
-		} else {
-			ui.capabilities[cap].classList.toggle("hide", true)
-		}
-	}
-
-	for (let cap of momentum_events) {
-		ui.momentum[cap].classList.toggle("hide", !set_has(view.momentum, cap))
-	}
+	for (let i = 0; i < capability_cards.length; ++i)
+		ui.capabilities[i].classList.toggle("hide", !has_capability(i))
+	for (let i = 0; i < momentum_cards.length; ++i)
+		ui.momentum[i].classList.toggle("hide", !has_momentum(i))
 
 	if (view.propaganda > 0) {
 		ui.tokens.propaganda.style.top = "744px"

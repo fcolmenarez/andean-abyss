@@ -35,24 +35,35 @@ const NAME_GOVT_AUC = "Government + AUC"
 const NAME_FARC_CARTELS = "FARC + Cartels"
 const NAME_AUC_CARTELS = "AUC + Cartels"
 
-const CAP_1ST_DIV = 1
-const CAP_OSPINA = 2
-const CAP_TAPIAS = 3
-const CAP_7TH_SF = 7
-const CAP_MTN_BNS = 9
-const CAP_BLACK_HAWKS = 10
-const CAP_NDSC = 11
-const CAP_METEORO = 13
+const CAP_1ST_DIV = 0
+const CAP_OSPINA = 1
+const CAP_TAPIAS = 2
+const CAP_7TH_SF = 3
+const CAP_MTN_BNS = 4
+const CAP_BLACK_HAWKS = 5
+const CAP_NDSC = 6
+const CAP_METEORO = 7
 
-const MOM_PLAN_COLOMBIA = 12
-const MOM_MADRID_DONORS = 17
-const MOM_ALFONSO_CANO = 22
-const MOM_MISIL_ANTIAEREO = 27
-const MOM_SENADO_CAMARA = 42
-const MOM_MEXICAN_TRAFFICKERS = 67
+const S_CAP_1ST_DIV = 8
+const S_CAP_OSPINA = 9
+const S_CAP_TAPIAS = 10
+const S_CAP_7TH_SF = 11
+const S_CAP_MTN_BNS = 12
+const S_CAP_BLACK_HAWKS = 13
+const S_CAP_NDSC = 14
+const S_CAP_METEORO = 15
 
-const EVT_SUCUMBIOS = 33
-const EVT_DARIEN = 71
+const EVT_SUCUMBIOS = 16
+const EVT_DARIEN = 17
+
+const MOM_PLAN_COLOMBIA = 0
+const MOM_MADRID_DONORS = 1
+const MOM_ALFONSO_CANO = 2
+const MOM_MISIL_ANTIAEREO = 3
+const MOM_MEXICAN_TRAFFICKERS = 4
+const MOM_SENADO_FARC = 5
+const MOM_SENADO_AUC = 6
+const MOM_SENADO_CARTELS = 7
 
 const PROPAGANDA = 73
 
@@ -259,7 +270,8 @@ exports.setup = function (seed, scenario, options) {
 
 		scenario: 4,
 		president: 0,
-		senado: 0,
+		capabilities: 0,
+		momentum: 0,
 		aid: 0,
 		marked: 0,
 		govt_control: 0,
@@ -273,8 +285,6 @@ exports.setup = function (seed, scenario, options) {
 		support: Array(23).fill(NEUTRAL),
 
 		deck: [],
-		momentum: [],
-		capabilities: [], // positive = unshaded, negative = shaded
 		farc_zones: [],
 		terror: [],
 		sabotage: [],
@@ -860,17 +870,17 @@ function is_next_to_venezuela(s) {
 
 function is_space(s) {
 	if (s === PANAMA)
-		return set_has(game.capabilities, EVT_DARIEN)
+		return has_capability(EVT_DARIEN)
 	if (s === ECUADOR)
-		return set_has(game.capabilities, EVT_SUCUMBIOS)
+		return has_capability(EVT_SUCUMBIOS)
 	return true
 }
 
 function is_dept(s) {
 	if (s === PANAMA)
-		return set_has(game.capabilities, EVT_DARIEN)
+		return has_capability(EVT_DARIEN)
 	if (s === ECUADOR)
-		return set_has(game.capabilities, EVT_SUCUMBIOS)
+		return has_capability(EVT_SUCUMBIOS)
 	return s >= first_dept && s <= last_dept
 }
 
@@ -912,16 +922,12 @@ function is_zero_pop_forest(s) {
 
 // === MISC DYNAMIC QUERIES ===
 
-function has_momentum(c) {
-	return set_has(game.momentum, c)
+function has_momentum(bit) {
+	return game.momentum & (1 << bit)
 }
 
-function has_capability(c) {
-	return set_has(game.capabilities, c)
-}
-
-function has_shaded_capability(c) {
-	return set_has(game.capabilities, -c)
+function has_capability(bit) {
+	return game.capabilities & (1 << bit)
 }
 
 function is_farc_zone(s) {
@@ -1444,9 +1450,9 @@ function can_replace_with(s, faction, piece) {
 
 function can_stack_any(s, faction) {
 	if (s === PANAMA)
-		return set_has(game.capabilities, EVT_DARIEN)
+		return has_capability(EVT_DARIEN)
 	if (s === ECUADOR)
-		return set_has(game.capabilities, EVT_SUCUMBIOS) && count_faction_pieces(s, faction) < 2
+		return has_capability(EVT_SUCUMBIOS) && count_faction_pieces(s, faction) < 2
 	if (faction === GOVT)
 		return !is_farc_zone(s)
 	return true
@@ -2890,7 +2896,7 @@ function end_patrol_assault_space() {
 }
 
 function can_patrol_assault() {
-	if (has_shaded_capability(CAP_METEORO))
+	if (has_capability(S_CAP_METEORO))
 		return false
 	if (game.op.limited)
 		return can_patrol_assault_space(game.op.limop_space)
@@ -2978,7 +2984,7 @@ states.patrol_done = {
 function goto_sweep() {
 	init_operation("Sweep")
 	game.state = "sweep"
-	if (has_shaded_capability(CAP_OSPINA))
+	if (has_capability(S_CAP_OSPINA))
 		game.op.limited = 1
 }
 
@@ -3032,9 +3038,9 @@ function can_sweep_activate(s, target = 0) {
 	if (target === FARC)
 		return has_underground_guerrilla(s, FARC)
 	return (
-		(game.senado !== FARC && has_underground_guerrilla(s, FARC)) ||
-		(game.senado !== AUC && has_underground_guerrilla(s, AUC)) ||
-		(game.senado !== CARTELS && has_underground_guerrilla(s, CARTELS))
+		(!has_momentum(MOM_SENADO_FARC) && has_underground_guerrilla(s, FARC)) ||
+		(!has_momentum(MOM_SENADO_AUC) && has_underground_guerrilla(s, AUC)) ||
+		(!has_momentum(MOM_SENADO_CARTELS) && has_underground_guerrilla(s, CARTELS))
 	)
 }
 
@@ -3169,7 +3175,7 @@ function do_sweep_activate() {
 		n_troops += count_pieces(game.op.where, AUC, GUERRILLA)
 
 	game.op.count = n_troops + n_police
-	if (has_shaded_capability(CAP_NDSC))
+	if (has_capability(S_CAP_NDSC))
 		game.op.count = Math.max(n_troops, n_police)
 
 	if (is_forest(game.op.where))
@@ -3189,11 +3195,11 @@ states.sweep_activate = {
 		if (game.op.faction === FARC) {
 			gen_underground_guerrillas(game.op.where, FARC)
 		} else {
-			if (game.senado !== FARC)
+			if (!has_momentum(MOM_SENADO_FARC))
 				gen_underground_guerrillas(game.op.where, FARC)
-			if (game.senado !== AUC)
+			if (!has_momentum(MOM_SENADO_AUC))
 				gen_underground_guerrillas(game.op.where, AUC)
-			if (game.senado !== CARTELS)
+			if (!has_momentum(MOM_SENADO_CARTELS))
 				gen_underground_guerrillas(game.op.where, CARTELS)
 		}
 
@@ -3223,7 +3229,7 @@ function do_sweep_next() {
 function goto_assault() {
 	init_operation("Assault")
 	game.state = "assault"
-	if (has_shaded_capability(CAP_TAPIAS))
+	if (has_capability(S_CAP_TAPIAS))
 		game.op.limited = 1
 }
 
@@ -3309,13 +3315,11 @@ function has_assault_target(s, target) {
 	if (dept && has_momentum(MOM_MADRID_DONORS))
 		return false
 
-	for (let faction = 1; faction < 4; ++faction) {
-		if (game.senado === faction)
-			continue
-		if (has_exposed_piece(s, faction))
-			return true
-	}
-	return false
+	return (
+		(!has_momentum(MOM_SENADO_FARC) && has_exposed_piece(s, FARC)) ||
+		(!has_momentum(MOM_SENADO_AUC) && exposed_piece(s, AUC)) ||
+		(!has_momentum(MOM_SENADO_CARTELS) && exposed_piece(s, CARTELS))
+	)
 }
 
 function has_exposed_piece(s, faction) {
@@ -3340,7 +3344,7 @@ function assault_kill_count(s, target) {
 		if (is_mountain(s)) {
 			if (has_capability(CAP_MTN_BNS))
 				return n
-			if (has_shaded_capability(CAP_MTN_BNS))
+			if (has_capability(S_CAP_MTN_BNS))
 				return n >> 2
 			return n >> 1
 		}
@@ -3356,7 +3360,7 @@ function assault_kill_count(s, target) {
 	if (is_mountain(s)) {
 		if (has_capability(CAP_MTN_BNS))
 			return n + count_pieces(s, GOVT, POLICE)
-		if (has_shaded_capability(CAP_MTN_BNS))
+		if (has_capability(S_CAP_MTN_BNS))
 			return n >> 2
 		return n >> 1
 	}
@@ -3415,11 +3419,11 @@ states.assault_space = {
 		} else if (game.faction === AUC) {
 			gen_exposed_piece(game.op.where, AUC)
 		} else {
-			if (game.senado !== FARC)
+			if (!has_momentum(MOM_SENADO_FARC))
 				gen_exposed_piece(game.op.where, FARC)
-			if (game.senado !== AUC)
+			if (!has_momentum(MOM_SENADO_AUC))
 				gen_exposed_piece(game.op.where, AUC)
-			if (game.senado !== CARTELS)
+			if (!has_momentum(MOM_SENADO_CARTELS))
 				gen_exposed_piece(game.op.where, CARTELS)
 		}
 
@@ -4233,7 +4237,7 @@ function goto_air_lift() {
 	game.state = "air_lift_from"
 	if (has_capability(CAP_BLACK_HAWKS))
 		game.sa.count = 30
-	if (has_shaded_capability(CAP_BLACK_HAWKS))
+	if (has_capability(S_CAP_BLACK_HAWKS))
 		game.sa.count = 1
 }
 
@@ -5374,7 +5378,7 @@ function can_sabotage_phase_space(s) {
 	if (!has_sabotage(s)) {
 		if (is_adjacent_to_city_farc_control(s))
 			return true
-		if (has_shaded_capability(CAP_7TH_SF))
+		if (has_capability(S_CAP_7TH_SF))
 			return count_guerrillas(s) >= count_cubes(s)
 		return count_guerrillas(s) > count_cubes(s)
 	}
@@ -5529,7 +5533,7 @@ states.drug_profits_space = {
 
 function can_civic_action(s) {
 	if (can_shift_support(s) && has_govt_control(s)) {
-		if (has_shaded_capability(CAP_1ST_DIV))
+		if (has_capability(S_CAP_1ST_DIV))
 			return count_pieces(s, GOVT, TROOPS) >= 2 && count_pieces(s, GOVT, POLICE) >= 2
 		return has_piece(s, GOVT, TROOPS) && has_piece(s, GOVT, POLICE)
 	}
@@ -5818,7 +5822,7 @@ function goto_reset_phase() {
 	game.terror = []
 	game.sabotage = []
 
-	game.momentum = []
+	game.momentum = 0
 
 	game.cylinder[GOVT] = ELIGIBLE
 	game.cylinder[FARC] = ELIGIBLE
@@ -6105,17 +6109,12 @@ function vm_log() {
 }
 
 function vm_momentum() {
-	set_add(game.momentum, vm_operand(1))
+	game.momentum |= (1 << vm_operand(1))
 	vm_next()
 }
 
 function vm_capability() {
-	set_add(game.capabilities, vm_operand(1))
-	vm_next()
-}
-
-function vm_shaded_capability() {
-	set_add(game.capabilities, -vm_operand(1))
+	game.capabilities |= (1 << vm_operand(1))
 	vm_next()
 }
 
@@ -7120,8 +7119,9 @@ exports.view = function (state, role) {
 		scenario: game.scenario,
 		current: game.current,
 		deck: [ this_card, next_card, deck_size ],
+		capabilities: game.capabilities,
+		momentum: game.momentum,
 		president: game.president,
-		senado: game.senado,
 		aid: game.aid,
 		cylinder: game.cylinder,
 		resources: game.resources,
@@ -7132,8 +7132,6 @@ exports.view = function (state, role) {
 		farc_control: game.farc_control,
 		support: game.support,
 		farc_zones: game.farc_zones,
-		capabilities: game.capabilities,
-		momentum: game.momentum,
 		terror: game.terror,
 		sabotage: game.sabotage,
 	}
@@ -7445,7 +7443,7 @@ CODE[1 * 2 + 0] = [
 // SHADED 1
 CODE[1 * 2 + 1] = [
 	[ vm_log, "Civic Action requires at least 2 Troops and 2 Police." ],
-	[ vm_shaded_capability, CAP_1ST_DIV ],
+	[ vm_capability, S_CAP_1ST_DIV ],
 	[ vm_return ],
 ]
 
@@ -7459,7 +7457,7 @@ CODE[2 * 2 + 0] = [
 // SHADED 2
 CODE[2 * 2 + 1] = [
 	[ vm_log, "Sweep Operations may target only 1 space per card." ],
-	[ vm_shaded_capability, CAP_OSPINA ],
+	[ vm_capability, S_CAP_OSPINA ],
 	[ vm_return ],
 ]
 
@@ -7473,7 +7471,7 @@ CODE[3 * 2 + 0] = [
 // SHADED 3
 CODE[3 * 2 + 1] = [
 	[ vm_log, "Assault Operations may target only 1 space per card." ],
-	[ vm_shaded_capability, CAP_TAPIAS ],
+	[ vm_capability, S_CAP_TAPIAS ],
 	[ vm_return ],
 ]
 
@@ -7554,7 +7552,7 @@ CODE[7 * 2 + 0] = [
 // SHADED 7
 CODE[7 * 2 + 1] = [
 	[ vm_log, "Sabotage phase - Sabotage LoCs with any Guerrillas equal to cubes." ],
-	[ vm_shaded_capability, CAP_7TH_SF ],
+	[ vm_capability, S_CAP_7TH_SF ],
 	[ vm_return ],
 ]
 
@@ -7583,7 +7581,7 @@ CODE[9 * 2 + 0] = [
 // SHADED 9
 CODE[9 * 2 + 1] = [
 	[ vm_log, "Assault in Mountain removes only 1 piece for 4 Troops." ],
-	[ vm_shaded_capability, CAP_MTN_BNS ],
+	[ vm_capability, S_CAP_MTN_BNS ],
 	[ vm_return ],
 ]
 
@@ -7597,7 +7595,7 @@ CODE[10 * 2 + 0] = [
 // SHADED 10
 CODE[10 * 2 + 1] = [
 	[ vm_log, "Air Lift moves only 1 Troops cube." ],
-	[ vm_shaded_capability, CAP_BLACK_HAWKS ],
+	[ vm_capability, S_CAP_BLACK_HAWKS ],
 	[ vm_return ],
 ]
 
@@ -7611,7 +7609,7 @@ CODE[11 * 2 + 0] = [
 // SHADED 11
 CODE[11 * 2 + 1] = [
 	[ vm_log, "Operation Activates Guerrillas via Troops or Police, not both." ],
-	[ vm_shaded_capability, CAP_NDSC ],
+	[ vm_capability, S_CAP_NDSC ],
 	[ vm_return ],
 ]
 
@@ -7639,7 +7637,7 @@ CODE[13 * 2 + 0] = [
 // SHADED 13
 CODE[13 * 2 + 1] = [
 	[ vm_log, "Patrols do not conduct a free Assault." ],
-	[ vm_shaded_capability, CAP_METEORO ],
+	[ vm_capability, S_CAP_METEORO ],
 	[ vm_return ],
 ]
 
@@ -8273,8 +8271,18 @@ CODE[42 * 2 + 0] = [
 // SHADED 42
 CODE[42 * 2 + 1] = [
 	[ vm_log, ()=>`No Sweep or Assault against ${faction_name[game.current]} until next Propaganda.` ],
-	[ vm_asm, ()=>game.senado = game.current ],
-	[ vm_momentum, MOM_SENADO_CAMARA ],
+	[ vm_if, ()=>game.current === GOVT ],
+	[ vm_log, "No effect." ],
+	[ vm_endif ],
+	[ vm_if, ()=>game.current === FARC ],
+	[ vm_momentum, MOM_SENADO_FARC ],
+	[ vm_endif ],
+	[ vm_if, ()=>game.current === AUC ],
+	[ vm_momentum, MOM_SENADO_AUC ],
+	[ vm_endif ],
+	[ vm_if, ()=>game.current === CARTELS ],
+	[ vm_momentum, MOM_SENADO_CARTELS ],
+	[ vm_endif ],
 	[ vm_return ],
 ]
 
