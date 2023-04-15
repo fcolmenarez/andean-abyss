@@ -2,7 +2,6 @@
 
 // TODO: rules material - reference 6.3.3 Drug Profits to 5.2.2 should be 4.5.3
 
-// TODO: compact game.memory array instead of president/aid/cylinder/resources/pieces/support/control
 // TODO: clean up init_free_operation stuff
 
 // TODO: check how often and where to push_undo
@@ -12,6 +11,15 @@
 
 // TODO: don't auto-end 7th sf remove terror/sabotage (no undo suprise)
 // TODO: don't auto-end free Rally with elite backing (no undo suprise)
+
+// TODO: Government -> Govt
+// TODO: Department -> Dept
+
+// TODO: patrol activate/assault - count up to cubes, not down
+// TODO: do_... -> goto_...
+
+// TODO: can_...operation - for space = ... check them all
+// can_rally - check that it is dept/city etc
 
 const AUTOMATIC = true
 
@@ -934,12 +942,10 @@ function is_farc_zone(s) {
 }
 
 function add_farc_zone(s) {
-	log(`FARC Zone in S${s}.`)
 	game.farc_zones |= (1 << s)
 }
 
 function remove_farc_zone(s) {
-	log(`Removed Farc Zone from S${s}.`)
 	game.farc_zones &= ~(1 << s)
 }
 
@@ -1242,7 +1248,6 @@ function is_active(p) {
 }
 
 function move_piece(p, s) {
-	log(`Moved ${piece_name(p)} from S${piece_space(p)} to S${s}.`)
 	set_piece_space(p, s)
 	update_control()
 }
@@ -1250,14 +1255,12 @@ function move_piece(p, s) {
 function place_piece(p, s) {
 	if (piece_space(p) === AVAILABLE)
 		p = find_piece(AVAILABLE, piece_faction(p), piece_type(p))
-	log(`Placed ${piece_name(p)} in S${s}.`)
 	set_underground(p)
 	set_piece_space(p, s)
 	update_control()
 }
 
 function remove_piece(p) {
-	log(`Removed ${piece_name(p)} from S${piece_space(p)}.`)
 	if (is_any_guerrilla(p)) {
 		drop_held_shipments(p)
 		set_underground(p)
@@ -1267,13 +1270,11 @@ function remove_piece(p) {
 }
 
 function place_terror(s) {
-	log(`Terror in S${s}.`)
 	if (count_terror_and_sabotage() < 40)
 		map_set(game.terror, s, map_get(game.terror, s, 0) + 1)
 }
 
 function remove_terror(s) {
-	log(`Removed Terror from S${s}.`)
 	let n = map_get(game.terror, s, 0)
 	if (n > 1)
 		map_set(game.terror, s, n - 1)
@@ -1282,13 +1283,11 @@ function remove_terror(s) {
 }
 
 function place_sabotage(s) {
-	log(`Sabotage in S${s}.`)
 	if (count_terror_and_sabotage() < 40)
 		set_add(game.sabotage, s)
 }
 
 function remove_sabotage(s) {
-	log(`Removed Sabotage from S${s}.`)
 	set_delete(game.sabotage, s)
 }
 
@@ -1309,7 +1308,6 @@ function find_available_shipment() {
 }
 
 function place_shipment(sh, p) {
-	log(`Placed Shipment with ${faction_name[piece_faction(p)]} in S${piece_space(p)}.`)
 	game.shipments[sh] = p << 2
 }
 
@@ -1365,7 +1363,7 @@ function is_shipment_held_by_faction(sh, f) {
 }
 
 function is_shipment_held_by_faction_in_space(sh, f, s) {
-	return is_shipment_held(sh) && get_held_shipment_faction(sh) === f && piece_space(get_held_shipment_piece(sh)) == s
+	return is_shipment_held(sh) && get_held_shipment_faction(sh) === f && piece_space(get_held_shipment_piece(sh)) === s
 }
 
 function is_any_shipment_held_in_space(s) {
@@ -2189,7 +2187,7 @@ function goto_eligible() {
 			free: 0,
 			ship: 1,
 			spaces: [],
-			pieces: [],
+			where: -1,
 			pass: 1
 		}
 		if (is_final_event_card() || did_option(SOP_1ST_OP_ONLY) || did_option(SOP_1ST_OP_AND_SA)) {
@@ -2199,6 +2197,18 @@ function goto_eligible() {
 			game.sa = 1
 		}
 	}
+}
+
+function goto_ship_limop() {
+	game.state = "ship_limop"
+	game.op = {
+		limited: 1,
+		free: 1,
+		ship: 0,
+		spaces: [],
+		where: -1,
+	}
+	game.sa = 0
 }
 
 states.eligible = {
@@ -2235,18 +2245,6 @@ states.eligible = {
 	unshaded() { goto_event(0) },
 	shaded() { goto_event(1) },
 	pass: goto_pass,
-}
-
-function goto_ship_limop() {
-	game.state = "ship_limop"
-	game.op = {
-		limited: 1,
-		free: 1,
-		ship: 0,
-		spaces: [],
-		pieces: [],
-	}
-	game.sa = 0
 }
 
 states.ship_limop = {
@@ -2319,6 +2317,42 @@ function gen_any_event() {
 	}
 }
 
+function init_operation(type) {
+	push_undo()
+	move_cylinder_to_operation()
+	if (game.op.limited)
+		log_h2(faction_name[game.current] + " - Limited " + type)
+	else
+		log_h2(faction_name[game.current] + " - " + type)
+	game.op.type = type
+}
+
+function init_free_operation(type, s) {
+	log_h3("Free " + type)
+	game.op = {
+		type: type,
+		limited: s >= 0 ? 1 : 0,
+		free: 1,
+		ship: 0,
+		spaces: [],
+		where: s,
+	}
+	if (s >= 0)
+		set_add(game.op.spaces, s)
+}
+
+function prompt_end_op(cost) {
+	if (!view.actions.space) {
+		if (game.op.limited && game.op.spaces && game.op.spaces.length > 0)
+			view.prompt = game.op.type + ": All done."
+		else if (!game.op.free && game.resources[game.current] < cost)
+			view.prompt = game.op.type + ": No resources."
+		else
+			view.prompt = game.op.type + ": All done."
+	}
+	return (game.op.spaces.length > 0) ? 1 : 0
+}
+
 function can_select_op_space(cost) {
 	if (!game.op.free && game.resources[game.current] < cost)
 		return false
@@ -2335,51 +2369,15 @@ function select_op_space(s, cost) {
 	set_add(game.op.spaces, s)
 	if (!game.op.free)
 		game.resources[game.current] -= cost
-}
-
-function init_operation(type) {
-	push_undo()
-	move_cylinder_to_operation()
-	if (game.op.limited)
-		log_h2(faction_name[game.current] + " - Limited " + type)
-	else
-		log_h2(faction_name[game.current] + " - " + type)
-	game.op.type = type
-	game.op.spaces = []
-}
-
-function init_free_operation(type) {
-	log_h3("Free " + type)
-	game.op = {
-		type: type,
-		limited: 1,
-		free: 1,
-		ship: 0,
-	}
-}
-
-function prompt_end_op(cost) {
-	if (!view.actions.space) {
-		if (game.op.limited && game.op.spaces && game.op.spaces.length > 0)
-			view.prompt = game.op.type + ": All done."
-		else if (!game.op.free && game.resources[game.current] < cost)
-			view.prompt = game.op.type + ": No resources."
-		else
-			view.prompt = game.op.type + ": All done."
-	}
-	return (game.op.spaces.length > 0) ? 1 : 0
+	game.op.where = s
 }
 
 // OPERATION: TRAIN
 
 function vm_free_train() {
-	init_free_operation("Train")
-	game.op.limited = 1
-	select_op_space(game.vm.s, 0)
-	game.op.where = game.vm.s
-	game.op.count = 6
+	init_free_operation("Train", game.vm.s)
 	if (can_govt_train_place(game.op.where))
-		game.state = "train_place"
+		goto_train_place()
 	else
 		game.state = "vm_train_base_or_civic"
 }
@@ -2440,22 +2438,24 @@ function can_govt_train_civic_any() {
 	return false
 }
 
+function gen_govt_special_activity_for_train() {
+	if (game.sa) {
+		view.actions.air_lift = can_air_lift() ? 1 : 0
+		view.actions.eradicate = can_eradicate() ? 1 : 0
+	}
+}
+
 states.train = {
 	prompt() {
 		view.prompt = "Train: Select City or Department to place cubes."
 
-		if (game.sa) {
-			view.actions.air_lift = can_air_lift() ? 1 : 0
-			view.actions.eradicate = can_eradicate() ? 1 : 0
-		}
+		gen_govt_special_activity_for_train()
 
 		// Any Departments or Cities
-		if (can_select_op_space(3)) {
+		if (can_select_op_space(3))
 			for (let s = first_space; s <= last_dept; ++s)
-				if (can_govt_train_place(s))
-					if (!is_selected_op_space(s))
-						gen_action_space(s)
-		}
+				if (!is_selected_op_space(s) && can_govt_train_place(s))
+					gen_action_space(s)
 
 		view.actions.base = can_govt_train_base_any() ? 1 : 0
 		view.actions.civic = can_govt_train_civic_any() ? 1 : 0
@@ -2464,80 +2464,76 @@ states.train = {
 	},
 	space(s) {
 		push_undo()
-		log(`Train in S${s}.`)
 		select_op_space(s, 3)
-		game.state = "train_place"
-		game.op.where = s
-		game.op.count = 6
+		goto_train_place()
 	},
 	base() {
 		push_undo()
-		if (game.op.limited && game.op.spaces.length > 0) {
-			game.op.where = game.op.spaces[0]
-			game.op.count = 3
-			game.state = "train_base_remove"
-		} else {
+		if (game.op.limited && game.op.spaces.length > 0)
+			goto_train_base_remove(game.op.spaces[0])
+		else
 			game.state = "train_base"
-		}
 	},
 	civic() {
 		push_undo()
 		if (game.op.limited && game.op.spaces.length > 0)
-			do_train_civic_action(game.op.spaces[0])
+			goto_train_civic_action(game.op.spaces[0])
 		else
 			game.state = "train_civic"
 	},
 	end_train: end_operation,
 }
 
+function resume_train() {
+	if (game.vm) {
+		if (can_govt_train_base(game.vm.s) || can_govt_train_civic(game.vm.s))
+			game.state = "vm_train_base_or_civic"
+		else
+			end_operation()
+	} else {
+		game.state = "train"
+	}
+}
+
+function goto_train_place() {
+	game.state = "train_place"
+	game.op.count = 6
+}
+
 states.train_place = {
 	prompt() {
 		view.prompt = `Train in ${space_name[game.op.where]}: Place up to ${game.op.count} cubes.`
 		view.where = game.op.where
-
 		if (game.op.count > 0) {
 			gen_place_piece(game.op.where, GOVT, TROOPS)
 			gen_place_piece(game.op.where, GOVT, POLICE)
 		}
-
 		view.actions.next = 1
 	},
 	piece(p) {
 		place_piece(p, game.op.where)
-		if (--game.op.count == 0)
-			this.next()
+		if (--game.op.count === 0)
+			resume_train()
 	},
 	next() {
-		game.op.count = 0
-		if (game.vm) {
-			if (can_govt_train_base(game.vm.s) || can_govt_train_civic(game.vm.s))
-				game.state = "vm_train_base_or_civic"
-			else
-				end_operation()
-			return
-		}
-		game.state = "train"
+		resume_train()
 	},
 }
 
 states.vm_train_base_or_civic = {
 	prompt() {
 		view.prompt = "Train: Build Base or buy Civic Action?"
-
 		view.actions.base = can_govt_train_base(game.vm.s) ? 1 : 0
 		view.actions.civic = can_govt_train_civic(game.vm.s) ? 1 : 0
-
 		view.actions.end_train = (game.op.spaces.length > 0) ? 1 : 0
 	},
 	base() {
 		push_undo()
-		game.op.where = game.vm.s
-		game.op.count = 3
-		game.state = "train_base_remove"
+		goto_train_base_remove(game.vm.s)
 	},
 	civic() {
 		push_undo()
-		do_train_civic_action()
+		goto_train_civic_action(game.vm.s)
 	},
 	end_train: end_operation,
 }
@@ -2545,6 +2541,7 @@ states.vm_train_base_or_civic = {
 states.train_base = {
 	prompt() {
 		view.prompt = "Train: Build Base."
+		gen_govt_special_activity_for_train()
 		for (let s = first_space; s <= last_dept; ++s)
 			if (can_govt_train_base(s))
 				if (is_selected_op_space(s) || can_select_op_space(3))
@@ -2554,10 +2551,14 @@ states.train_base = {
 		push_undo()
 		if (!is_selected_op_space(s))
 			select_op_space(s, 3)
-		game.op.where = s
-		game.op.count = 3
-		game.state = "train_base_remove"
+		goto_train_base_remove(s)
 	},
+}
+
+function goto_train_base_remove(s) {
+	game.op.where = s
+	game.op.count = 3
+	game.state = "train_base_remove"
 }
 
 states.train_base_remove = {
@@ -2588,7 +2589,7 @@ states.train_base_place = {
 	},
 }
 
-function do_train_civic_action(s) {
+function goto_train_civic_action(s) {
 	game.op.where = s
 	add_resources(GOVT, -3)
 	shift_support(s)
@@ -2601,6 +2602,7 @@ function do_train_civic_action(s) {
 states.train_civic = {
 	prompt() {
 		view.prompt = `Train: Buy Civic Action.`
+		gen_govt_special_activity_for_train()
 		for (let s = first_space; s <= last_dept; ++s)
 			if (can_civic_action(s))
 				if (is_selected_op_space(s) || can_select_op_space(3))
@@ -2610,7 +2612,7 @@ states.train_civic = {
 		push_undo()
 		if (!is_selected_op_space(s))
 			select_op_space(s, 3)
-		do_train_civic_action(s)
+		goto_train_civic_action(s)
 	},
 	end_train: end_operation,
 }
@@ -2618,11 +2620,13 @@ states.train_civic = {
 states.train_civic_buy = {
 	prompt() {
 		view.prompt = `Train: Buy Civic Action.`
+		gen_govt_special_activity_for_train()
 		gen_action_space(game.op.where)
+		view.actions.end_train = 1
 	},
 	space(s) {
 		push_undo()
-		do_train_civic_action(s)
+		goto_train_civic_action(s)
 	},
 	end_train: end_operation,
 }
@@ -2630,6 +2634,7 @@ states.train_civic_buy = {
 states.train_done = {
 	prompt() {
 		view.prompt = "Train: All done."
+		gen_govt_special_activity_for_train()
 		view.actions.end_train = 1
 	},
 	end_train: end_operation,
@@ -2640,10 +2645,6 @@ states.train_done = {
 function goto_patrol() {
 	init_operation("Patrol")
 	game.op.pieces = []
-	goto_patrol1()
-}
-
-function goto_patrol1() {
 	if (!game.op.free && game.resources[GOVT] < 3)
 		game.state = "patrol_pay"
 	else
@@ -2688,34 +2689,12 @@ function can_patrol() {
 	return false
 }
 
-function can_patrol_to(s) {
+function can_patrol_to(_) {
 	// TODO
 	return true
 }
 
-states.patrol_limop = {
-	prompt() {
-		view.prompt = "Patrol: Select destination City or LoC."
-
-		gen_govt_special_activity()
-
-		for (let s = first_city; s <= last_city; ++s)
-			gen_action_space(s)
-		for (let s = first_loc; s <= last_loc; ++s)
-			gen_action_space(s)
-	},
-	space(s) {
-		push_undo()
-
-		log(`S${s}.`)
-
-		select_op_space(s, 0)
-
-		game.op.limop_space = s // remember destination for assault
-		game.op.where = s
-		game.state = "patrol_limop_move"
-	},
-}
+// OPERATION: PATROL - MOVE
 
 function gen_patrol_move_limop(start) {
 	let queue = [ start ]
@@ -2742,23 +2721,6 @@ function gen_patrol_move_limop(start) {
 	}
 }
 
-states.patrol_limop_move = {
-	prompt() {
-		view.prompt = `Patrol: Move cubes to ${space_name[game.op.where]}.`
-		view.where = game.op.where
-
-		gen_govt_special_activity()
-
-		gen_patrol_move_limop(game.op.where)
-
-		view.actions.next = 1
-	},
-	piece(p) {
-		move_piece(p, game.op.where)
-	},
-	next: goto_patrol_activate,
-}
-
 function gen_patrol_move(start) {
 	let queue = [ start ]
 	path_seen.fill(0)
@@ -2779,6 +2741,43 @@ function gen_patrol_move(start) {
 			queue.push(next)
 		}
 	}
+}
+
+states.patrol_limop = {
+	prompt() {
+		view.prompt = "Patrol: Select destination City or LoC."
+
+		gen_govt_special_activity()
+
+		// TODO: check if can move
+		for (let s = first_city; s <= last_city; ++s)
+			gen_action_space(s)
+		for (let s = first_loc; s <= last_loc; ++s)
+			gen_action_space(s)
+	},
+	space(s) {
+		push_undo()
+		select_op_space(s, 0)
+		game.op.limop_space = s // remember destination for assault
+		game.state = "patrol_limop_move"
+	},
+}
+
+states.patrol_limop_move = {
+	prompt() {
+		view.prompt = `Patrol: Move cubes to ${space_name[game.op.where]}.`
+		view.where = game.op.where
+
+		gen_govt_special_activity()
+
+		gen_patrol_move_limop(game.op.where)
+
+		view.actions.next = 1
+	},
+	piece(p) {
+		move_piece(p, game.op.where)
+	},
+	next: goto_patrol_activate,
 }
 
 states.patrol = {
@@ -2826,9 +2825,11 @@ states.patrol = {
 	next: goto_patrol_activate,
 }
 
+// OPERATION: PATROL - ACTIVATE
+
 function goto_patrol_activate() {
 	push_undo()
-	game.op.spaces = []
+	game.op.spaces = [] // reset space list for activation
 	resume_patrol_activate()
 }
 
@@ -2859,15 +2860,15 @@ states.patrol_activate = {
 		view.prompt = "Patrol: Activate Guerrillas in each LoC with cubes."
 		gen_govt_special_activity()
 		for (let s = first_loc; s <= last_loc; ++s)
-			if (!set_has(game.op.spaces, s) && can_patrol_activate_space(s))
+			if (!is_selected_op_space(s) && can_patrol_activate_space(s))
 				gen_action_space(s)
 		view.actions.next = 1
 	},
 	space(s) {
 		push_undo()
-		set_add(game.op.spaces, s)
-		game.op.where = s
+		select_op_space(s, 0)
 		game.op.targeted = 0
+		// TODO count up
 		game.op.count = Math.min(count_cubes(s), count_any_underground_guerrillas(s))
 		game.state = "patrol_activate_space"
 	},
@@ -2891,6 +2892,7 @@ states.patrol_activate_space = {
 	piece(p) {
 		game.op.targeted |= target_faction(p)
 		set_active(p)
+		// TODO count up
 		if (--game.op.count === 0)
 			resume_patrol_activate()
 	},
@@ -2899,8 +2901,10 @@ states.patrol_activate_space = {
 	},
 }
 
+// OPERATION: PATROL - ASSAULT
+
 function goto_patrol_assault() {
-	game.op.spaces = []
+	game.op.spaces = [] // reset space list for assault
 	if (can_patrol_assault())
 		game.state = "patrol_assault"
 	else
@@ -2942,22 +2946,19 @@ states.patrol_assault = {
 			if (can_patrol_assault_space(game.op.limop_space))
 				gen_action_space(game.op.limop_space)
 		} else {
-			for (let s = first_loc; s <= last_loc; ++s) {
-				if (is_selected_op_space(s))
-					continue
-				if (can_patrol_assault_space(s))
+			for (let s = first_loc; s <= last_loc; ++s)
+				if (!is_selected_op_space(s) && can_patrol_assault_space(s))
 					gen_action_space(s)
-			}
 		}
 
 		view.actions.end_patrol = 1
 	},
 	space(s) {
 		push_undo()
-		log(`Assault S${s}.`)
+		select_op_space(s, 0)
 		game.state = "patrol_assault_space"
-		game.op.where = s
 		game.op.targeted = 0
+		// TODO count up
 		game.op.count = count_cubes(s)
 	},
 	end_patrol: end_operation,
@@ -2978,6 +2979,7 @@ states.patrol_assault_space = {
 		game.op.targeted |= target_faction(p)
 		remove_piece(p)
 
+		// TODO count up
 		if (--game.op.count === 0 || !has_assault_target(game.op.where)) {
 			end_patrol_assault_space()
 			transfer_or_drug_bust_shipments()
@@ -3005,21 +3007,19 @@ function goto_sweep() {
 	game.state = "sweep"
 	if (has_capability(S_CAP_OSPINA))
 		game.op.limited = 1
+	game.op.faction = 0
 }
 
 function vm_free_sweep() {
-	init_free_operation("Sweep")
-	game.state = "sweep_activate"
-	game.op.where = game.vm.s
-	do_sweep_activate()
+	init_free_operation("Sweep", game.vm.s)
+	game.op.faction = 0
+	goto_sweep_activate()
 }
 
 function vm_free_sweep_farc() {
-	init_free_operation("Sweep")
-	game.state = "sweep_activate"
+	init_free_operation("Sweep", game.vm.s)
 	game.op.faction = FARC
-	game.op.where = game.vm.s
-	do_sweep_activate()
+	goto_sweep_activate()
 }
 
 function can_sweep() {
@@ -3123,21 +3123,15 @@ states.sweep = {
 		if (has_capability(CAP_OSPINA))
 			cost = 1
 
-		if (can_select_op_space(cost)) {
-			for (let s = first_space; s <= last_dept; ++s) {
-				if (is_selected_op_space(s))
-					continue
-				if (can_sweep_select(s))
+		if (can_select_op_space(cost))
+			for (let s = first_space; s <= last_dept; ++s)
+				if (!is_selected_op_space(s) && can_sweep_select(s))
 					gen_action_space(s)
-			}
-		}
 
 		view.actions.end_sweep = prompt_end_op(cost)
 	},
 	space(s) {
 		push_undo()
-
-		log(`S${s}.`)
 
 		let cost = 3
 		if (has_capability(CAP_OSPINA))
@@ -3145,18 +3139,22 @@ states.sweep = {
 
 		select_op_space(s, cost)
 
-		game.op.where = s
-		game.op.targeted = 0
-
 		if (has_capability(CAP_NDSC))
 			game.op.ndsc = 1
 
 		if (can_sweep_move_cubes(s))
 			game.state = "sweep_move"
 		else
-			do_sweep_activate()
+			goto_sweep_activate()
 	},
 	end_sweep: end_operation,
+}
+
+function resume_sweep() {
+	if (game.vm)
+		end_operation()
+	else
+		game.state = "sweep"
 }
 
 states.sweep_move = {
@@ -3179,13 +3177,11 @@ states.sweep_move = {
 	},
 	next() {
 		push_undo()
-		do_sweep_activate()
+		goto_sweep_activate()
 	},
 }
 
-function do_sweep_activate() {
-	game.state = "sweep_activate"
-
+function goto_sweep_activate() {
 	let n_troops = count_pieces(game.op.where, GOVT, TROOPS)
 	let n_police = count_pieces(game.op.where, GOVT, POLICE)
 
@@ -3200,8 +3196,12 @@ function do_sweep_activate() {
 	if (is_forest(game.op.where))
 		game.op.count >>= 1
 
+	game.op.targeted = 0
+
 	if (game.op.count === 0 || !can_sweep_activate(game.op.where, game.op.faction))
-		do_sweep_next()
+		resume_sweep()
+	else
+		game.state = "sweep_activate"
 }
 
 states.sweep_activate = {
@@ -3228,19 +3228,11 @@ states.sweep_activate = {
 		game.op.targeted |= target_faction(p)
 		set_active(p)
 		if (--game.op.count === 0 || !can_sweep_activate(game.op.where, game.op.faction))
-			this.skip()
+			resume_sweep()
 	},
 	skip() {
-		push_undo()
-		do_sweep_next()
+		resume_sweep()
 	},
-}
-
-function do_sweep_next() {
-	if (game.vm)
-		end_operation()
-	else
-		game.state = "sweep"
 }
 
 // OPERATION: ASSAULT
@@ -3250,41 +3242,31 @@ function goto_assault() {
 	game.state = "assault"
 	if (has_capability(S_CAP_TAPIAS))
 		game.op.limited = 1
+	game.op.faction = 0
 }
 
 function vm_free_assault() {
-	init_free_operation("Assault")
-	game.state = "assault_space"
-	game.op.where = game.vm.s
-	game.op.targeted = 0
-	game.op.count = assault_kill_count(game.vm.s, 0)
+	init_free_operation("Assault", game.vm.s)
+	game.op.faction = 0
+	goto_assault_space()
 }
 
 function vm_free_assault_auc() {
-	init_free_operation("Assault")
-	game.state = "assault_space"
+	init_free_operation("Assault", game.vm.s)
 	game.op.faction = AUC
-	game.op.where = game.vm.s
-	game.op.targeted = 0
-	game.op.count = assault_kill_count(game.vm.s, AUC)
+	goto_assault_space()
 }
 
 function vm_free_assault_farc() {
-	init_free_operation("Assault")
-	game.state = "assault_space"
+	init_free_operation("Assault", game.vm.s)
 	game.op.faction = FARC
-	game.op.where = game.vm.s
-	game.op.targeted = 0
-	game.op.count = assault_kill_count(game.vm.s, FARC)
+	goto_assault_space()
 }
 
 function vm_free_assault_cartels() {
-	init_free_operation("Assault")
-	game.state = "assault_space"
+	init_free_operation("Assault", game.vm.s)
 	game.op.faction = CARTELS
-	game.op.where = game.vm.s
-	game.op.targeted = 0
-	game.op.count = assault_kill_count(game.vm.s, CARTELS)
+	goto_assault_space()
 }
 
 function can_assault() {
@@ -3336,8 +3318,8 @@ function has_assault_target(s, target) {
 
 	return (
 		(!has_momentum(MOM_SENADO_FARC) && has_exposed_piece(s, FARC)) ||
-		(!has_momentum(MOM_SENADO_AUC) && exposed_piece(s, AUC)) ||
-		(!has_momentum(MOM_SENADO_CARTELS) && exposed_piece(s, CARTELS))
+		(!has_momentum(MOM_SENADO_AUC) && has_exposed_piece(s, AUC)) ||
+		(!has_momentum(MOM_SENADO_CARTELS) && has_exposed_piece(s, CARTELS))
 	)
 }
 
@@ -3396,21 +3378,15 @@ states.assault = {
 		if (has_capability(CAP_TAPIAS))
 			cost = 1
 
-		if (can_select_op_space(cost)) {
-			for (let s = first_space; s <= last_dept; ++s) {
-				if (is_selected_op_space(s))
-					continue
-				if (has_assault_target(s, game.op.faction) && assault_kill_count(s, game.op.faction) > 0)
+		if (can_select_op_space(cost))
+			for (let s = first_space; s <= last_space; ++s)
+				if (!is_selected_op_space(s) && can_assault_in_space(s))
 					gen_action_space(s)
-			}
-		}
 
 		view.actions.end_assault = prompt_end_op(cost)
 	},
 	space(s) {
 		push_undo()
-
-		log(`S${s}.`)
 
 		let cost = 3
 		if (has_capability(CAP_TAPIAS))
@@ -3418,12 +3394,15 @@ states.assault = {
 
 		select_op_space(s, cost)
 
-		game.state = "assault_space"
-		game.op.where = s
-		game.op.targeted = 0
-		game.op.count = assault_kill_count(s, game.op.faction)
+		goto_assault_space()
 	},
 	end_assault: end_operation,
+}
+
+function goto_assault_space() {
+	game.state = "assault_space"
+	game.op.targeted = 0
+	game.op.count = assault_kill_count(game.vm.s, game.op.faction)
 }
 
 states.assault_space = {
@@ -3453,17 +3432,17 @@ states.assault_space = {
 		remove_piece(p)
 
 		if (--game.op.count === 0 || !has_assault_target(game.op.where, game.op.faction))
-			this.skip()
+			end_assault_space()
 	},
-	skip() {
-		if (game.vm) {
-			end_operation()
-			transfer_or_drug_bust_shipments()
-			return
-		}
+	skip: end_assault_space,
+}
+
+function end_assault_space() {
+	if (game.vm)
+		end_operation()
+	else
 		game.state = "assault"
-		transfer_or_drug_bust_shipments()
-	},
+	transfer_or_drug_bust_shipments()
 }
 
 // OPERATION: RALLY
@@ -3474,18 +3453,14 @@ function goto_rally() {
 }
 
 function vm_free_rally() {
-	init_free_operation("Rally")
-	game.state = "rally_space"
-	game.op.where = game.vm.s
-	game.op.count = rally_count()
+	init_free_operation("Rally", game.vm.s)
+	goto_rally_space()
 }
 
-function free_rally_elite_backing(s) {
-	init_free_operation("Rally")
-	game.state = "rally_space"
+function goto_free_rally_elite_backing(s) {
+	init_free_operation("Rally", s)
 	game.op.elite_backing = 1
-	game.op.where = s
-	game.op.count = 0
+	goto_rally_space()
 }
 
 function rally_count() {
@@ -3533,29 +3508,35 @@ states.rally = {
 		}
 
 		// Departments or Cities
-		if (can_select_op_space(1)) {
-			for (let s = first_space; s <= last_dept; ++s) {
-				if (is_selected_op_space(s))
-					continue
-				if (can_rally_in_space(s))
+		if (can_select_op_space(1))
+			for (let s = first_space; s <= last_dept; ++s)
+				if (!is_selected_op_space(s) && can_rally_in_space(s))
 					gen_action_space(s)
-			}
-		}
 
 		view.actions.end_rally = prompt_end_op(1)
 	},
 	space(s) {
 		push_undo()
 
-		log(`S${s}.`)
-
 		select_op_space(s, 1)
 
-		game.state = "rally_space"
-		game.op.where = s
-		game.op.count = 0
+		goto_rally_space()
 	},
 	end_rally: end_operation,
+}
+
+function resume_rally() {
+	if (game.op.elite_backing)
+		end_elite_backing()
+	else if (game.vm)
+		end_operation()
+	else
+		game.state = "rally"
+}
+
+function goto_rally_space() {
+	game.state = "rally_space"
+	game.op.count = 0
 }
 
 states.rally_space = {
@@ -3584,13 +3565,11 @@ states.rally_space = {
 	},
 	base() {
 		push_undo()
-		log("Base.")
 		game.state = "rally_base_remove"
 		game.op.count = 2
 	},
 	move() {
 		push_undo()
-		log("Move.")
 		game.state = "rally_move"
 		game.op.count = 0
 	},
@@ -3612,15 +3591,6 @@ states.rally_guerrillas = {
 	next() {
 		resume_rally()
 	},
-}
-
-function resume_rally() {
-	if (game.op.elite_backing)
-		end_elite_backing()
-	else if (game.vm)
-		end_operation()
-	else
-		game.state = "rally"
 }
 
 states.rally_base_remove = {
@@ -3671,7 +3641,6 @@ states.rally_move = {
 	},
 	next() {
 		push_undo()
-		log("Moved " + game.op.count + ".")
 		if (has_active_guerrilla(game.op.where, game.current))
 			game.state = "rally_flip"
 		else
@@ -3699,18 +3668,15 @@ states.rally_flip = {
 
 function goto_march() {
 	init_operation("March")
-	game.state = "march"
 	game.op.pieces = []
+	game.state = "march"
 }
 
 function vm_free_march() {
-	init_free_operation("March")
-	game.state = "march"
-	game.op.limited = 0
-	game.op.spaces = []
+	init_free_operation("March", -1)
 	game.op.pieces = []
-	// remember destinations
-	game.vm.march = []
+	game.state = "march"
+	game.vm.march = [] // remember destinations
 }
 
 function can_march() {
@@ -3742,45 +3708,39 @@ states.march = {
 			gen_special(CARTELS, "bribe", can_bribe)
 		}
 
-		if (can_select_op_space(1)) {
-			for (let s = first_space; s <= last_dept; ++s) {
-				if (is_selected_op_space(s))
-					continue
-				if (can_march_to(s))
+		// Cities & Depts
+		if (can_select_op_space(1))
+			for (let s = first_space; s <= last_dept; ++s)
+				if (!is_selected_op_space(s) && can_march_to(s))
 					gen_action_space(s)
-			}
-		}
 
-		if (can_select_op_space(0)) {
-			for (let s = first_loc; s <= last_loc; ++s) {
-				if (is_selected_op_space(s))
-					continue
-				if (can_march_to(s))
+		// LoCs
+		if (can_select_op_space(0))
+			for (let s = first_loc; s <= last_loc; ++s)
+				if (!is_selected_op_space(s) && can_march_to(s))
 					gen_action_space(s)
-			}
-		}
 
 		view.actions.end_march = prompt_end_op(1)
 	},
 	space(s) {
 		push_undo()
 
-		log(`S${s}.`)
-
-		// remember destinations
-		if (game.vm)
-			set_add(game.vm.march, s)
-
 		if (is_loc(s))
 			select_op_space(s, 0)
 		else
 			select_op_space(s, 1)
 
-		game.state = "march_move"
-		game.op.where = s
+		// track groups moving from the same space
 		game.op.march = []
+
+		game.state = "march_move"
 	},
-	end_march: end_operation,
+	end_march() {
+		// save destinations for event
+		if (game.vm)
+			game.vm.march = game.op.spaces
+		end_operation()
+	},
 }
 
 function may_activate_marching_guerrillas() {
@@ -3802,7 +3762,8 @@ function activate_marching_guerrillas(group) {
 			count += count_pieces(game.op.where, FARC, GUERRILLA)
 		if (count > 3)
 			for (let p of group)
-				set_active(p)
+				if (is_underground(p))
+					set_active(p)
 	}
 }
 
@@ -3840,7 +3801,7 @@ states.march_move = {
 	},
 	next() {
 		push_undo()
-		game.op.march = 0
+		game.op.march = null
 		game.state = "march"
 	},
 }
@@ -3849,20 +3810,20 @@ states.march_move = {
 
 function goto_attack() {
 	init_operation("Attack")
+	game.op.faction = 0
 	game.state = "attack"
 }
 
 function vm_free_attack() {
-	init_free_operation("Attack")
-	game.op.spaces = []
-	do_attack_space(game.vm.s)
+	init_free_operation("Attack", game.vm.s)
+	game.op.faction = 0
+	goto_attack_space()
 }
 
 function vm_free_attack_farc() {
-	init_free_operation("Attack")
-	game.op.spaces = []
+	init_free_operation("Attack", game.vm.s)
 	game.op.faction = FARC
-	do_attack_space(game.vm.s)
+	goto_attack_space()
 }
 
 function can_attack() {
@@ -3892,29 +3853,30 @@ states.attack = {
 			gen_special(CARTELS, "bribe", can_bribe)
 		}
 
-		if (can_select_op_space(1)) {
-			for (let s = first_space; s <= last_space; ++s) {
-				if (is_selected_op_space(s))
-					continue
-				if (can_attack_in_space(s))
+		if (can_select_op_space(1))
+			for (let s = first_space; s <= last_space; ++s)
+				if (!is_selected_op_space(s) && can_attack_in_space(s))
 					gen_action_space(s)
-			}
-		}
 
 		view.actions.end_attack = prompt_end_op(1)
 	},
 	space(s) {
 		push_undo()
-		do_attack_space(s)
+		select_op_space(s, 1)
+		goto_attack_space()
 	},
 	end_attack: end_operation,
 }
 
-function do_attack_space(s) {
-	log(`Attack in S${s}.`)
-	select_op_space(s, 1)
+function resume_attack() {
+	if (game.vm)
+		vm_next()
+	else
+		game.state = "attack"
+}
+
+function goto_attack_space() {
 	game.state = "attack_space"
-	game.op.where = s
 }
 
 states.attack_space = {
@@ -3949,17 +3911,10 @@ states.attack_space = {
 		} else if (die <= count_pieces(game.op.where, game.current, GUERRILLA)) {
 			goto_attack_remove()
 		} else {
-			do_attack_next()
+			resume_attack()
 		}
 	},
 	ambush: goto_ambush,
-}
-
-function do_attack_next() {
-	if (game.vm)
-		vm_next()
-	else
-		game.state = "attack"
 }
 
 function goto_attack_place() {
@@ -3991,7 +3946,7 @@ function goto_attack_remove() {
 		game.op.count = 2
 		game.op.targeted = 0
 	} else {
-		do_attack_next()
+		resume_attack()
 	}
 }
 
@@ -4021,12 +3976,12 @@ states.attack_remove = {
 		remove_piece(p)
 
 		if (--game.op.count === 0 || !has_attack_target(game.op.where)) {
-			do_attack_next()
+			resume_attack()
 			transfer_or_remove_shipments()
 		}
 	},
 	skip() {
-		do_attack_next()
+		resume_attack()
 		game.op.count = 0
 		transfer_or_remove_shipments()
 	}
@@ -4040,20 +3995,17 @@ function goto_terror() {
 }
 
 function vm_free_terror() {
-	init_free_operation("Terror")
+	init_free_operation("Terror", game.vm.s)
 	if (game.current === AUC)
 		game.vm.auc_terror = 0
-	game.op.spaces = []
-	do_terror_space(game.vm.s)
-	do_terror_piece(game.vm.p)
+	game.state = "terror_space"
 }
 
-function vm_free_terror_space() {
-	init_free_operation("Terror")
+function vm_free_terror_with_piece() {
+	init_free_operation("Terror", game.vm.s)
 	if (game.current === AUC)
 		game.vm.auc_terror = 0
-	game.op.spaces = []
-	do_terror_space(game.vm.s)
+	do_terror_piece(game.vm.p)
 }
 
 function can_terror() {
@@ -4079,23 +4031,15 @@ states.terror = {
 			gen_special(CARTELS, "bribe", can_bribe)
 		}
 
-		if (can_select_op_space(1)) {
-			for (let s = first_space; s <= last_dept; ++s) {
-				if (is_selected_op_space(s))
-					continue
-				if (has_underground_guerrilla(s, game.current))
+		if (can_select_op_space(1))
+			for (let s = first_space; s <= last_dept; ++s)
+				if (!is_selected_op_space(s) && can_terror_in_space(s))
 					gen_action_space(s)
-			}
-		}
 
-		if (can_select_op_space(0)) {
-			for (let s = first_loc; s <= last_loc; ++s) {
-				if (is_selected_op_space(s))
-					continue
-				if (can_terror_in_space(s))
+		if (can_select_op_space(0))
+			for (let s = first_loc; s <= last_loc; ++s)
+				if (!is_selected_op_space(s) && can_terror_in_space(s))
 					gen_action_space(s)
-			}
-		}
 
 		view.actions.end_terror = prompt_end_op(1)
 	},
@@ -4114,13 +4058,12 @@ states.terror = {
 }
 
 function do_terror_space(s) {
-	if (is_loc(s)) {
+	// Note: can come here from both "terror" and "kidnap" states
+	if (is_loc(s))
 		select_op_space(s, 0)
-	} else {
+	else
 		select_op_space(s, 1)
-	}
 	game.state = "terror_space"
-	game.op.where = s
 }
 
 states.terror_space = {
@@ -4312,7 +4255,6 @@ states.air_lift_to = {
 		push_undo()
 		game.sa.to = s
 		game.state = "air_lift_move"
-		log(`Air Lift from S${game.sa.from} to S${game.sa.to}.`)
 	}
 }
 
@@ -4326,7 +4268,7 @@ states.air_lift_move = {
 	piece(p) {
 		push_undo()
 		move_piece(p, game.sa.to)
-		if (--game.sa.count === 0 || count_cubes(game.sa.from) === 0 || !can_stack_any(game.sa.to, GOVT))
+		if (--game.sa.count === 0 || count_pieces(game.sa.from, GOVT, TROOPS) === 0 || !can_stack_any(game.sa.to, GOVT))
 			end_special_activity()
 	},
 	end_air_lift() {
@@ -4379,8 +4321,6 @@ states.air_strike = {
 		}
 	},
 	piece(p) {
-		let s = piece_space(p)
-		log(`Air Strike in S${s}.`)
 		remove_piece(p)
 		end_special_activity()
 	}
@@ -4445,7 +4385,6 @@ states.eradicate = {
 	},
 	space(s) {
 		push_undo()
-		log(`Eradicate in S${s}.`)
 		game.sa.where = s
 		if (has_piece(s, CARTELS, BASE))
 			game.state = "eradicate_base"
@@ -4517,15 +4456,13 @@ states.eradicate_place = {
 // SPECIAL ACTIVITY: AMBUSH
 
 function vm_free_ambush() {
-	init_free_operation("Attack")
+	init_free_operation("Attack", piece_space(game.vm.p))
 	set_active(game.vm.p)
-	game.op.where = piece_space(game.vm.p)
 	goto_attack_place()
 }
 
 function vm_free_ambush_without_activating() {
-	init_free_operation("Attack")
-	game.op.where = piece_space(game.vm.p)
+	init_free_operation("Attack", piece_space(game.vm.p))
 	goto_attack_place()
 }
 
@@ -4726,7 +4663,6 @@ states.kidnap_space = {
 
 		let g = is_city_or_loc(s) && game.resources[GOVT] > 0
 		let c = has_piece(s, CARTELS, BASE) && game.resources[CARTELS] > 0
-
 
 		if (g)
 			gen_action_resources(GOVT)
@@ -5678,6 +5614,7 @@ states.remove_farc_zones = {
 				gen_action_space(s)
 	},
 	space(s) {
+		log(`Removed Farc Zone from S${s}.`)
 		remove_farc_zone(s)
 		if (!has_any_farc_zones())
 			goto_elite_backing()
@@ -5708,7 +5645,7 @@ states.elite_backing = {
 	},
 	space(s) {
 		push_undo()
-		free_rally_elite_backing(s)
+		goto_free_rally_elite_backing(s)
 	},
 	skip() {
 		end_elite_backing()
@@ -5885,6 +5822,8 @@ states.farc_zone_place = {
 	},
 	space(s) {
 		push_undo()
+
+		log(`FARC Zone in S${s}.`)
 		add_farc_zone(s)
 
 		if (game.vm)
@@ -5965,10 +5904,13 @@ function goto_event(shaded) {
 
 	if (shaded) {
 		log_h2(faction_name[game.current] + " - Shaded Event")
+		log("C" + c)
 		log(".i " + data.card_flavor_shaded[c] + ".")
 		goto_vm(c * 2 + 1)
 	} else {
 		log_h2(faction_name[game.current] + " - Event")
+		log("C" + c)
+		log(".i " + data.card_flavor_shaded[c] + ".")
 		if (data.card_flavor[c])
 			log(".i " + data.card_flavor[c] + ".")
 		goto_vm(c * 2 + 0)
@@ -6203,6 +6145,7 @@ function vm_remove() {
 }
 
 function vm_remove_farc_zone() {
+	log(`Removed Farc Zone from S${s}.`)
 	remove_farc_zone(game.vm.s)
 	vm_next()
 }
@@ -6259,7 +6202,6 @@ function vm_set_passive_opposition() {
 }
 
 function vm_shift_support() {
-	log("S" + game.vm.s + " to Passive Opposition.")
 	if (game.support[game.vm.s] < 2) {
 		game.support[game.vm.s] ++
 		log_support_shift(game.vm.s)
@@ -7025,7 +6967,7 @@ states.vm_free_rally_attack_terror = {
 	},
 	rally: vm_free_rally,
 	attack: vm_free_attack,
-	terror: vm_free_terror_space,
+	terror: vm_free_terror,
 }
 
 states.vm_free_attack_terror = {
@@ -7039,7 +6981,7 @@ states.vm_free_attack_terror = {
 		view.actions.terror = 1
 	},
 	attack: vm_free_attack,
-	terror: vm_free_terror_space,
+	terror: vm_free_terror,
 }
 
 // === GAME END ===
@@ -7063,6 +7005,18 @@ function log_br() {
 
 function log(msg) {
 	game.log.push(msg)
+}
+
+function log_space(s, action) {
+	log_br()
+	if (action)
+		log("S" + s + " - " + action)
+	else
+		log("S" + s)
+}
+
+function logi(msg) {
+	log(">" + msg)
 }
 
 function log_h1(msg) {
@@ -8385,7 +8339,7 @@ CODE[46 * 2 + 0] = [
 	[ vm_prompt, "Execute free Terror with any Guerrilla." ],
 	[ vm_space, true, 1, 1, (s)=>has_piece(s, game.current, GUERRILLA) ],
 	[ vm_piece, false, 1, 1, (p,s)=>is_piece_in_event_space(p) && is_piece(p, game.current, GUERRILLA) ],
-	[ vm_free_terror ],
+	[ vm_free_terror_with_piece ],
 	[ vm_terror ],
 	[ vm_terror_aid_cut ],
 	[ vm_endpiece ],
@@ -8422,7 +8376,7 @@ CODE[47 * 2 + 1] = [
 	[ vm_auto_place, false, 0, AUC, GUERRILLA ],
 	[ vm_prompt, "Execute free Terror in Cúcuta." ],
 	[ vm_piece, false, 1, 1, (p,s)=>is_piece_in_event_space(p) && is_auc_guerrilla(p) && is_underground(p) ],
-	[ vm_free_terror ],
+	[ vm_free_terror_with_piece ],
 	[ vm_terror_aid_cut ],
 	[ vm_endpiece ],
 	[ vm_endspace ],
@@ -8823,7 +8777,7 @@ CODE[63 * 2 + 0] = [
 	[ vm_endpiece ],
 	[ vm_prompt, "Free Terror with remaining Cartels Guerrilla." ],
 	[ vm_piece, false, 1, 1, (p,s)=>is_piece_in_event_space(p) && is_cartels_guerrilla(p) ],
-	[ vm_free_terror ],
+	[ vm_free_terror_with_piece ],
 	[ vm_endpiece ],
 	[ vm_endspace ],
 	[ vm_terror_aid_cut ],
@@ -8986,7 +8940,7 @@ CODE[70 * 2 + 1] = [
 	[ vm_space, true, 999, 999, (s)=>is_forest(s) && has_piece(s, game.current, GUERRILLA) ],
 	[ vm_prompt, "Free Terror with any 1 Guerrilla." ],
 	[ vm_piece, false, 1, 1, (p,s)=>is_piece_in_event_space(p) && is_piece(p, game.current, GUERRILLA) ],
-	[ vm_free_terror ],
+	[ vm_free_terror_with_piece ],
 	[ vm_auto_resources, ()=>(game.current), 3 ],
 	[ vm_endpiece ],
 	[ vm_endspace ],

@@ -687,7 +687,7 @@ EVENT 46
 	prompt "Execute free Terror with any Guerrilla."
 	space 1 has_piece(s, game.current, GUERRILLA)
 		piece 1 is_piece_in_event_space(p) && is_piece(p, game.current, GUERRILLA)
-			free_terror
+			free_terror_with_piece
 			terror
 			terror_aid_cut
 		endpiece
@@ -719,7 +719,7 @@ SHADED 47
 		auto_place AUC GUERRILLA
 		prompt "Execute free Terror in Cúcuta."
 		piece 1 is_piece_in_event_space(p) && is_auc_guerrilla(p) && is_underground(p)
-			free_terror
+			free_terror_with_piece
 			terror_aid_cut
 		endpiece
 	endspace
@@ -1038,7 +1038,7 @@ EVENT 63
 		endpiece
 		prompt "Free Terror with remaining Cartels Guerrilla."
 		piece 1 is_piece_in_event_space(p) && is_cartels_guerrilla(p)
-			free_terror
+			free_terror_with_piece
 		endpiece
 	endspace
 	terror_aid_cut
@@ -1163,7 +1163,7 @@ SHADED 70
 	space all is_forest(s) && has_piece(s, game.current, GUERRILLA)
 		prompt "Free Terror with any 1 Guerrilla."
 		piece 1 is_piece_in_event_space(p) && is_piece(p, game.current, GUERRILLA)
-			free_terror
+			free_terror_with_piece
 			auto_resources (game.current) 3
 		endpiece
 	endspace

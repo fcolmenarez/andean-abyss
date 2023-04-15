@@ -24,6 +24,8 @@ main { background-color: #777; }
 #log div { padding-left: 20px; text-indent: -12px; }
 #log div.ind { padding-left: 32px; text-indent: -12px; }
 
+#log { font-variant-numeric: tabular-nums; }
+
 .action { cursor: pointer }
 
 .role.active span { text-decoration: underline; }
