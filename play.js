@@ -88,7 +88,7 @@ const LAYOUT = {
 	"Cesar FARC": [901, 399],
 	"Cesar DRUGS": [1054, 298],
 	"Antioquia Govt": [621, 766],
-	"Antioquia AUC": [715, 807],
+	"Antioquia AUC": [707, 807],
 	"Antioquia Cartels": [603, 978],
 	"Antioquia FARC": [703, 965],
 	"Antioquia DRUGS": [594, 1138],
@@ -1374,21 +1374,18 @@ function on_log(text) {
 
 	if (text.match(/^>/)) {
                 text = text.substring(1)
-                p.className = "ind"
+                p.className = "indent"
         }
 
 	text = text.replace(/&/g, "&amp;")
 	text = text.replace(/</g, "&lt;")
 	text = text.replace(/>/g, "&gt;")
 
-	text = text.replace(/C(\d+)/g, sub_card)
-	text = text.replace(/S(\d+)/g, sub_space)
-
 	if (text.match(/^\.h1/)) {
 		text = text.substring(4)
 		p.className = "h1"
 	}
-	else if (text.match(/^\.h2 Government/)) {
+	else if (text.match(/^\.h2 Gov/)) {
 		text = text.substring(3)
 		p.className = "h2 govt"
 	}
@@ -1416,10 +1413,17 @@ function on_log(text) {
 		text = text.substring(4)
 		p.className = "h4"
 	}
-	else if (text.match(/^\.i/)) {
+	else if (text.match(/^\.n/)) {
 		text = text.substring(3)
-		p.className = "i"
+		p.className = "italic"
 	}
+	else if (text.match(/^\.f/)) {
+		text = text.substring(3)
+		p.className = "indent italic"
+	}
+
+	text = text.replace(/C(\d+)/g, sub_card)
+	text = text.replace(/S(\d+)/g, sub_space)
 
 	p.innerHTML = text
 	return p

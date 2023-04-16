@@ -40,7 +40,7 @@
      inkscape:window-height="480"
      id="namedview330"
      showgrid="false"
-     inkscape:zoom="0.93445935"
+     inkscape:zoom="0.67084728"
      inkscape:cx="932.7326"
      inkscape:cy="1036.0289"
      inkscape:current-layer="svg328"
@@ -52,8 +52,9 @@
      height="2550"
      image-rendering="pixelated"
      sodipodi:insensitive="true"
+     x="0"
      y="0"
-     x="0" />
+     id="image2" />
   <text
      x="-205.52834"
      y="113.16729"
@@ -435,7 +436,7 @@
      id="ellipse90" />
   <ellipse
      inkscape:label="Antioquia AUC"
-     cx="714.72656"
+     cx="706.75018"
      cy="807.43933"
      rx="50"
      ry="40"

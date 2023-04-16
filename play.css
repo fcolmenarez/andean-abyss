@@ -5,9 +5,9 @@ main { background-color: #777; }
 #role_Cartels, header.cartels.your_turn { background-color: darkseagreen; }
 #role_FARC, header.farc.your_turn { background-color: lightcoral; }
 
-#role_Government_\+_AUC { background-image: linear-gradient(135deg, skyblue 40%, khaki 60%) }
-#role_FARC_\+_Cartels { background-image: linear-gradient(135deg, lightcoral 40%, hsl(60, 20%, 60%) 52%, darkseagreen 60%) }
-#role_AUC_\+_Cartels { background-image: linear-gradient(135deg, khaki 40%, darkseagreen 60%) }
+#role_Government_\+_AUC { background-image: linear-gradient(150deg, skyblue 40%, khaki 60%) }
+#role_FARC_\+_Cartels { background-image: linear-gradient(150deg, lightcoral 40%, hsl(60, 20%, 60%) 52%, darkseagreen 60%) }
+#role_AUC_\+_Cartels { background-image: linear-gradient(150deg, khaki 40%, darkseagreen 60%) }
 
 #log { background-color: whitesmoke; }
 #log .h1 { background-color: silver; font-weight: bold; padding-top:4px; padding-bottom:4px; }
@@ -17,12 +17,14 @@ main { background-color: #777; }
 #log .h2.auc { background-color: #eaddc4 }
 #log .h2.cartels { background-color: #c2d7c7 }
 #log .h3 { text-decoration: underline; }
-#log .i { font-style: italic; }
+#log .italic { font-style: italic; }
 #log .tip { cursor: pointer; }
 #log .tip:hover { text-decoration: underline; }
 
 #log div { padding-left: 20px; text-indent: -12px; }
-#log div.ind { padding-left: 32px; text-indent: -12px; }
+#log div.indent { padding-left: 32px; text-indent: -12px; }
+
+#log .h1 { background-image: linear-gradient(60deg, skyblue, khaki, lightcoral, darkseagreen) }
 
 #log { font-variant-numeric: tabular-nums; }
 
