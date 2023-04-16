@@ -15,9 +15,6 @@
 // TODO: Government -> Govt
 // TODO: Department -> Dept
 
-// TODO: patrol activate/assault - count up to cubes, not down
-// TODO: do_... -> goto_...
-
 // TODO: can_...operation - for space = ... check them all
 // can_rally - check that it is dept/city etc
 
@@ -2867,10 +2864,7 @@ states.patrol_activate = {
 	space(s) {
 		push_undo()
 		select_op_space(s, 0)
-		game.op.targeted = 0
-		// TODO count up
-		game.op.count = Math.min(count_cubes(s), count_any_underground_guerrillas(s))
-		game.state = "patrol_activate_space"
+		goto_patrol_activate_space()
 	},
 	next() {
 		push_undo()
@@ -2878,10 +2872,18 @@ states.patrol_activate = {
 	},
 }
 
+function goto_patrol_activate_space() {
+	game.op.targeted = 0
+	game.op.count = 0
+	game.state = "patrol_activate_space"
+}
+
 states.patrol_activate_space = {
 	prompt() {
 		view.prompt = `Patrol: Activate 1 Guerrilla for each cube in ${space_name[game.op.where]}.`
 		view.where = game.op.where
+
+		gen_govt_special_activity()
 
 		gen_underground_guerrillas(game.op.where, FARC)
 		gen_underground_guerrillas(game.op.where, AUC)
@@ -2892,8 +2894,7 @@ states.patrol_activate_space = {
 	piece(p) {
 		game.op.targeted |= target_faction(p)
 		set_active(p)
-		// TODO count up
-		if (--game.op.count === 0)
+		if (++game.op.count >= count_cubes(game.op.where) || !has_any_underground_guerrilla(game.op.where))
 			resume_patrol_activate()
 	},
 	skip() {
@@ -2911,7 +2912,7 @@ function goto_patrol_assault() {
 		game.state = "patrol_done"
 }
 
-function end_patrol_assault_space() {
+function resume_patrol_assault() {
 	if (has_capability(CAP_METEORO))
 		game.state = "patrol_assault"
 	else
@@ -2956,18 +2957,23 @@ states.patrol_assault = {
 	space(s) {
 		push_undo()
 		select_op_space(s, 0)
-		game.state = "patrol_assault_space"
-		game.op.targeted = 0
-		// TODO count up
-		game.op.count = count_cubes(s)
+		goto_patrol_assault_space()
 	},
 	end_patrol: end_operation,
+}
+
+function goto_patrol_assault_space() {
+	game.op.targeted = 0
+	game.op.count = 0
+	game.state = "patrol_assault_space"
 }
 
 states.patrol_assault_space = {
 	prompt() {
 		view.prompt = `Patrol: Remove 1 Guerrilla for each cube in ${space_name[game.op.where]}.`
 		view.where = game.op.where
+
+		gen_govt_special_activity()
 
 		gen_exposed_piece(game.op.where, FARC)
 		gen_exposed_piece(game.op.where, AUC)
@@ -2979,15 +2985,14 @@ states.patrol_assault_space = {
 		game.op.targeted |= target_faction(p)
 		remove_piece(p)
 
-		// TODO count up
-		if (--game.op.count === 0 || !has_assault_target(game.op.where)) {
-			end_patrol_assault_space()
+		if (++game.op.count >= count_cubes(game.op.where) || !has_assault_target(game.op.where)) {
+			resume_patrol_assault()
 			transfer_or_drug_bust_shipments()
 		}
 	},
 	skip() {
 		push_undo()
-		end_patrol_assault_space()
+		resume_patrol_assault()
 		transfer_or_drug_bust_shipments()
 	},
 }
