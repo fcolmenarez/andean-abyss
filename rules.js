@@ -3792,7 +3792,7 @@ states.rally = {
 
 function resume_rally() {
 	if (game.op.elite_backing)
-		end_elite_backing()
+		game.state = "elite_backing_done"
 	else if (game.vm)
 		end_operation()
 	else
@@ -5751,7 +5751,7 @@ states.sabotage = {
 }
 
 function end_sabotage_phase() {
-	if (has_capability(CAP_7TH_SF) && (game.sabotage.length > 0 || game.terror.length > 0)) {
+	if (has_capability(CAP_7TH_SF) && count_terror_and_sabotage() > 0) {
 		game.current = GOVT
 		game.state = "sabotage_7th_sf"
 		game.prop.count = 0
@@ -5779,10 +5779,20 @@ states.sabotage_7th_sf = {
 			logi("Removed Terror from S" + s)
 			remove_terror(s)
 		}
-		if (++game.prop.count === 3)
-			goto_resources_phase()
+		if (++game.prop.count === 3 || count_terror_and_sabotage() === 0)
+			game.state = "sabotage_7th_sf_done"
 	},
 	skip() {
+		goto_resources_phase()
+	},
+}
+
+states.sabotage_7th_sf_done = {
+	prompt() {
+		view.prompt = "7th Special Forces: All done."
+		view.actions.done = 1
+	},
+	done() {
 		goto_resources_phase()
 	},
 }
@@ -6092,6 +6102,17 @@ states.elite_backing = {
 		goto_free_rally_elite_backing(s)
 	},
 	skip() {
+		end_elite_backing()
+	},
+}
+
+states.elite_backing_done = {
+	prompt() {
+		view.prompt = "Elite Backing: All done."
+		view.actions.done = 1
+	},
+	done() {
+		game.op = null
 		end_elite_backing()
 	},
 }
