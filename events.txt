@@ -3,8 +3,6 @@
 # TODO: format prompt "Remove N Piece(s)"
 # TODO: prompt wording to match card texts
 
-# TODO: allow voluntarily removing pieces before taking event (but disable passing if did so)
-
 # Notes on difficult events:
 #
 #   5.1.3 - must do max possible

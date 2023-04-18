@@ -2,13 +2,6 @@
 
 // TODO: rules material - reference 6.3.3 Drug Profits to 5.2.2 should be 4.5.3
 
-// TODO: clean up init_free_operation stuff
-
-// TODO: check how often and where to push_undo
-
-// TODO: auto-skip civic action
-// TODO: auto-skip agitation
-
 // TODO: don't auto-end 7th sf remove terror/sabotage (no undo suprise)
 // TODO: don't auto-end free Rally with elite backing (no undo suprise)
 
@@ -332,6 +325,7 @@ exports.setup = function (seed, scenario, options) {
 				game.deck.push(i)
 	}
 
+	game.deck[0] = 73
 	log("DEBUG DECK " + game.deck.join(", "))
 
 	update_control()
@@ -1527,9 +1521,12 @@ function is_any_shipment_held() {
 }
 
 function remove_dropped_shipments() {
-	for (let sh = 0; sh < 4; ++sh)
-		if (is_shipment_dropped(sh))
+	for (let sh = 0; sh < 4; ++sh) {
+		if (is_shipment_dropped(sh)) {
+			log_transfer("Removed Shipment in S" + get_dropped_shipment_space(sh))
 			remove_shipment(sh)
+		}
+	}
 }
 
 function drop_held_shipments(p) {
@@ -1562,16 +1559,26 @@ function auto_transfer_dropped_shipments() {
 function auto_transfer_dropped_shipment_imp(sh) {
 	// Transfer shipment automatically if there's only one faction present.
 	// NOTE: Don't transfer to own faction automatically,
+	let owner = get_dropped_shipment_faction(sh)
 	let s = get_dropped_shipment_space(sh)
 	let a = find_piece(s, FARC, GUERRILLA)
 	let b = find_piece(s, AUC, GUERRILLA)
 	let c = find_piece(s, CARTELS, GUERRILLA)
-	if (a >= 0 && b < 0 && c < 0)
+	if (a >= 0 && b < 0 && c < 0) {
+		if (owner !== FARC)
+			log_transfer("FARC took Shipment in S" + s + ".")
 		place_shipment(sh, a)
-	if (a < 0 && b >= 0 && c < 0)
+	}
+	if (a < 0 && b >= 0 && c < 0) {
+		if (owner !== AUC)
+			log_transfer("AUC took Shipment in S" + s + ".")
 		place_shipment(sh, b)
-	if (a < 0 && b < 0 && c >= 0)
+	}
+	if (a < 0 && b < 0 && c >= 0) {
+		if (owner !== CARTELS)
+			log_transfer("Cartels took Shipment in S" + s + ".")
 		place_shipment(sh, c)
+	}
 }
 
 // === ITERATORS AND ACTION GENERATORS ===
@@ -1837,7 +1844,7 @@ states.give_resources = {
 		game.transfer.count = 0
 	},
 	deny() {
-		log_transfer(`${faction_name[game.current]} denied Resource request from ${faction_name[game.transfer.current]}.`)
+		log_transfer(`${faction_name[game.current]} denied request from ${faction_name[game.transfer.current]}.`)
 		end_negotiation()
 	},
 	done() {
@@ -2059,6 +2066,7 @@ states.ship = {
 		push_undo()
 		let faction = get_held_shipment_faction(sh)
 		if (faction !== game.current) {
+			// TODO: add confirmation step?
 			game.transfer = {
 				current: game.current,
 				state: game.state,
@@ -2103,8 +2111,7 @@ states.ask_ship = {
 
 // === TRANSFER SHIPMENTS ===
 
-function transfer_or_remove_shipments()
-{
+function transfer_or_remove_shipments() {
 	auto_transfer_dropped_shipments()
 	if (has_dropped_shipments()) {
 		if (can_transfer_dropped_shipments())
@@ -2114,8 +2121,7 @@ function transfer_or_remove_shipments()
 	}
 }
 
-function transfer_or_drug_bust_shipments()
-{
+function transfer_or_drug_bust_shipments() {
 	auto_transfer_dropped_shipments()
 	if (has_dropped_shipments()) {
 		if (can_transfer_dropped_shipments())
@@ -2140,6 +2146,11 @@ function resume_transfer_dropped_shipments() {
 			game.current = get_dropped_shipment_faction(sh)
 			game.state = "transfer_dropped_shipments"
 			game.transfer.shipment = sh
+
+			// Clear undo if swapping to another player!
+			if (game.current !== game.transfer.current)
+				clear_undo()
+
 			return
 		}
 	}
@@ -2159,7 +2170,7 @@ states.transfer_dropped_shipments = {
 		view.actions.undo = 0
 	},
 	piece(p) {
-		push_undo()
+		log_transfer(`Transferred Shipment to ${piece_faction_name(p)} in S${piece_space(p)}.`)
 		place_shipment(game.transfer.shipment, p)
 		resume_transfer_dropped_shipments()
 	},
@@ -2184,23 +2195,15 @@ function resume_drug_bust() {
 states.drug_bust = {
 	prompt() {
 		view.prompt = "Drug Bust: Gain 6 resources per removed Shipment."
-		gen_action_resources(GOVT)
 		for (let sh = 0; sh < 4; ++sh)
 			if (is_shipment_dropped(sh))
 				gen_action_shipment(sh)
 	},
 	shipment(sh) {
+		log_space(get_dropped_shipment_space(sh), "Drug Bust")
 		remove_shipment(sh)
+		logi_resources(GOVT, 6)
 		add_resources(GOVT, 6)
-		resume_drug_bust()
-	},
-	resources(_) {
-		for (let sh = 0; sh < 4; ++sh) {
-			if (is_shipment_dropped(sh)) {
-				add_resources(GOVT, 6)
-				remove_shipment(sh)
-			}
-		}
 		resume_drug_bust()
 	},
 }
@@ -2439,10 +2442,13 @@ function goto_pass() {
 
 	game.cylinder[game.current] = SOP_PASS
 	log_h2(faction_name[game.current] + " - Pass")
-	if (game.current === GOVT)
+	if (game.current === GOVT) {
+		log_resources(game.current, 3)
 		add_resources(game.current, 3)
-	else
+	} else {
+		log_resources(game.current, 1)
 		add_resources(game.current, 1)
+	}
 	resume_event_card()
 }
 
@@ -2993,6 +2999,7 @@ states.patrol = {
 		view.actions.next = 1
 	},
 	piece(p) {
+		// TODO: undo for each piece?
 		if (game.op.who < 0) {
 			push_undo()
 			game.op.who = p
@@ -3065,6 +3072,7 @@ states.patrol_activate = {
 		for (let s = first_loc; s <= last_loc; ++s)
 			if (!is_selected_op_space(s) && can_patrol_activate_space(s))
 				gen_action_space(s)
+
 		view.actions.next = 1
 	},
 	space(s) {
@@ -3205,7 +3213,6 @@ states.patrol_assault_space = {
 			end_patrol_assault_space()
 	},
 	skip() {
-		push_undo()
 		end_patrol_assault_space()
 	},
 }
@@ -3898,7 +3905,6 @@ states.rally_move = {
 		// set_underground(p) // TODO: save some clicks?
 	},
 	next() {
-		push_undo()
 		if (has_active_guerrilla(game.op.where, game.current))
 			game.state = "rally_flip"
 		else
@@ -3924,7 +3930,10 @@ states.rally_flip = {
 }
 
 function end_rally_space() {
-	log_space(game.op.where, "Rally")
+	if (game.op.elite_backing)
+		log_space(game.op.where, "Elite Backing")
+	else
+		log_space(game.op.where, "Rally")
 	pop_summary()
 	resume_rally()
 }
@@ -4083,7 +4092,6 @@ states.march_move = {
 		// TODO: auto-end if no more moves possible
 	},
 	next() {
-		push_undo()
 		end_march_move()
 	},
 }
@@ -4096,6 +4104,7 @@ function end_march_move() {
 		let group = game.op.march[i+1]
 		if (should_activate_marching_guerrillas(group))
 			logi(group.length + " from S" + from + "*")
+			// logi(group.length + " from S" + from + " (to Active)")
 		else
 			logi(group.length + " from S" + from)
 	}
@@ -4280,6 +4289,7 @@ states.attack_remove = {
 		view.actions.skip = did_maximum_damage(game.op.targeted)
 	},
 	piece(p) {
+		// NOTE: undo first only?
 		push_undo()
 
 		logi("Removed " + piece_name(p))
@@ -4701,7 +4711,6 @@ states.eradicate = {
 				gen_action_space(s)
 	},
 	space(s) {
-		push_undo()
 		game.sa.where = s
 
 		log_space(game.sa.where, "Eradicate")
@@ -5605,10 +5614,10 @@ function calc_victory(is_final) {
 	let a = auc_victory_margin()
 	let c = cartels_victory_margin()
 
-	log("Government: " + g)
-	log("FARC: " + f)
-	log("AUC: " + a)
-	log("Cartels: " + c)
+	log("Government " + g)
+	log("FARC " + f)
+	log("AUC " + a)
+	log("Cartels " + c)
 
 	if (game.scenario === 4) {
 		if (is_final || g > 0 || f > 0 || a > 0 || c > 0) {
@@ -5798,10 +5807,11 @@ function goto_resources_phase() {
 	game.prop.step = 3
 	log_h2("Resources Phase")
 
-	log_resources(GOVT, calc_govt_earnings())
-	log_resources(FARC, calc_farc_earnings())
-	log_resources(AUC, calc_auc_earnings())
-	log_resources(CARTELS, calc_cartels_earnings())
+	log_action("Earnings")
+	logi_resources(GOVT, calc_govt_earnings())
+	logi_resources(FARC, calc_farc_earnings())
+	logi_resources(AUC, calc_auc_earnings())
+	logi_resources(CARTELS, calc_cartels_earnings())
 
 	add_resources(GOVT, calc_govt_earnings())
 	add_resources(FARC, calc_farc_earnings())
@@ -5814,14 +5824,17 @@ function goto_resources_phase() {
 function goto_drug_profits() {
 	game.state = "drug_profits"
 	if (is_any_shipment_held_by_faction(FARC)) {
+		log_action("Drug Profits - FARC")
 		game.current = FARC
 		return
 	}
 	if (is_any_shipment_held_by_faction(AUC)) {
+		log_action("Drug Profits - AUC")
 		game.current = AUC
 		return
 	}
 	if (is_any_shipment_held_by_faction(CARTELS)) {
+		log_action("Drug Profits - Cartels")
 		game.current = CARTELS
 		return
 	}
@@ -5843,7 +5856,12 @@ states.drug_profits = {
 		let s = piece_space(p)
 		game.transfer = s
 		remove_shipment(sh)
-		game.state = "drug_profits_space"
+		if (can_place_piece(game.transfer, game.current, BASE)) {
+			game.state = "drug_profits_choice"
+		} else {
+			logi_resources(game.current, 6)
+			add_resources(game.current, 6)
+		}
 	},
 	done() {
 		clear_undo()
@@ -5851,21 +5869,19 @@ states.drug_profits = {
 	}
 }
 
-states.drug_profits_space = {
+states.drug_profits_choice = {
 	prompt() {
-		if (can_place_piece(game.transfer, game.current, BASE)) {
-			view.prompt = "Drug Profits: Place Base or +6 Resources."
-			gen_place_piece(game.transfer, game.current, BASE)
-		} else {
-			view.prompt = `Drug Profits: ${faction_name[game.current]} +6 Resources.`
-		}
+		view.prompt = "Drug Profits: Place Base or +6 Resources."
+		gen_place_piece(game.transfer, game.current, BASE)
 		gen_action_resources(game.current)
 	},
 	resources(_) {
+		logi_resources(game.current, 6)
 		add_resources(game.current, 6)
 		game.state = "drug_profits"
 	},
 	piece(p) {
+		logi("Placed " + piece_name(p) + " in S" + game.transfer)
 		place_piece(p, game.transfer)
 		game.state = "drug_profits"
 	},
@@ -6127,7 +6143,10 @@ states.redeploy_mandatory = {
 	space(s) {
 		let p = game.prop.who
 		game.prop.who = -1
+
+		// TODO: undo for each piece?
 		push_undo()
+
 		log_summary_move_to_from(p, s)
 		set_piece_space(p, s)
 		// NOTE: do not update control yet!
@@ -6180,7 +6199,10 @@ states.redeploy_optional = {
 	space(s) {
 		let p = game.prop.who
 		game.prop.who = -1
+
+		// TODO: undo for each piece?
 		push_undo()
+
 		log_summary_move_to_from(p, s)
 		set_piece_space(p, s)
 		set_add(game.prop.pieces, p)
@@ -6311,7 +6333,10 @@ states.farc_zone_redeploy = {
 	space(s) {
 		let p = game.redeploy
 		game.redeploy = -1
+
+		// TODO: undo for each piece?
 		push_undo()
+
 		log_summary("% " + piece_name(p) + " to S" + s)
 		place_piece(p, s)
 		if (!has_govt_in_farc_zone())
@@ -6346,14 +6371,14 @@ function goto_event(shaded) {
 	if (shaded) {
 		log_h2(faction_name[game.current] + " - Shaded Event")
 		log("C" + c)
-		log(".f " + data.card_flavor_shaded[c] + ".")
+		log(".i " + data.card_flavor_shaded[c] + ".")
 		log_br()
 		goto_vm(c * 2 + 1)
 	} else {
 		log_h2(faction_name[game.current] + " - Event")
 		log("C" + c)
 		if (data.card_flavor[c])
-			log(".f " + data.card_flavor[c] + ".")
+			log(".i " + data.card_flavor[c] + ".")
 		log_br()
 		goto_vm(c * 2 + 0)
 	}

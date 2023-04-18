@@ -1422,7 +1422,7 @@ function on_log(text) {
 		text = text.substring(3)
 		p.className = "italic"
 	}
-	else if (text.match(/^\.f/)) {
+	else if (text.match(/^\.i/)) {
 		text = text.substring(3)
 		p.className = "indent italic"
 	}
