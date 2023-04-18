@@ -11,6 +11,7 @@ main { background-color: #777; }
 
 #log { background-color: whitesmoke; }
 #log .h1 { background-color: silver; font-weight: bold; padding-top:4px; padding-bottom:4px; }
+#log .h1 { background-image: linear-gradient(60deg, skyblue, khaki, lightcoral, darkseagreen) }
 #log .h2 { background-color: gainsboro; padding-top:2px; padding-bottom:2px; }
 #log .h2.govt { background-color: #c6d1eb }
 #log .h2.farc { background-color: #ebc9be }
@@ -24,7 +25,6 @@ main { background-color: #777; }
 #log div { padding-left: 20px; text-indent: -12px; }
 #log div.indent { padding-left: 32px; text-indent: -12px; }
 
-#log .h1 { background-image: linear-gradient(60deg, skyblue, khaki, lightcoral, darkseagreen) }
 
 #log { font-variant-numeric: tabular-nums; }
 
@@ -39,11 +39,28 @@ main { background-color: #777; }
 	top: 60px;
 }
 
+
+/* Put cards on right of map when zoomed to fit, or very wide screen */
+main { grid-template-columns: 1fr min-content min-content 1fr; }
+#mapwrap { grid-row: 1; grid-column: 2 }
+#card_panel { grid-row: 1; grid-column: 3 }
+@media (min-width: 2200px) { main { display: grid; } }
+main.fit { display: grid; }
+/*
+main.fit #deck_outer { height: 96px; background-position: 0 -15px }
+*/
+
+/* MAP */
+
 #mapwrap {
 	box-shadow: 0px 1px 10px #0008;
 	width: 1650px;
 	height: 2550px;
 	margin-bottom: 36px;
+}
+
+#mapwrap.fit {
+	margin-bottom: 0
 }
 
 #map {
@@ -205,10 +222,6 @@ path.tip { stroke: yellow; }
 	height: 36px;
 }
 
-.token.reminder {
-	//margin: 4px 5px 5px 4px;
-}
-
 .token.shipment
 {
 	border-radius: 50%;
@@ -324,13 +337,13 @@ path.tip { stroke: yellow; }
 /* CARDS */
 
 #card_panel {
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: center;
-	gap: 18px;
-	padding: 0 18px;
-	max-width: 1614px;
-	margin: 36px auto;
+	text-align: center;
+	margin: 24px;
+}
+
+#card_panel .card {
+	display: inline-block;
+	margin: 9px;
 }
 
 .card {

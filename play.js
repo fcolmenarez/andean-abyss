@@ -369,6 +369,11 @@ function is_action(action, arg) {
 	return !!(view.actions && view.actions[action] && set_has(view.actions[action], arg))
 }
 
+function toggle_zoom2() {
+	document.querySelector("main").classList.toggle("fit")
+	toggle_zoom()
+}
+
 function toggle_pieces() {
 	if (ui.map.classList.contains("hide_tokens")) {
 		ui.map.classList.remove("hide_tokens")

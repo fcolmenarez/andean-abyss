@@ -2377,7 +2377,14 @@ states.eligible = {
 			gen_any_operation()
 			gen_any_event()
 		}
+
+		// Limited negotiation menu until committed to op/event
 		view.actions.remove_pieces = 1
+		view.actions.ask_resources = 0
+		view.actions.transfer_resources = 0
+		view.actions.ask_shipment = 0
+		view.actions.transfer_shipment = 0
+
 		view.actions.pass = game.op.pass ? 1 : 0
 	},
 	train: goto_train,
