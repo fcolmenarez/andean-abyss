@@ -500,6 +500,7 @@ SHADED 35
 
 EVENT 36
 	eligible (game.current)
+	asm game.vm.zona_de_convivencia = 1
 	asm game.vm.save_current = game.current
 	current GOVT
 	place_farc_zone

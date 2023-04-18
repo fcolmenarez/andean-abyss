@@ -5,17 +5,14 @@
 
 // TODO: optional place ambush
 // TODO: optional place rally
-// TODO: check repeated alfonso
+// TODO: log_br after free op/special
+
+// TODO: log Alfonso Cano
+// TODO: log 1st division
 
 // TODO: Civic Action
 
-// TODO: don't auto-end 7th sf remove terror/sabotage (no undo suprise)
-// TODO: don't auto-end free Rally with elite backing (no undo suprise)
-
 // TODO: if Assault and no valid assault targets, only allow air lift to enable Assault
-
-// TODO: Government -> Govt
-// TODO: Department -> Dept
 
 // TODO: can_...operation - for space = ... check them all / can_rally - check that it is dept/city etc
 
@@ -1161,10 +1158,13 @@ function is_unsabotaged_pipeline(s) {
 // === MISC COMPOUND QUERIES ==
 
 function is_possible_farc_zone(s) {
-	if (is_mountain(s) && !is_farc_zone(s)) {
+	let is_possible_space = is_dept
+	if (game.vm && game.vm.zona_de_convivencia)
+		is_possible_space = is_mountain
+	if (is_possible_space(s) && !is_farc_zone(s)) {
 		let max = 0
 		for (let x = first_dept; x <= last_dept; ++x) {
-			if (is_mountain(x) && !is_farc_zone(x)) {
+			if (is_possible_space(x) && !is_farc_zone(x)) {
 				let xn = count_pieces(x, FARC, BASE) + count_pieces(x, FARC, GUERRILLA)
 				if (xn > max)
 					max = xn
@@ -6278,7 +6278,10 @@ function has_govt_in_farc_zone() {
 
 states.farc_zone_place = {
 	prompt() {
-		view.prompt = "Place FARC Zone."
+		if (game.vm && game.vm.zona_de_convivencia)
+			view.prompt = "Place FARC Zone in a Mountain Department."
+		else
+			view.prompt = "Place FARC Zone."
 		for (let s = first_dept; s <= last_dept; ++s)
 			if (is_possible_farc_zone(s))
 				gen_action_space(s)
@@ -8564,6 +8567,7 @@ CODE[35 * 2 + 1] = [
 // EVENT 36
 CODE[36 * 2 + 0] = [
 	[ vm_eligible, ()=>(game.current) ],
+	[ vm_asm, ()=>game.vm.zona_de_convivencia = 1 ],
 	[ vm_asm, ()=>game.vm.save_current = game.current ],
 	[ vm_current, GOVT ],
 	[ vm_place_farc_zone ],
