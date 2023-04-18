@@ -1,16 +1,6 @@
 "use strict"
 
-// TODO: 1st Devision CAP_1ST_DIV
-// TODO: rename LoC - "Bogota-Yopal LoC"
-
-// TODO: optional place ambush
-// TODO: optional place rally
 // TODO: log_br after free op/special
-
-// TODO: log Alfonso Cano
-// TODO: log 1st division
-
-// TODO: Civic Action
 
 // TODO: if Assault and no valid assault targets, only allow air lift to enable Assault
 
@@ -3822,6 +3812,10 @@ states.rally_space = {
 
 		if (can_stack_piece(game.op.where, game.current, GUERRILLA))
 			gen_place_piece(game.op.where, game.current, GUERRILLA)
+
+		// You don't have to do anything if you haven't got any available pieces.
+		if (!has_piece(AVAILABLE, game.current, GUERRILLA))
+			view.actions.skip = 1
 	},
 	piece(p) {
 		log_summary_place(p, game.op.where)
@@ -3838,6 +3832,9 @@ states.rally_space = {
 	move() {
 		push_undo()
 		game.state = "rally_move"
+	},
+	skip() {
+		end_rally_space()
 	},
 }
 
@@ -5908,31 +5905,6 @@ states.drug_profits_choice = {
 
 // PROPAGANDA: SUPPORT PHASE
 
-function can_civic_action(s) {
-	if (can_shift_support(s) && has_govt_control(s)) {
-		if (has_capability(S_CAP_1ST_DIV))
-			return count_pieces(s, GOVT, TROOPS) >= 2 && count_pieces(s, GOVT, POLICE) >= 2
-		return has_piece(s, GOVT, TROOPS) && has_piece(s, GOVT, POLICE)
-	}
-	return false
-}
-
-function can_agitate(s) {
-	if (can_shift_opposition(s)) {
-		if (has_farc_control(s))
-			return true
-		if (!has_govt_control(s)) {
-			if (game.prop.alfonso) {
-				if (game.prop.alfonso.length < 3)
-					return true
-				if (set_has(game.prop.alfonso, s))
-					return true
-			}
-		}
-	}
-	return false
-}
-
 function goto_support_phase() {
 	game.prop.step = 4
 	log_h2("Support Phase")
@@ -5941,11 +5913,16 @@ function goto_support_phase() {
 
 function goto_support_civic_action() {
 	log_action("Civic Action")
-	if (has_momentum(MOM_ALFONSO_CANO))
-		game.prop.alfonso = []
+	if (has_capability(CAP_1ST_DIV)) {
+		logi("C1")
+		game.prop.first_div = []
+	}
+	if (has_capability(S_CAP_1ST_DIV))
+		logi("C1 (Shaded)")
 	if (can_any_civic_action()) {
 		game.current = GOVT
 		game.state = "civic_action"
+		game.prop.count = 0
 	} else {
 		logi("Nothing")
 		goto_support_agitation()
@@ -5957,6 +5934,22 @@ function can_any_civic_action() {
 		for (let s = first_pop; s <= last_pop; ++s)
 			if (can_civic_action(s))
 				return true
+	return false
+}
+
+function can_civic_action(s) {
+	if (can_shift_support(s) && has_govt_control(s)) {
+		if (has_capability(S_CAP_1ST_DIV))
+			return count_pieces(s, GOVT, TROOPS) >= 2 && count_pieces(s, GOVT, POLICE) >= 2
+		if (has_piece(s, GOVT, TROOPS) && has_piece(s, GOVT, POLICE))
+			return true
+		if (game.prop.first_div) {
+			if (set_has(game.prop.first_div, s))
+				return true
+			if (game.prop.first_div.length < 1)
+				return count_cubes(s) > 0
+		}
+	}
 	return false
 }
 
@@ -5980,8 +5973,11 @@ states.civic_action = {
 			shift_support(s)
 			logi("S" + s + " to " + support_level_name[game.support[s]])
 		}
+		game.prop.count++
 	},
 	done() {
+		if (game.prop.count === 0)
+			logi("Nothing")
 		clear_undo()
 		goto_support_agitation()
 	},
@@ -5989,9 +5985,14 @@ states.civic_action = {
 
 function goto_support_agitation() {
 	log_action("Agitation")
+	if (has_momentum(MOM_ALFONSO_CANO)) {
+		logi("C22")
+		game.prop.alfonso = []
+	}
 	if (can_any_agitate()) {
 		game.current = FARC
 		game.state = "agitation"
+		game.prop.count = 0
 	} else {
 		logi("Nothing")
 		goto_election()
@@ -6003,6 +6004,22 @@ function can_any_agitate() {
 		for (let s = first_pop; s <= last_pop; ++s)
 			if (can_agitate(s))
 				return true
+	return false
+}
+
+function can_agitate(s) {
+	if (can_shift_opposition(s)) {
+		if (has_farc_control(s))
+			return true
+		if (!has_govt_control(s)) {
+			if (game.prop.alfonso) {
+				if (set_has(game.prop.alfonso, s))
+					return true
+				if (game.prop.alfonso.length < 3)
+					return has_farc_piece(s)
+			}
+		}
+	}
 	return false
 }
 
@@ -6028,14 +6045,18 @@ states.agitation = {
 			shift_opposition(s)
 			logi("S" + s + " to " + support_level_name[game.support[s]])
 		}
+		game.prop.count++
 	},
 	done() {
+		if (game.prop.count === 0)
+			logi("Nothing")
 		clear_undo()
 		goto_election()
 	},
 }
 
 function goto_election() {
+	delete game.prop.first_div
 	delete game.prop.alfonso
 	game.current = GOVT
 	if (game.president === SAMPER && calc_support() <= 60 ) {
