@@ -324,7 +324,7 @@ EVENT 25
 
 SHADED 25
 	prompt "Place 3 FARC pieces into Antioquia or an adjacent Department."
-	# todo Ecuador max 2
+	# TODO Ecuador max 2
 	space 1 (s === ANTIOQUIA || (is_dept(s) && is_adjacent(ANTIOQUIA, s))) && can_stack_any(s, FARC)
 		place FARC BASE_GUERRILLA
 		place FARC BASE_GUERRILLA
@@ -463,7 +463,6 @@ SHADED 33
 		endspace
 	endif
 
-
 EVENT 34
 	# -1 = all insurgent factions
 	resources -1 -5
@@ -600,10 +599,16 @@ EVENT 41
 	endspace
 
 SHADED 41
-	prompt "AUC Resources +3 for each space with AUC and Cartels pieces."
-	space all has_auc_piece(s) && has_cartels_piece(s)
-		auto_resources AUC 3
-	endspace
+	if AUTOMATIC
+		count_spaces has_auc_piece(s) && has_cartels_piece(s)
+		log `${game.vm.count} spaces with AUC and Cartels pieces.`
+		resources AUC (3*game.vm.count)
+	else
+		prompt "AUC Resources +3 for each space with AUC and Cartels pieces."
+		space all has_auc_piece(s) && has_cartels_piece(s)
+			auto_resources AUC 3
+		endspace
+	endif
 
 EVENT 42
 	prompt "Shift 2 Neutral spaces to Passive Support."
@@ -671,7 +676,9 @@ EVENT 45
 
 SHADED 45
 	if AUTOMATIC
-		aid (-count_matching_spaces(s=>has_faction_piece(s,AUC)))
+		count_spaces has_faction_piece(s, AUC)
+		log `${game.vm.count} spaces with AUC pieces.`
+		aid (-game.vm.count)
 	else
 		prompt "Aid -1 for each space with AUC pieces."
 		space all has_auc_piece(s)
@@ -700,10 +707,17 @@ EVENT 46
 	endspace
 
 EVENT 47
-	prompt "All AUC Guerrillas to Active."
-	piece all is_auc_guerrilla(p) && is_underground(p)
-		activate
-	endpiece
+	# Note: see event 59
+	if AUTOMATIC
+		log "All AUC Guerrillas to Active."
+		asm for_each_piece(AUC, GUERRILLA, p => { if (piece_space(p) !== AVAILABLE) set_active(p) })
+	else
+		prompt "All AUC Guerrillas to Active."
+		piece all is_auc_guerrilla(p) && is_underground(p)
+			activate
+		endpiece
+	endif
+	current GOVT
 	prompt "All Police free Assault AUC as if Troops."
 	space all has_police(s) && has_auc_piece(s)
 		# TODO: test this
@@ -907,10 +921,16 @@ EVENT 56
 	transfer CARTELS GOVT 15
 
 SHADED 56
-	prompt "Add twice Cartels pieces in Cities to Cartels Resources."
-	piece all is_cartels_piece(p) && is_city(s)
-		auto_resources CARTELS 2
-	endpiece
+	if AUTOMATIC
+		count_pieces is_cartels_piece(p) && is_city(s)
+		log `${game.vm.count} Cartels pieces in Cities.`
+		resources CARTELS (2*game.vm.count)
+	else
+		prompt "Add twice Cartels pieces in Cities to Cartels Resources."
+		piece all is_cartels_piece(p) && is_city(s)
+			auto_resources CARTELS 2
+		endpiece
+	endif
 	prompt "Place a Cartels Base in each of 2 Cities."
 	space 2 is_city(s) && can_stack_base(s, CARTELS)
 		auto_place CARTELS BASE
@@ -954,22 +974,33 @@ SHADED 58
 	endpiece
 
 EVENT 59
+	# Note: see event 47
+	if AUTOMATIC
+		log "All Cartels Guerrillas to Active."
+		asm for_each_piece(CARTELS, GUERRILLA, p => { if (piece_space(p) !== AVAILABLE) set_active(p) })
+	else
+		prompt "All Cartels Guerrillas to Active."
+		piece all is_cartels_guerrilla(p) && is_underground(p)
+			activate
+		endpiece
+	endif
 	current GOVT
-	prompt "All Cartels Guerrillas to Active."
-	piece all is_cartels_guerrilla(p) && is_underground(p)
-		activate
-	endpiece
 	prompt "Free Assault against Cartels in each space."
 	space all can_assault_in_space_faction(s, CARTELS)
 		free_assault_cartels
 	endspace
 
 SHADED 59
+	if AUTOMATIC
+		log "All Cartels Guerrillas to Underground."
+		asm for_each_piece(CARTELS, GUERRILLA, set_underground)
+	else
+		prompt "Flip all Cartels Guerrillas Underground."
+		piece all is_cartels_guerrilla(p) && is_active(p)
+			underground
+		endpiece
+	endif
 	current CARTELS
-	prompt "Flip all Cartels Guerrillas Underground."
-	piece all is_cartels_guerrilla(p) && is_active(p)
-		underground
-	endpiece
 	prompt "Relocate up to 3 Cartels Guerrillas anywhere."
 	piece_undo_opt 3 is_cartels_guerrilla(p)
 		prompt "Relocate Cartels Guerrilla anywhere."
@@ -1056,9 +1087,12 @@ EVENT 64
 
 SHADED 64
 	if AUTOMATIC
-		asm game.vm.n = count_matching_pieces((p,s) => is_cartels_base(p) && is_city(s)) * 2
-		asm game.vm.n += count_matching_pieces((p,s) => is_cartels_base(p) && is_dept(s))
-		resources CARTELS (game.vm.n)
+		count_pieces is_cartels_base(p) && is_city(s)
+		log `${game.vm.count} Cartels Bases in Cities.`
+		resources CARTELS (2*game.vm.count)
+		count_pieces is_cartels_base(p) && is_dept(s)
+		log `${game.vm.count} Cartels Bases in Departments.`
+		resources CARTELS (game.vm.count)
 	else
 		prompt "Cartels Resources +2 for each Cartels Base in a City."
 		piece all is_cartels_base(p) && is_city(s)
@@ -1117,10 +1151,16 @@ EVENT 68
 	endif
 
 SHADED 68
-	prompt "Cartels Resources +2 per Cartels piece in coastal spaces."
-	piece all is_cartels_piece(p) && is_coastal_space(s)
-		auto_resources CARTELS 2
-	endpiece
+	if AUTOMATIC
+		count_pieces is_cartels_piece(p) && is_coastal_space(s)
+		log `${game.vm.count} Cartels pieces in coastal spaces.`
+		resources CARTELS (2*game.vm.count)
+	else
+		prompt "Cartels Resources +2 per Cartels piece in coastal spaces."
+		piece all is_cartels_piece(p) && is_coastal_space(s)
+			auto_resources CARTELS 2
+		endpiece
+	endif
 
 EVENT 69
 	prompt "Select source space."
@@ -1151,10 +1191,16 @@ EVENT 69
 	endspace
 
 EVENT 70
-	prompt "Government Resources +6 for each Forest without Guerrillas."
-	space_no_undo all is_forest(s) && !has_any_guerrilla(s)
-		auto_resources GOVT 6
-	endspace
+	if AUTOMATIC
+		count_spaces is_forest(s) && !has_any_guerrilla(s)
+		log `${game.vm.count} Forests without Guerrillas.`
+		resources GOVT (2*game.vm.count)
+	else
+		prompt "Government Resources +6 for each Forest without Guerrillas."
+		space_no_undo all is_forest(s) && !has_any_guerrilla(s)
+			auto_resources GOVT 6
+		endspace
+	endif
 
 SHADED 70
 	current FARC_AUC_CARTELS

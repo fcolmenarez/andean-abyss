@@ -6621,6 +6621,16 @@ function vm_mark_space() {
 	vm_next()
 }
 
+function vm_count_spaces() {
+	game.vm.count = count_matching_spaces(vm_inst(1))
+	vm_next()
+}
+
+function vm_count_pieces() {
+	game.vm.count = count_matching_pieces(vm_inst(1))
+	vm_next()
+}
+
 // VM: AUTOMATED ACTIONS
 
 function vm_eligible() {
@@ -8739,10 +8749,16 @@ CODE[41 * 2 + 0] = [
 
 // SHADED 41
 CODE[41 * 2 + 1] = [
+	[ vm_if, ()=>AUTOMATIC ],
+	[ vm_count_spaces, (s)=>has_auc_piece(s) && has_cartels_piece(s) ],
+	[ vm_log, ()=>`${game.vm.count} spaces with AUC and Cartels pieces.` ],
+	[ vm_resources, AUC, ()=>(3*game.vm.count) ],
+	[ vm_else ],
 	[ vm_prompt, "AUC Resources +3 for each space with AUC and Cartels pieces." ],
 	[ vm_space, true, 999, 999, (s)=>has_auc_piece(s) && has_cartels_piece(s) ],
 	[ vm_auto_resources, AUC, 3 ],
 	[ vm_endspace ],
+	[ vm_endif ],
 	[ vm_return ],
 ]
 
@@ -8835,7 +8851,9 @@ CODE[45 * 2 + 0] = [
 // SHADED 45
 CODE[45 * 2 + 1] = [
 	[ vm_if, ()=>AUTOMATIC ],
-	[ vm_aid, ()=>(-count_matching_spaces(s=>has_faction_piece(s,AUC))) ],
+	[ vm_count_spaces, (s)=>has_faction_piece(s, AUC) ],
+	[ vm_log, ()=>`${game.vm.count} spaces with AUC pieces.` ],
+	[ vm_aid, ()=>(-game.vm.count) ],
 	[ vm_else ],
 	[ vm_prompt, "Aid -1 for each space with AUC pieces." ],
 	[ vm_space, true, 999, 999, (s)=>has_auc_piece(s) ],
@@ -8870,10 +8888,16 @@ CODE[46 * 2 + 0] = [
 
 // EVENT 47
 CODE[47 * 2 + 0] = [
+	[ vm_if, ()=>AUTOMATIC ],
+	[ vm_log, "All AUC Guerrillas to Active." ],
+	[ vm_asm, ()=>for_each_piece(AUC, GUERRILLA, p => { if (piece_space(p) !== AVAILABLE) set_active(p) }) ],
+	[ vm_else ],
 	[ vm_prompt, "All AUC Guerrillas to Active." ],
 	[ vm_piece, false, 999, 999, (p,s)=>is_auc_guerrilla(p) && is_underground(p) ],
 	[ vm_activate ],
 	[ vm_endpiece ],
+	[ vm_endif ],
+	[ vm_current, GOVT ],
 	[ vm_prompt, "All Police free Assault AUC as if Troops." ],
 	[ vm_space, true, 999, 999, (s)=>has_police(s) && has_auc_piece(s) ],
 	[ vm_free_assault_auc ],
@@ -9123,10 +9147,16 @@ CODE[56 * 2 + 0] = [
 
 // SHADED 56
 CODE[56 * 2 + 1] = [
+	[ vm_if, ()=>AUTOMATIC ],
+	[ vm_count_pieces, (p,s)=>is_cartels_piece(p) && is_city(s) ],
+	[ vm_log, ()=>`${game.vm.count} Cartels pieces in Cities.` ],
+	[ vm_resources, CARTELS, ()=>(2*game.vm.count) ],
+	[ vm_else ],
 	[ vm_prompt, "Add twice Cartels pieces in Cities to Cartels Resources." ],
 	[ vm_piece, false, 999, 999, (p,s)=>is_cartels_piece(p) && is_city(s) ],
 	[ vm_auto_resources, CARTELS, 2 ],
 	[ vm_endpiece ],
+	[ vm_endif ],
 	[ vm_prompt, "Place a Cartels Base in each of 2 Cities." ],
 	[ vm_space, true, 2, 2, (s)=>is_city(s) && can_stack_base(s, CARTELS) ],
 	[ vm_auto_place, false, 0, CARTELS, BASE ],
@@ -9184,11 +9214,16 @@ CODE[58 * 2 + 1] = [
 
 // EVENT 59
 CODE[59 * 2 + 0] = [
-	[ vm_current, GOVT ],
+	[ vm_if, ()=>AUTOMATIC ],
+	[ vm_log, "All Cartels Guerrillas to Active." ],
+	[ vm_asm, ()=>for_each_piece(CARTELS, GUERRILLA, p => { if (piece_space(p) !== AVAILABLE) set_active(p) }) ],
+	[ vm_else ],
 	[ vm_prompt, "All Cartels Guerrillas to Active." ],
 	[ vm_piece, false, 999, 999, (p,s)=>is_cartels_guerrilla(p) && is_underground(p) ],
 	[ vm_activate ],
 	[ vm_endpiece ],
+	[ vm_endif ],
+	[ vm_current, GOVT ],
 	[ vm_prompt, "Free Assault against Cartels in each space." ],
 	[ vm_space, true, 999, 999, (s)=>can_assault_in_space_faction(s, CARTELS) ],
 	[ vm_free_assault_cartels ],
@@ -9198,11 +9233,16 @@ CODE[59 * 2 + 0] = [
 
 // SHADED 59
 CODE[59 * 2 + 1] = [
-	[ vm_current, CARTELS ],
+	[ vm_if, ()=>AUTOMATIC ],
+	[ vm_log, "All Cartels Guerrillas to Underground." ],
+	[ vm_asm, ()=>for_each_piece(CARTELS, GUERRILLA, set_underground) ],
+	[ vm_else ],
 	[ vm_prompt, "Flip all Cartels Guerrillas Underground." ],
 	[ vm_piece, false, 999, 999, (p,s)=>is_cartels_guerrilla(p) && is_active(p) ],
 	[ vm_underground ],
 	[ vm_endpiece ],
+	[ vm_endif ],
+	[ vm_current, CARTELS ],
 	[ vm_prompt, "Relocate up to 3 Cartels Guerrillas anywhere." ],
 	[ vm_piece, true, 0, 3, (p,s)=>is_cartels_guerrilla(p) ],
 	[ vm_prompt, "Relocate Cartels Guerrilla anywhere." ],
@@ -9316,9 +9356,12 @@ CODE[64 * 2 + 0] = [
 // SHADED 64
 CODE[64 * 2 + 1] = [
 	[ vm_if, ()=>AUTOMATIC ],
-	[ vm_asm, ()=>game.vm.n = count_matching_pieces((p,s) => is_cartels_base(p) && is_city(s)) * 2 ],
-	[ vm_asm, ()=>game.vm.n += count_matching_pieces((p,s) => is_cartels_base(p) && is_dept(s)) ],
-	[ vm_resources, CARTELS, ()=>(game.vm.n) ],
+	[ vm_count_pieces, (p,s)=>is_cartels_base(p) && is_city(s) ],
+	[ vm_log, ()=>`${game.vm.count} Cartels Bases in Cities.` ],
+	[ vm_resources, CARTELS, ()=>(2*game.vm.count) ],
+	[ vm_count_pieces, (p,s)=>is_cartels_base(p) && is_dept(s) ],
+	[ vm_log, ()=>`${game.vm.count} Cartels Bases in Departments.` ],
+	[ vm_resources, CARTELS, ()=>(game.vm.count) ],
 	[ vm_else ],
 	[ vm_prompt, "Cartels Resources +2 for each Cartels Base in a City." ],
 	[ vm_piece, false, 999, 999, (p,s)=>is_cartels_base(p) && is_city(s) ],
@@ -9400,10 +9443,16 @@ CODE[68 * 2 + 0] = [
 
 // SHADED 68
 CODE[68 * 2 + 1] = [
+	[ vm_if, ()=>AUTOMATIC ],
+	[ vm_count_pieces, (p,s)=>is_cartels_piece(p) && is_coastal_space(s) ],
+	[ vm_log, ()=>`${game.vm.count} Cartels pieces in coastal spaces.` ],
+	[ vm_resources, CARTELS, ()=>(2*game.vm.count) ],
+	[ vm_else ],
 	[ vm_prompt, "Cartels Resources +2 per Cartels piece in coastal spaces." ],
 	[ vm_piece, false, 999, 999, (p,s)=>is_cartels_piece(p) && is_coastal_space(s) ],
 	[ vm_auto_resources, CARTELS, 2 ],
 	[ vm_endpiece ],
+	[ vm_endif ],
 	[ vm_return ],
 ]
 
@@ -9440,10 +9489,16 @@ CODE[69 * 2 + 0] = [
 
 // EVENT 70
 CODE[70 * 2 + 0] = [
+	[ vm_if, ()=>AUTOMATIC ],
+	[ vm_count_spaces, (s)=>is_forest(s) && !has_any_guerrilla(s) ],
+	[ vm_log, ()=>`${game.vm.count} Forests without Guerrillas.` ],
+	[ vm_resources, GOVT, ()=>(2*game.vm.count) ],
+	[ vm_else ],
 	[ vm_prompt, "Government Resources +6 for each Forest without Guerrillas." ],
 	[ vm_space, false, 999, 999, (s)=>is_forest(s) && !has_any_guerrilla(s) ],
 	[ vm_auto_resources, GOVT, 6 ],
 	[ vm_endspace ],
+	[ vm_endif ],
 	[ vm_return ],
 ]
 

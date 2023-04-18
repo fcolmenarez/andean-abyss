@@ -110,6 +110,13 @@ for (let line of fs.readFileSync("events.txt", "utf-8").split("\n")) {
 		emit([ line[0], line.slice(1).join(" ") ])
 		break
 
+	case "count_spaces":
+		emit([ line[0], "(s)=>" + line.slice(1).join(" ") ])
+		break
+	case "count_pieces":
+		emit([ line[0], "(p,s)=>" + line.slice(1).join(" ") ])
+		break
+
 	case "asm":
 	case "if":
 	case "while":
