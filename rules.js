@@ -1,6 +1,13 @@
 "use strict"
 
-// TODO: rules material - reference 6.3.3 Drug Profits to 5.2.2 should be 4.5.3
+// TODO: 1st Devision CAP_1ST_DIV
+// TODO: rename LoC - "Bogota-Yopal LoC"
+
+// TODO: optional place ambush
+// TODO: optional place rally
+// TODO: check repeated alfonso
+
+// TODO: Civic Action
 
 // TODO: don't auto-end 7th sf remove terror/sabotage (no undo suprise)
 // TODO: don't auto-end free Rally with elite backing (no undo suprise)
@@ -1521,7 +1528,7 @@ function is_any_shipment_held() {
 function remove_dropped_shipments() {
 	for (let sh = 0; sh < 4; ++sh) {
 		if (is_shipment_dropped(sh)) {
-			log_transfer("Removed Shipment in S" + get_dropped_shipment_space(sh))
+			log_transfer("Removed Shipment in S" + get_dropped_shipment_space(sh) + ".")
 			remove_shipment(sh)
 		}
 	}
@@ -2200,8 +2207,8 @@ states.drug_bust = {
 	shipment(sh) {
 		log_space(get_dropped_shipment_space(sh), "Drug Bust")
 		remove_shipment(sh)
-		logi_resources(GOVT, 6)
-		add_resources(GOVT, 6)
+		logi_aid(6)
+		add_aid(6)
 		resume_drug_bust()
 	},
 }
@@ -4249,12 +4256,16 @@ states.attack_place = {
 		view.prompt = `Attack in ${space_name[game.op.where]}: Place a Guerrilla.`
 		view.where = game.op.where
 		gen_place_piece(game.op.where, game.current, GUERRILLA)
+		view.actions.skip = 1
 	},
 	piece(p) {
 		logi("Placed " + piece_faction_type_name[game.current][GUERRILLA] + " from S" + piece_space(p))
 		place_piece(p, game.op.where)
 		goto_attack_remove()
-	}
+	},
+	skip() {
+		goto_attack_remove()
+	},
 }
 
 function goto_attack_remove() {
@@ -5901,10 +5912,10 @@ function can_agitate(s) {
 		if (has_farc_control(s))
 			return true
 		if (!has_govt_control(s)) {
-			if (game.alfonso) {
-				if (game.alfonso.length < 3)
+			if (game.prop.alfonso) {
+				if (game.prop.alfonso.length < 3)
 					return true
-				if (set_has(game.alfonso, s))
+				if (set_has(game.prop.alfonso, s))
 					return true
 			}
 		}
