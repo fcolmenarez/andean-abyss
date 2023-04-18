@@ -195,12 +195,12 @@ const ECUADOR = 27
 const PANAMA = 28
 
 // LoCs
-const CUCUTA_AYACUCHO = data.space_name.indexOf("Cúcuta / Ayacucho")
-const CUCUTA_ARAUCA = data.space_name.indexOf("Cúcuta / Arauca")
-const PASTO_TUMACO = data.space_name.indexOf("Pasto / Tumaco")
-const CALI_BUENAVENTURA = data.space_name.indexOf("Cali / Buenaventura")
-const CARTAGENA_SINCELEJO = data.space_name.indexOf("Cartagena / Sincelejo")
-const SANTA_MARTA_CARTAGENA = data.space_name.indexOf("Santa Marta / Cartagena")
+const AYACUCHO_CUCUTA_LOC = data.space_name.indexOf("Ayacucho-Cúcuta LoC")
+const ARAUCA_CUCUTA_LOC = data.space_name.indexOf("Arauco-Cúcuta LoC")
+const PASTO_TUMACO_LOC = data.space_name.indexOf("Pasto-Tumaco LoC")
+const BEUNAVENTURA_CALI_LOC = data.space_name.indexOf("Buenaventura-Cali LoC")
+const CARTAGENA_SINCELEJO_LOC = data.space_name.indexOf("Cartagena-Sincelejo LoC")
+const CARTAGENA_SANTA_MARTA_LOC = data.space_name.indexOf("Cartagena-Santa Marta LoC")
 
 exports.roles = function (scenario) {
 	if (scenario.startsWith("2P"))
@@ -952,10 +952,10 @@ function is_coastal_space(s) {
 		s === NARINO ||
 		s === PANAMA ||
 		s === ECUADOR ||
-		s === PASTO_TUMACO ||
-		s === CALI_BUENAVENTURA ||
-		s === CARTAGENA_SINCELEJO ||
-		s === SANTA_MARTA_CARTAGENA
+		s === PASTO_TUMACO_LOC ||
+		s === BEUNAVENTURA_CALI_LOC ||
+		s === CARTAGENA_SINCELEJO_LOC ||
+		s === CARTAGENA_SANTA_MARTA_LOC
 	)
 }
 
@@ -965,7 +965,7 @@ function is_next_to_ecuador(s) {
 		s === PASTO ||
 		s === PUTUMAYO ||
 		s === ARAUCA ||
-		s === PASTO_TUMACO
+		s === PASTO_TUMACO_LOC
 	)
 }
 
@@ -977,8 +977,8 @@ function is_next_to_venezuela(s) {
 		s === ARAUCA ||
 		s === VICHADA ||
 		s === GUAINIA ||
-		s === CUCUTA_AYACUCHO ||
-		s === CUCUTA_ARAUCA
+		s === AYACUCHO_CUCUTA_LOC ||
+		s === ARAUCA_CUCUTA_LOC
 	)
 }
 

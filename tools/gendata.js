@@ -385,8 +385,8 @@ function def_town(name) {
 }
 
 function def_loc(type, econ, cities, depts) {
-	let name = cities.join(" / ")
-	let loc_names = cities.concat(depts)
+	let name = cities.slice().sort().join("-") + " LoC"
+	let loc_names = cities.concat(depts).sort()
 	for (let n of loc_names)
 		if (space_name.indexOf(n) < 0)
 			console.log("not a space: " + n)

@@ -34,7 +34,17 @@ def readsvg(filename):
 		if line.startswith('height="'): h = round(float(line.split('"')[1]))
 		if line.startswith('cx="'): x = round(float(line.split('"')[1]))
 		if line.startswith('cy="'): y = round(float(line.split('"')[1]))
-		if line.startswith('inkscape:label="'): name = line.split('"')[1]
+		if line.startswith('inkscape:label="'):
+			name = line.split('"')[1]
+			if " / " in name:
+				if " COIN" in name:
+					name = name.replace(" COIN", "")
+					name = "-".join(sorted(name.split(" / "))) + " LoC COIN"
+				elif " INSURGENTS" in name:
+					name = name.replace(" INSURGENTS", "")
+					name = "-".join(sorted(name.split(" / "))) + " LoC INSURGENTS"
+				else:
+					name = "-".join(sorted(name.split(" / "))) + " LoC"
 	flush()
 
 readsvg("tools/boxes.svg")
