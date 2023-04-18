@@ -10,8 +10,7 @@ main { background-color: #777; }
 #role_AUC_\+_Cartels { background-image: linear-gradient(150deg, khaki 40%, darkseagreen 60%) }
 
 #log { background-color: whitesmoke; }
-#log .h1 { background-color: silver; font-weight: bold; padding-top:4px; padding-bottom:4px; text-align: center; }
-#log .h1 { background-image: linear-gradient(60deg, skyblue, khaki, lightcoral, darkseagreen) }
+#log .h1 { background-color: silver; font-weight: bold; padding-top:4px; padding-bottom:4px; margin: 8px 0; text-align: center; }
 #log .h2 { background-color: gainsboro; padding-top:2px; padding-bottom:2px; text-align: center; }
 #log .h2.govt { background-color: #c6d1eb }
 #log .h2.farc { background-color: #ebc9be }
@@ -25,6 +24,7 @@ main { background-color: #777; }
 #log div { padding-left: 20px; text-indent: -12px; }
 #log div.indent { padding-left: 32px; text-indent: -12px; }
 
+#log .h1 { background-image: linear-gradient(60deg, skyblue, khaki, lightcoral, darkseagreen); text-shadow: 0 0 4px white; }
 
 #log { font-variant-numeric: tabular-nums; }
 

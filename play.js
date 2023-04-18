@@ -1365,7 +1365,7 @@ function on_click_space_tip(s) {
 function sub_card(match, p1) {
 	let x = p1 | 0
 	let n = data.card_title[x]
-	return `<span class="tip" onmouseenter="on_focus_card_tip(${x})" onmouseleave="on_blur_card_tip()" onclick="on_click_card_tip(${x})">${n}</span>`
+	return `<span class="tip" onmouseenter="on_focus_card_tip(${x})" onmouseleave="on_blur_card_tip()">${n}</span>`
 }
 
 function sub_space(match, p1) {

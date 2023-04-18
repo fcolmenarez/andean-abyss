@@ -321,11 +321,9 @@ exports.setup = function (seed, scenario, options) {
 	if (scenario === "Test") {
 		game.deck = []
 		for (let i = 1; i < PROPAGANDA; ++i)
-			if (i !== 1 && i !== 2 && i !== 3 && i !== 7 && i !== 9 && i !== 10 && i !== 11 && i !== 13)
-				game.deck.push(i)
+			game.deck.push(i)
 	}
 
-	game.deck[0] = 73
 	log("DEBUG DECK " + game.deck.join(", "))
 
 	update_control()
@@ -5572,7 +5570,7 @@ function calc_support() {
 	let n = 0
 	for (let s = first_pop; s <= last_pop; ++s)
 		if (game.support[s] > 0)
-			n += data.spaces[s].pop * view.support[s]
+			n += data.spaces[s].pop * game.support[s]
 	return n
 }
 
