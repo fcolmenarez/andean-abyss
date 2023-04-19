@@ -190,12 +190,13 @@ const BEUNAVENTURA_CALI_LOC = data.space_name.indexOf("Buenaventura-Cali LoC")
 const CARTAGENA_SINCELEJO_LOC = data.space_name.indexOf("Cartagena-Sincelejo LoC")
 const CARTAGENA_SANTA_MARTA_LOC = data.space_name.indexOf("Cartagena-Santa Marta LoC")
 
-exports.roles = function (scenario) {
-	if (scenario === "Solo")
+exports.roles = function (scenario, options) {
+	let n = parseInt(options.players) || 4
+	if (n === 1)
 		return [ NAME_SOLO ]
-	if (scenario.startsWith("2P"))
+	if (n === 2)
 		return [ NAME_GOVT_AUC, NAME_FARC_CARTELS ]
-	if (scenario.startsWith("3P"))
+	if (n === 3)
 		return [ NAME_GOVT, NAME_FARC, NAME_AUC_CARTELS ]
 	return [ NAME_GOVT, NAME_FARC, NAME_AUC, NAME_CARTELS ]
 }
@@ -204,13 +205,6 @@ exports.scenarios = [
 	"Standard",
 	"Short",
 	"Quick",
-	"3P Standard",
-	"3P Short",
-	"3P Quick",
-	"2P Standard",
-	"2P Short",
-	"2P Quick",
-	"Solo",
 	"Test",
 ]
 
@@ -291,12 +285,7 @@ exports.setup = function (seed, scenario, options) {
 		// redeploy: -1,
 	}
 
-	if (scenario.startsWith("3P"))
-		game.scenario = 3
-	if (scenario.startsWith("2P"))
-		game.scenario = 2
-	if (scenario === "Solo")
-		game.scenario = 1
+	game.scenario = parseInt(options.players) || 4
 
 	for_each_piece(FARC, GUERRILLA, set_underground)
 	for_each_piece(AUC, GUERRILLA, set_underground)
@@ -304,26 +293,33 @@ exports.setup = function (seed, scenario, options) {
 
 	setup_standard()
 
-	if (scenario.includes("Quick")) {
-		log_h1("Scenario: Quick")
-		setup_quick()
-		setup_deck(2, 6, 6)
-	} else if (scenario.includes("Short")) {
+	log_h1("Scenario: " + scenario)
+
+	switch (scenario) {
+	default:
+	case "Standard":
 		if (options.seeded)
-			setup_deck(3, 10, 5)
-		else
-			setup_deck(3, 0, 15)
-	} else {
+			log("Seeded Deck")
 		if (options.seeded)
 			setup_deck(4, 10, 5)
 		else
 			setup_deck(4, 0, 15)
-	}
-
-	if (scenario === "Test") {
+		break
+	case "Short":
+		if (options.seeded)
+			setup_deck(3, 10, 5)
+		else
+			setup_deck(3, 0, 15)
+		break
+	case "Quick":
+		setup_quick()
+		setup_deck(2, 6, 6)
+		break
+	case "Test":
 		game.deck = []
 		for (let i = 1; i < PROPAGANDA; ++i)
 			game.deck.push(i)
+		break
 	}
 
 	log("DEBUG DECK " + game.deck.join(", "))
