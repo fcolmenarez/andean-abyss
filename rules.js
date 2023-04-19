@@ -6141,13 +6141,15 @@ states.elite_backing_done = {
 // PROPAGANDA: REDEPLOY PHASE
 
 function goto_redeploy_phase() {
-	game.prop.step = 5
-	game.prop.who = -1
-	game.prop.pieces = []
 	log_h2("Redeploy Phase")
+
 	game.current = GOVT
+	game.prop.step = 5
+	game.prop.pieces = []
+
 	push_summary()
-	if (is_redeploy_done())
+	game.prop.who = find_first_redeploy_troops()
+	if (game.prop.who < 0)
 		game.state = "redeploy_optional"
 	else
 		game.state = "redeploy_mandatory"
@@ -6164,50 +6166,54 @@ function is_redeploy_done() {
 	return true
 }
 
+function find_first_redeploy_troops() {
+	let p0 = first_piece[GOVT][TROOPS]
+	let p1 = last_piece[GOVT][TROOPS]
+	for (let s = first_loc; s <= last_loc; ++s)
+		for (let p = p0; p <= p1; ++p)
+			if (piece_space(p) === s)
+				return p
+	for (let s = first_dept; s <= last_dept; ++s)
+		if (!has_govt_base(s))
+			for (let p = p0; p <= p1; ++p)
+				if (piece_space(p) === s)
+					return p
+	return -1
+}
+
 states.redeploy_mandatory = {
 	prompt() {
-		view.prompt = "Redeploy Troops from LoCs and Departments without Base."
-		if (game.prop.who < 0) {
-			for_each_piece(GOVT, TROOPS, (p,s) => {
-				if (!set_has(game.prop.pieces, p)) {
-					if (is_loc(s))
-						gen_action_piece(p)
-					if (is_dept(s) && !has_govt_base(s))
-						gen_action_piece(p)
-				}
-			})
-		} else {
-			let p = game.prop.who
-			view.who = p
-			gen_action_piece(p)
-			for (let s = first_space; s <= last_space; ++s)
-				if (is_redeploy_troops_space(s))
-					gen_action_space(s)
-		}
-	},
-	piece(p) {
-		if (game.prop.who === p)
-			game.prop.who = -1
-		else
-			game.prop.who = p
+		// view.prompt = "Redeploy Troops from LoCs and Departments without Base."
+		let p = game.prop.who
+		let s = piece_space(p)
+		view.prompt = "Redeploy Troops from " + space_name[s] + "."
+		view.who = p
+		for (let s = first_space; s <= last_space; ++s)
+			if (is_redeploy_troops_space(s))
+				gen_action_space(s)
 	},
 	space(s) {
 		let p = game.prop.who
-		game.prop.who = -1
 
 		// TODO: undo for each piece?
-		push_undo()
+		push_undo_once()
 
-		log_summary_move_to_from(p, s)
+		log_summary("% " + piece_name(p) + " to S" + s)
+
 		set_piece_space(p, s)
 		// NOTE: do not update control yet!
-		if (is_redeploy_done()) {
-			log_action("Redeploy Troops")
-			pop_summary()
-			push_summary()
-			game.state = "redeploy_optional"
-		}
+
+		game.prop.who = find_first_redeploy_troops()
+		if (game.prop.who < 0)
+			end_redeploy_mandatory()
 	},
+}
+
+function end_redeploy_mandatory() {
+	log_action("Redeploy Troops")
+	pop_summary()
+	push_summary()
+	game.state = "redeploy_optional"
 }
 
 states.redeploy_optional = {
@@ -6229,12 +6235,12 @@ states.redeploy_optional = {
 			gen_action_piece(p)
 			if (is_troops(p)) {
 				for (let s = first_space; s <= last_space; ++s)
-					if (is_redeploy_troops_space(s))
+					if (s != piece_space(p) && is_redeploy_troops_space(s))
 						gen_action_space(s)
 			}
 			if (is_police(p)) {
 				for (let s = first_space; s <= last_space; ++s)
-					if (is_redeploy_police_space(s))
+					if (s != piece_space(p) && is_redeploy_police_space(s))
 						gen_action_space(s)
 			}
 		}
@@ -6252,7 +6258,8 @@ states.redeploy_optional = {
 		game.prop.who = -1
 
 		// TODO: undo for each piece?
-		push_undo()
+		if (game.prop.pieces.length === 0)
+			push_undo()
 
 		log_summary_move_to_from(p, s)
 		set_piece_space(p, s)
@@ -7746,6 +7753,11 @@ function pop_undo() {
 	save_log.length = game.log
 	game.log = save_log
 	game.undo = save_undo
+}
+
+function push_undo_once() {
+	if (game.undo.length === 0)
+		push_undo()
 }
 
 function random(range) {
