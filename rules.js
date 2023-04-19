@@ -22,6 +22,7 @@ const NAME_CARTELS = "Cartels"
 const NAME_GOVT_AUC = "Government + AUC"
 const NAME_FARC_CARTELS = "FARC + Cartels"
 const NAME_AUC_CARTELS = "AUC + Cartels"
+const NAME_SOLO = "Solo"
 
 const CAP_1ST_DIV = 0
 const CAP_OSPINA = 1
@@ -190,6 +191,8 @@ const CARTAGENA_SINCELEJO_LOC = data.space_name.indexOf("Cartagena-Sincelejo LoC
 const CARTAGENA_SANTA_MARTA_LOC = data.space_name.indexOf("Cartagena-Santa Marta LoC")
 
 exports.roles = function (scenario) {
+	if (scenario === "Solo")
+		return [ NAME_SOLO ]
 	if (scenario.startsWith("2P"))
 		return [ NAME_GOVT_AUC, NAME_FARC_CARTELS ]
 	if (scenario.startsWith("3P"))
@@ -207,6 +210,7 @@ exports.scenarios = [
 	"2P Standard",
 	"2P Short",
 	"2P Quick",
+	"Solo",
 	"Test",
 ]
 
@@ -239,6 +243,8 @@ function save_game() {
 		if (game.current === FARC || game.current === CARTELS)
 			game.active = NAME_FARC_CARTELS
 	}
+	if (game.scenario === 1)
+		game.active = NAME_SOLO
 	return game
 }
 
@@ -289,6 +295,8 @@ exports.setup = function (seed, scenario, options) {
 		game.scenario = 3
 	if (scenario.startsWith("2P"))
 		game.scenario = 2
+	if (scenario === "Solo")
+		game.scenario = 1
 
 	for_each_piece(FARC, GUERRILLA, set_underground)
 	for_each_piece(AUC, GUERRILLA, set_underground)
@@ -7604,6 +7612,8 @@ function is_current_role(role) {
 			return game.current === AUC
 		case NAME_CARTELS:
 			return game.current === CARTELS
+		case NAME_SOLO:
+			return true
 	}
 	return false
 }
