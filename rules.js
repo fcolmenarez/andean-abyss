@@ -4762,22 +4762,22 @@ function goto_eradicate_shift() {
 }
 
 function can_eradicate_shift() {
-	if (can_shift_opposition(game.sa.where))
+	if (is_dept(game.sa.where) && can_shift_opposition(game.sa.where))
 		return true
 	for (let s of data.spaces[game.sa.where].adjacent)
-		if (can_shift_opposition(s))
+		if (is_dept(s) && can_shift_opposition(s))
 			return true
 	return false
 }
 
 states.eradicate_shift = {
 	prompt() {
-		view.prompt = `Eradicate: Shift ${space_name[game.sa.where]} or an adjacent space toward active Opposition.`
+		view.prompt = `Eradicate: Shift ${space_name[game.sa.where]} or an adjacent Department toward active Opposition.`
 		view.where = game.sa.where
-		if (can_shift_opposition(game.sa.where))
+		if (is_dept(game.sa.where) && can_shift_opposition(game.sa.where))
 			gen_action_space(game.sa.where)
 		for (let s of data.spaces[game.sa.where].adjacent)
-			if (can_shift_opposition(s))
+			if (is_dept(s) && can_shift_opposition(s))
 				gen_action_space(s)
 	},
 	space(s) {
