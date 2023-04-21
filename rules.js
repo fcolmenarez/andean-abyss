@@ -9508,7 +9508,7 @@ CODE[70 * 2 + 0] = [
 	[ vm_if, ()=>AUTOMATIC ],
 	[ vm_count_spaces, (s)=>is_forest(s) && !has_any_guerrilla(s) ],
 	[ vm_log, ()=>`${game.vm.count} Forests without Guerrillas.` ],
-	[ vm_resources, GOVT, ()=>(2*game.vm.count) ],
+	[ vm_resources, GOVT, ()=>(6*game.vm.count) ],
 	[ vm_else ],
 	[ vm_prompt, "Government Resources +6 for each Forest without Guerrillas." ],
 	[ vm_space, false, 999, 999, (s)=>is_forest(s) && !has_any_guerrilla(s) ],

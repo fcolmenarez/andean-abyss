@@ -1194,7 +1194,7 @@ EVENT 70
 	if AUTOMATIC
 		count_spaces is_forest(s) && !has_any_guerrilla(s)
 		log `${game.vm.count} Forests without Guerrillas.`
-		resources GOVT (2*game.vm.count)
+		resources GOVT (6*game.vm.count)
 	else
 		prompt "Government Resources +6 for each Forest without Guerrillas."
 		space_no_undo all is_forest(s) && !has_any_guerrilla(s)
