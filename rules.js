@@ -4613,7 +4613,8 @@ states.air_lift_move = {
 		view.prompt = `Air Lift: Move Troops from ${space_name[game.sa.from]} to ${space_name[game.sa.to]}.`
 		view.where = game.sa.to
 		gen_piece_in_space(game.sa.from, GOVT, TROOPS)
-		view.actions.end_air_lift = 1
+		if (game.sa.count > 0)
+			view.actions.end_air_lift = 1
 	},
 	piece(p) {
 		move_piece(p, game.sa.to)
