@@ -8267,7 +8267,7 @@ CODE[19 * 2 + 0] = [
 	[ vm_endspace ],
 	[ vm_else ],
 	[ vm_prompt, "Free Attack or Terror in each space possible." ],
-	[ vm_space, true, 999, 999, (s)=>can_terror(s) || can_attack(s) ],
+	[ vm_space, true, 999, 999, (s)=>can_terror_in_space(s) || can_attack_in_space(s) ],
 	[ vm_free_attack_terror ],
 	[ vm_endspace ],
 	[ vm_endif ],

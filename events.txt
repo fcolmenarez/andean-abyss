@@ -221,7 +221,7 @@ EVENT 19
 		endspace
 	else
 		prompt "Free Attack or Terror in each space possible."
-		space all can_terror(s) || can_attack(s)
+		space all can_terror_in_space(s) || can_attack_in_space(s)
 			free_attack_terror
 		endspace
 	endif
