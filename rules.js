@@ -7257,6 +7257,8 @@ states.vm_place = {
 			push_undo()
 		if (vm_inst(2)) // only flag as optional if opcode is opt
 			game.vm.opt = 1
+		else
+			log("Did not place piece in S" + game.vm.s + ".")
 		vm_next()
 	},
 }
