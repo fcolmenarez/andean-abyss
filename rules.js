@@ -3523,18 +3523,18 @@ function vm_free_assault_cartels() {
 function can_assault() {
 	if (game.sa && can_air_lift()) {
 		for (let s = first_space; s <= last_space; ++s)
-			if (has_assault_target(s, FARC) || has_assault_target(s, AUC) || has_assault_target(s, CARTELS))
+			if (has_assault_target(s, 0))
 				return true
 		return true
 	}
 	for (let s = first_space; s <= last_space; ++s)
-		if (can_assault_in_space(s))
+		if (can_assault_in_space(s, 0))
 			return true
 	return false
 }
 
 function can_assault_in_space(s) {
-	return can_assault_in_space_faction(s, FARC) || can_assault_in_space_faction(s, AUC) || can_assault_in_space_faction(s, CARTELS)
+	return can_assault_in_space_faction(s, 0)
 }
 
 function can_assault_in_space_faction(s, target) {
