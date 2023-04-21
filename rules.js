@@ -4903,8 +4903,7 @@ states.extort = {
 					gen_action_space(s)
 			}
 		}
-		if (game.sa.spaces.length > 0)
-			view.actions.end_extort = 1
+		view.actions.end_extort = 1
 	},
 	space(s) {
 		push_undo()
