@@ -5958,7 +5958,7 @@ function can_civic_action(s) {
 			return count_pieces(s, GOVT, TROOPS) >= 2 && count_pieces(s, GOVT, POLICE) >= 2
 		if (has_piece(s, GOVT, TROOPS) && has_piece(s, GOVT, POLICE))
 			return true
-		if (game.prop.first_div) {
+		if (game.prop && game.prop.first_div) {
 			if (set_has(game.prop.first_div, s))
 				return true
 			if (game.prop.first_div.length < 1)
