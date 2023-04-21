@@ -7535,12 +7535,9 @@ states.vm_free_rally_attack_terror = {
 	prompt() {
 		event_prompt(`Free Rally, Attack, or Terror in ${space_name[game.vm.s]}.`)
 		view.where = game.vm.s
-		view.actions.rally = 1
-		if (has_enemy_piece(game.vm.s))
-			view.actions.attack = 1
-		else
-			view.actions.attack = 0
-		view.actions.terror = 1
+		view.actions.rally = can_rally_in_space(game.vm.s) ? 1 : 0
+		view.actions.attack = can_attack_in_space(game.vm.s) ? 1 : 0
+		view.actions.terror = can_terror_in_space(game.vm.s) ? 1 : 0
 	},
 	rally: vm_free_rally,
 	attack: vm_free_attack,
@@ -7551,11 +7548,8 @@ states.vm_free_attack_terror = {
 	prompt() {
 		event_prompt(`Free Attack or Terror in ${space_name[game.vm.s]}.`)
 		view.where = game.vm.s
-		if (has_enemy_piece(game.vm.s))
-			view.actions.attack = 1
-		else
-			view.actions.attack = 0
-		view.actions.terror = 1
+		view.actions.attack = can_attack_in_space(game.vm.s) ? 1 : 0
+		view.actions.terror = can_terror_in_space(game.vm.s) ? 1 : 0
 	},
 	attack: vm_free_attack,
 	terror: vm_free_terror,
