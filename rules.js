@@ -4343,6 +4343,13 @@ function vm_free_terror_with_piece() {
 	do_terror_piece(game.vm.p)
 }
 
+function vm_free_terror_without_piece() {
+	init_free_operation("Terror", game.vm.s)
+	if (game.current === AUC)
+		game.vm.auc_terror = 0
+	do_terror_piece(game.vm.p)
+}
+
 function can_terror() {
 	for (let s = first_space; s <= last_space; ++s)
 		if (can_terror_in_space(s))
@@ -6760,18 +6767,20 @@ function vm_set_passive_opposition() {
 }
 
 function vm_shift_support() {
-	if (game.support[game.vm.s] < 2) {
-		game.support[game.vm.s] ++
+	if (shift_support(game.vm.s))
 		log_support_shift(game.vm.s)
-	}
 	vm_next()
 }
 
 function vm_shift_opposition() {
-	if (game.support[game.vm.s] > -2) {
-		game.support[game.vm.s] --
+	if (shift_opposition(game.vm.s))
 		log_support_shift(game.vm.s)
-	}
+	vm_next()
+}
+
+function vm_shift_neutral() {
+	if (shift_neutral(game.vm.s))
+		log_support_shift(game.vm.s)
 	vm_next()
 }
 
@@ -8928,11 +8937,17 @@ CODE[47 * 2 + 1] = [
 	[ vm_space, true, 1, 1, (s)=>s === CUCUTA ],
 	[ vm_auto_place, false, 0, AUC, GUERRILLA ],
 	[ vm_auto_place, false, 0, AUC, GUERRILLA ],
+	[ vm_if, ()=>has_underground_guerrilla(game.vm.s, AUC) ],
 	[ vm_prompt, "Execute free Terror in Cúcuta." ],
 	[ vm_piece, false, 1, 1, (p,s)=>is_piece_in_event_space(p) && is_auc_guerrilla(p) && is_underground(p) ],
 	[ vm_free_terror_with_piece ],
 	[ vm_terror_aid_cut ],
 	[ vm_endpiece ],
+	[ vm_else ],
+	[ vm_terror ],
+	[ vm_shift_neutral ],
+	[ vm_aid, -3 ],
+	[ vm_endif ],
 	[ vm_endspace ],
 	[ vm_prompt, "Flip any 2 AUC Guerrillas Underground." ],
 	[ vm_piece, false, 2, 2, (p,s)=>is_auc_guerrilla(p) && is_active(p) ],

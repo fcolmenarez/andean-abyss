@@ -730,11 +730,18 @@ SHADED 47
 	space 1 s === CUCUTA
 		auto_place AUC GUERRILLA
 		auto_place AUC GUERRILLA
-		prompt "Execute free Terror in Cúcuta."
-		piece 1 is_piece_in_event_space(p) && is_auc_guerrilla(p) && is_underground(p)
-			free_terror_with_piece
-			terror_aid_cut
-		endpiece
+		if has_underground_guerrilla(game.vm.s, AUC)
+			prompt "Execute free Terror in Cúcuta."
+			piece 1 is_piece_in_event_space(p) && is_auc_guerrilla(p) && is_underground(p)
+				free_terror_with_piece
+				terror_aid_cut
+			endpiece
+		else
+			# Special case: Free Terror without a piece.
+			terror
+			shift_neutral
+			aid -3
+		endif
 	endspace
 	prompt "Flip any 2 AUC Guerrillas Underground."
 	piece 2 is_auc_guerrilla(p) && is_active(p)
