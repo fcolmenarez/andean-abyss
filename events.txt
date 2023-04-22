@@ -1094,12 +1094,14 @@ EVENT 64
 
 SHADED 64
 	if AUTOMATIC
+		asm game.vm.total = 0
 		count_pieces is_cartels_base(p) && is_city(s)
 		log `${game.vm.count} Cartels Bases in Cities.`
-		resources CARTELS (2*game.vm.count)
+		asm game.vm.total += 2 * game.vm.count
 		count_pieces is_cartels_base(p) && is_dept(s)
 		log `${game.vm.count} Cartels Bases in Departments.`
-		resources CARTELS (game.vm.count)
+		asm game.vm.total += game.vm.count
+		resources CARTELS (game.vm.total)
 	else
 		prompt "Cartels Resources +2 for each Cartels Base in a City."
 		piece all is_cartels_base(p) && is_city(s)

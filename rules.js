@@ -9389,12 +9389,14 @@ CODE[64 * 2 + 0] = [
 // SHADED 64
 CODE[64 * 2 + 1] = [
 	[ vm_if, ()=>AUTOMATIC ],
+	[ vm_asm, ()=>game.vm.total = 0 ],
 	[ vm_count_pieces, (p,s)=>is_cartels_base(p) && is_city(s) ],
 	[ vm_log, ()=>`${game.vm.count} Cartels Bases in Cities.` ],
-	[ vm_resources, CARTELS, ()=>(2*game.vm.count) ],
+	[ vm_asm, ()=>game.vm.total += 2 * game.vm.count ],
 	[ vm_count_pieces, (p,s)=>is_cartels_base(p) && is_dept(s) ],
 	[ vm_log, ()=>`${game.vm.count} Cartels Bases in Departments.` ],
-	[ vm_resources, CARTELS, ()=>(game.vm.count) ],
+	[ vm_asm, ()=>game.vm.total += game.vm.count ],
+	[ vm_resources, CARTELS, ()=>(game.vm.total) ],
 	[ vm_else ],
 	[ vm_prompt, "Cartels Resources +2 for each Cartels Base in a City." ],
 	[ vm_piece, false, 999, 999, (p,s)=>is_cartels_base(p) && is_city(s) ],
