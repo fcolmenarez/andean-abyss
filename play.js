@@ -634,8 +634,17 @@ function layout_pieces(list, xorig, yorig, bases, s) {
 	const dy = 11
 	let off_x = 0
 	let off_y = 0
+
 	if (bases && bases.length === 0)
 		off_y = 25
+
+	if (bases && bases.length > 0) {
+		if (data.spaces[s].type === "mountain")
+			off_x = 20
+		else
+			off_x = -20
+	}
+
 	function layout_piece_rowcol(nrow, ncol, row, col, e, z) {
 		// basic piece size = 29x36
 		let x = xorig - (row * dx - col * dx) - 15 + off_x
@@ -679,15 +688,21 @@ function place_piece(p, x, y, z) {
 
 function layout_dept_bases(list, xc, yc, s) {
 	if (data.spaces[s].type !== "mountain") {
-		if (list.length > 0)
-			place_piece(list[0], xc - 20 + 32, yc - 10, 51)
-		if (list.length > 1)
-			place_piece(list[1], xc - 20 - 32, yc - 10, 52)
+		if (list.length === 1) {
+			place_piece(list[0], xc - 20 + 32, yc - 10, 52)
+		}
+		if (list.length === 2) {
+			place_piece(list[0], xc - 20 + 18, yc - 0, 52)
+			place_piece(list[1], xc - 20 + 18 + 32, yc - 21, 51)
+		}
 	} else {
-		if (list.length > 0)
-			place_piece(list[0], xc - 20 - 32, yc - 10, 51)
-		if (list.length > 1)
-			place_piece(list[1], xc - 20 + 32, yc - 10, 52)
+		if (list.length === 1) {
+			place_piece(list[0], xc - 20 - 32, yc - 10, 52)
+		}
+		if (list.length === 2) {
+			place_piece(list[0], xc - 20 - 18, yc - 0, 52)
+			place_piece(list[1], xc - 20 - 18 - 31, yc - 21, 51)
+		}
 	}
 }
 
