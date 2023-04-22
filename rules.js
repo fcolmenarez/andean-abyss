@@ -5640,7 +5640,7 @@ function calc_victory(is_final) {
 	log("AUC " + a)
 	log("Cartels " + c)
 
-	if (game.scenario === 4) {
+	if (game.scenario === 4 || game.scenario === 1) {
 		if (is_final || g > 0 || f > 0 || a > 0 || c > 0) {
 			if (c >= g && c >= f && c >= a)
 				return NAME_CARTELS
@@ -5680,14 +5680,14 @@ function goto_victory_phase() {
 	log_h2("Victory Phase")
 	let result = calc_victory(false)
 	if (result)
-		goto_game_end(result)
+		goto_game_over(result)
 	else
 		goto_sabotage_phase()
 }
 
 function goto_final_victory() {
 	log_h2("Final Victory")
-	goto_game_end(calc_victory(true))
+	goto_game_over(calc_victory(true))
 }
 
 // PROPAGANDA: SABOTAGE
@@ -7567,8 +7567,8 @@ states.vm_free_attack_terror = {
 
 // === GAME END ===
 
-function goto_game_end(result) {
-	game.state = "game_end"
+function goto_game_over(result) {
+	game.state = "game_over"
 	game.current = -1
 	game.active = "None"
 	game.result = result
