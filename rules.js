@@ -4899,36 +4899,24 @@ function goto_extort() {
 
 states.extort = {
 	prompt() {
-		view.prompt = "Extort: Select space with Underground Guerrilla that you control."
-		for (let s = first_space; s <= last_space; ++s) {
-			if (set_has(game.sa.spaces, s))
-				continue
-			if (has_underground_guerrilla(s, game.current)) {
-				if (game.current === FARC && has_farc_control(s))
-					gen_action_space(s)
-				if (game.current === AUC && has_auc_control(s))
-					gen_action_space(s)
+		if (game.sa.where < 0) {
+			view.prompt = "Extort: Select space with Underground Guerrilla that you control."
+			for (let s = first_space; s <= last_space; ++s) {
+				if (set_has(game.sa.spaces, s))
+					continue
+				if (has_underground_guerrilla(s, game.current)) {
+					if (game.current === FARC && has_farc_control(s))
+						gen_action_space(s)
+					if (game.current === AUC && has_auc_control(s))
+						gen_action_space(s)
+				}
 			}
+		} else {
+			view.prompt = `Extort in ${space_name[game.sa.where]}.`
+			view.where = game.sa.where
+			gen_underground_guerrillas(game.sa.where, game.current)
 		}
 		view.actions.end_extort = 1
-	},
-	space(s) {
-		push_undo()
-		game.sa.where = s
-		set_add(game.sa.spaces, s)
-		game.state = "extort_space"
-	},
-	end_extort() {
-		push_undo()
-		end_extort()
-	},
-}
-
-states.extort_space = {
-	prompt() {
-		view.prompt = `Extort in ${space_name[game.sa.where]}.`
-		view.where = game.sa.where
-		gen_underground_guerrillas(game.sa.where, game.current)
 	},
 	piece(p) {
 		game.sa.count += 1
@@ -4938,8 +4926,15 @@ states.extort_space = {
 		game.sa.where = -1
 		if (!can_extort_again())
 			end_extort()
-		else
-			game.state = "extort"
+	},
+	space(s) {
+		push_undo()
+		game.sa.where = s
+		set_add(game.sa.spaces, s)
+	},
+	end_extort() {
+		push_undo()
+		end_extort()
 	},
 }
 
