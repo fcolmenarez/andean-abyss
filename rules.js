@@ -5735,9 +5735,13 @@ function can_sabotage_phase_space(s) {
 	if (!has_sabotage(s)) {
 		if (is_adjacent_to_city_farc_control(s))
 			return true
-		if (has_capability(S_CAP_7TH_SF))
-			return count_guerrillas(s) >= count_cubes(s)
-		return count_guerrillas(s) > count_cubes(s)
+		let g = count_guerrillas(s)
+		if (g > 0) {
+			let c = count_cubes(s)
+			if (has_capability(S_CAP_7TH_SF))
+				return g >= c
+			return g > c
+		}
 	}
 	return false
 }
