@@ -3667,9 +3667,9 @@ states.assault_space = {
 		view.prompt = `Assault: Remove ${game.op.count} enemy pieces in ${space_name[game.op.where]}.`
 		view.where = game.op.where
 
-		if (game.faction === FARC) {
+		if (game.op.faction === FARC) {
 			gen_exposed_piece(game.op.where, FARC)
-		} else if (game.faction === AUC) {
+		} else if (game.op.faction === AUC) {
 			gen_exposed_piece(game.op.where, AUC)
 		} else {
 			if (!has_momentum(MOM_SENADO_FARC))
