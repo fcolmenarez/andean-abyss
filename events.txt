@@ -503,6 +503,8 @@ EVENT 36
 	asm game.vm.save_current = game.current
 	current GOVT
 	place_farc_zone
+	set_space (game.vm.farc_zone)
+	auto_place FARC BASE
 	current (game.vm.save_current)
 	prompt "Shift 2 adjacent spaces 1 level toward Active Support."
 	space 2 is_adjacent(game.vm.farc_zone, s) && can_shift_support(s)

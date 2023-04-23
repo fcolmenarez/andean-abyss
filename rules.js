@@ -6332,9 +6332,45 @@ function vm_place_farc_zone() {
 	push_summary()
 }
 
-function has_govt_in_farc_zone() {
+function find_first_troops_in_farc_zone() {
+	for (let s = first_dept; s <= last_dept; ++s) {
+		if (is_farc_zone(s)) {
+			let p = find_piece(s, GOVT, TROOPS)
+			if (p >= 0)
+				return p
+		}
+	}
+	return -1
+}
+
+function find_first_police_in_farc_zone() {
+	for (let s = first_dept; s <= last_dept; ++s) {
+		if (is_farc_zone(s)) {
+			let p = find_piece(s, GOVT, POLICE)
+			if (p >= 0)
+				return p
+		}
+	}
+	return -1
+}
+
+function has_govt_base_in_farc_zone() {
 	for (let s = first_dept; s <= last_dept; ++s)
 		if (is_farc_zone(s) && has_govt_piece(s))
+			return true
+	return false
+}
+
+function has_troops_in_farc_zone() {
+	for (let s = first_dept; s <= last_dept; ++s)
+		if (is_farc_zone(s) && has_troops(s))
+			return true
+	return false
+}
+
+function has_police_in_farc_zone() {
+	for (let s = first_dept; s <= last_dept; ++s)
+		if (is_farc_zone(s) && has_police(s))
 			return true
 	return false
 }
@@ -6359,74 +6395,74 @@ states.farc_zone_place = {
 		if (game.vm)
 			game.vm.farc_zone = s
 
-		if (has_govt_piece(s)) {
-			game.state = "farc_zone_redeploy"
-			game.redeploy = -1
-		} else {
-			end_farc_zone_place()
-		}
+		resume_farc_zone_redeploy()
 	},
 }
 
-states.farc_zone_redeploy = {
+function resume_farc_zone_redeploy() {
+	if (has_govt_base_in_farc_zone())
+		game.state = "farc_zone_redeploy_bases"
+	else if (has_troops_in_farc_zone())
+		game.state = "farc_zone_redeploy_troops"
+	else if (has_police_in_farc_zone())
+		game.state = "farc_zone_redeploy_police"
+	else
+		end_farc_zone_place()
+}
+
+states.farc_zone_redeploy_bases = {
 	prompt() {
-		view.prompt = "Redeploy Government from FARC Zone."
-		if (game.redeploy < 0) {
-			for (let s = first_dept; s <= last_dept; ++s) {
-				if (is_farc_zone(s)) {
-					gen_piece_in_space(s, GOVT, TROOPS)
-					gen_piece_in_space(s, GOVT, POLICE)
-					gen_piece_in_space(s, GOVT, BASE)
-				}
-			}
-		} else {
-			let p = game.redeploy
-			view.who = p
-			if (is_troops(p)) {
-				for (let s = first_space; s <= last_space; ++s)
-					if (is_redeploy_troops_space(s))
-						gen_action_space(s)
-			}
-			if (is_police(p)) {
-				for (let s = first_space; s <= last_space; ++s)
-					if (is_redeploy_police_space(s))
-						gen_action_space(s)
-			}
-		}
+		view.prompt = "Remove Government Bases from FARC Zone."
+		for (let s = first_dept; s <= last_dept; ++s)
+			if (is_farc_zone(s))
+				gen_piece_in_space(s, GOVT, BASE)
 	},
 	piece(p) {
-		if (is_govt_base(p)) {
-			log_summary("Removed % Govt Base")
-			remove_piece(p)
-		} else {
-			if (game.redeploy === p)
-				game.redeploy = -1
-			else
-				game.redeploy = p
-		}
+		log_summary("Removed % Govt Base")
+		remove_piece(p)
+		resume_farc_zone_redeploy()
+	},
+}
+
+states.farc_zone_redeploy_troops = {
+	prompt()  {
+		view.prompt = "Redeploy Troops from FARC Zone."
+		view.who = find_first_troops_in_farc_zone()
+		for (let s = first_space; s <= last_space; ++s)
+			if (is_redeploy_troops_space(s))
+				gen_action_space(s)
 	},
 	space(s) {
-		let p = game.redeploy
-		game.redeploy = -1
+		let p = find_first_troops_in_farc_zone()
+		log_summary("% Troops to S" + s)
+		move_piece(p, s)
+		resume_farc_zone_redeploy()
+	},
+}
 
-		// TODO: undo for each piece?
-		push_undo()
-
-		log_summary("% " + piece_name(p) + " to S" + s)
-		place_piece(p, s)
-		if (!has_govt_in_farc_zone())
-			end_farc_zone_place()
+states.farc_zone_redeploy_police = {
+	prompt()  {
+		view.prompt = "Redeploy Troops from FARC Zone."
+		view.who = find_first_police_in_farc_zone()
+		for (let s = first_space; s <= last_space; ++s)
+			if (is_redeploy_police_space(s))
+				gen_action_space(s)
+	},
+	space(s) {
+		let p = find_first_police_in_farc_zone()
+		log_summary("% Police to S" + s)
+		move_piece(p, s)
+		resume_farc_zone_redeploy()
 	},
 }
 
 function end_farc_zone_place() {
 	if (game.summary.length > 0) {
-		log_action("Redeploy from FARC Zone")
+		log_action("Redeployed from FARC Zone")
 		pop_summary()
 	} else {
 		game.summary = null
 	}
-	delete game.redeploy
 	if (game.vm)
 		vm_next()
 	else
@@ -8649,6 +8685,8 @@ CODE[36 * 2 + 0] = [
 	[ vm_asm, ()=>game.vm.save_current = game.current ],
 	[ vm_current, GOVT ],
 	[ vm_place_farc_zone ],
+	[ vm_set_space, ()=>(game.vm.farc_zone) ],
+	[ vm_auto_place, false, 0, FARC, BASE ],
 	[ vm_current, ()=>(game.vm.save_current) ],
 	[ vm_prompt, "Shift 2 adjacent spaces 1 level toward Active Support." ],
 	[ vm_space, true, 2, 2, (s)=>is_adjacent(game.vm.farc_zone, s) && can_shift_support(s) ],
