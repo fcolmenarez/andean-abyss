@@ -218,11 +218,13 @@ EVENT 19
 		prompt "Free Sweep or Assault in each space possible."
 		space all can_sweep_activate(s) || can_assault_in_space(s)
 			free_sweep_assault
+			# TODO transfer dropped shipments early
 		endspace
 	else
 		prompt "Free Attack or Terror in each space possible."
 		space all can_terror_in_space(s) || can_attack_in_space(s)
 			free_attack_terror
+			# TODO transfer dropped shipments early
 		endspace
 	endif
 
@@ -336,6 +338,7 @@ EVENT 26
 	prompt "All Cartels Guerrillas free Attack FARC."
 	space all has_cartels_guerrilla(s) && has_farc_piece(s)
 		free_attack_farc
+		# TODO transfer dropped shipments early
 	endspace
 
 SHADED 26
@@ -510,6 +513,7 @@ EVENT 37
 	prompt "Free Sweep or Assault FARC within each space; AUC Guerrillas act as Troops."
 	space all can_sweep_activate(s, FARC) || can_assault_in_space_faction(s, FARC)
 		free_sweep_assault_farc
+		# TODO transfer dropped shipments early
 	endspace
 
 SHADED 37
@@ -963,6 +967,7 @@ EVENT 59
 	prompt "Free Assault against Cartels in each space."
 	space all can_assault_in_space_faction(s, CARTELS)
 		free_assault_cartels
+		# TODO transfer dropped shipments early
 	endspace
 
 SHADED 59

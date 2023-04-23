@@ -6,6 +6,10 @@
 
 // TODO: can_...operation - for space = ... check them all / can_rally - check that it is dept/city etc
 
+// Captured Good - may not remove
+// Commandeer - may not remove
+// Contraband - if removed - cartels decide who gets it
+
 const AUTOMATIC = true
 
 let states = {}
@@ -1384,6 +1388,11 @@ function move_piece(p, s) {
 function place_piece(p, s) {
 	if (piece_space(p) === AVAILABLE)
 		p = find_piece(AVAILABLE, piece_faction(p), piece_type(p))
+
+	// NOTE: drop any held shipments if we automatically remove a piece to place it elsewhere
+	else if (piece_space(p) !== s && is_any_guerrilla(p))
+		drop_held_shipments(p)
+
 	set_underground(p)
 	set_piece_space(p, s)
 	update_control()
@@ -1538,10 +1547,64 @@ function drop_held_shipments(p) {
 			drop_shipment(sh)
 }
 
+function find_stealable_shipment() {
+	for (let sh = 0; sh < 4; ++sh)
+		if (can_steal_shipment(sh))
+			return sh
+	return -1
+}
+
 function has_dropped_shipments() {
 	for (let sh = 0; sh < 4; ++sh)
 		if (is_shipment_dropped(sh))
 			return true
+	return false
+}
+
+function has_dropped_shipments_of_current() {
+	for (let sh = 0; sh < 4; ++sh)
+		if (is_shipment_dropped(sh) && get_dropped_shipment_faction(sh) === game.current)
+			return true
+	return false
+}
+
+function can_steal_dropped_shipments() {
+	/* Allow stealing if owning faction has no guerrillas to transfer to. */
+	/* i.e. force transfer to executing faction. */
+	for (let sh = 0; sh < 4; ++sh)
+		if (can_steal_shipment(sh))
+			return true
+	return false
+}
+
+function can_steal_shipment(sh) {
+	/* Steal if we're the ONLY faction remaining in a space. */
+	/*
+	@Volko
+	My recollection of my original intent--and maybe we should just revert to
+	that, in anticipation of an AA reprint--is that a Faction would be able
+	to hold on to its Shipment until that Faction had no more Guerrillas in
+	the space. As desired, including when the owner loses its last Guerrilla
+	there, the owning Faction could choose to either remove the Shipment
+	or give it to someone else (if anyone else's Guerrillas there). Attack,
+	Assassinate, and Bribe could snatch the Shipment only if it got removed.
+	*/
+	if (is_shipment_dropped(sh)) {
+		let s = get_dropped_shipment_space(sh)
+		if (game.current === FARC)
+			return has_piece(s, FARC, GUERRILLA) && !has_piece(s, AUC, GUERRILLA) && !has_piece(s, CARTELS, GUERRILLA)
+		if (game.current === AUC)
+			return !has_piece(s, FARC, GUERRILLA) && has_piece(s, AUC, GUERRILLA) && !has_piece(s, CARTELS, GUERRILLA)
+		if (game.current === CARTELS)
+			return !has_piece(s, FARC, GUERRILLA) && !has_piece(s, AUC, GUERRILLA) && has_piece(s, CARTELS, GUERRILLA)
+	}
+	return false
+}
+
+function can_drug_bust_dropped_shipments(s) {
+	if (has_dropped_shipments()) {
+		return !has_piece(s, FARC, GUERRILLA) && !has_piece(s, AUC, GUERRILLA) && !has_piece(s, CARTELS, GUERRILLA)
+	}
 	return false
 }
 
@@ -1560,27 +1623,34 @@ function auto_transfer_dropped_shipments() {
 }
 
 function auto_transfer_dropped_shipment_imp(sh) {
-	// Transfer shipment automatically if there's only one faction present.
-	// NOTE: Don't transfer to own faction automatically,
 	let owner = get_dropped_shipment_faction(sh)
 	let s = get_dropped_shipment_space(sh)
 	let a = find_piece(s, FARC, GUERRILLA)
 	let b = find_piece(s, AUC, GUERRILLA)
 	let c = find_piece(s, CARTELS, GUERRILLA)
-	if (a >= 0 && b < 0 && c < 0) {
-		if (owner !== FARC)
-			log_transfer("FARC took Shipment in S" + s + ".")
+
+	// Keep it with own faction if possible (to speed up play)
+	if (owner === FARC && a >= 0)
 		place_shipment(sh, a)
-	}
-	if (a < 0 && b >= 0 && c < 0) {
-		if (owner !== AUC)
-			log_transfer("AUC took Shipment in S" + s + ".")
+	else if (owner === AUC && b >= 0)
 		place_shipment(sh, b)
-	}
-	if (a < 0 && b < 0 && c >= 0) {
-		if (owner !== CARTELS)
-			log_transfer("Cartels took Shipment in S" + s + ".")
+	else if (owner === CARTELS && c >= 0)
 		place_shipment(sh, c)
+
+	else if (!may_remove_shipment()) {
+		// If only one faction in space and not allowed to remove.
+		if (a >= 0 && b < 0 && c < 0) {
+			log_transfer("FARC took Shipment in S" + s + ".")
+			place_shipment(sh, a)
+		}
+		else if (a < 0 && b >= 0 && c < 0) {
+			log_transfer("AUC took Shipment in S" + s + ".")
+			place_shipment(sh, b)
+		}
+		else if (a < 0 && b < 0 && c >= 0) {
+			log_transfer("Cartels took Shipment in S" + s + ".")
+			place_shipment(sh, c)
+		}
 	}
 }
 
@@ -1759,8 +1829,8 @@ states.remove_pieces = {
 		game.state = game.transfer.state
 		game.summary = game.transfer.summary
 		delete game.transfer
-		transfer_or_remove_shipments()
 		log_br()
+		transfer_or_remove_shipments()
 	},
 }
 
@@ -2124,16 +2194,6 @@ function transfer_or_remove_shipments() {
 	}
 }
 
-function transfer_or_drug_bust_shipments() {
-	auto_transfer_dropped_shipments()
-	if (has_dropped_shipments()) {
-		if (can_transfer_dropped_shipments())
-			goto_transfer_dropped_shipments()
-		else
-			goto_drug_bust()
-	}
-}
-
 function goto_transfer_dropped_shipments() {
 	game.transfer = {
 		current: game.current,
@@ -2144,31 +2204,76 @@ function goto_transfer_dropped_shipments() {
 }
 
 function resume_transfer_dropped_shipments() {
-	for (let sh = 0; sh < 4; ++sh) {
-		if (is_shipment_dropped(sh)) {
-			game.current = get_dropped_shipment_faction(sh)
-			game.state = "transfer_dropped_shipments"
-			game.transfer.shipment = sh
+	if (has_dropped_shipments_of_current())
+		game.state = "transfer_dropped_shipments_current"
+	else if (has_dropped_shipments())
+		game.state = "transfer_dropped_shipments"
+	else
+		end_negotiation()
+}
 
-			// Clear undo if swapping to another player!
-			if (game.current !== game.transfer.current)
-				clear_undo()
-
-			return
-		}
-	}
-	end_negotiation()
+states.transfer_dropped_shipments_current = {
+	disable_negotiation: true,
+	inactive: "Transfer Shipment",
+	prompt() {
+		view.prompt = "Transfer Shipment to another Guerrilla."
+		for (let sh = 0; sh < 4; ++sh)
+			if (is_shipment_dropped(sh) && get_dropped_shipment_faction(sh) === game.current)
+				gen_action_shipment(sh)
+	},
+	shipment(sh) {
+		game.state = "transfer_dropped_shipment_to"
+		game.transfer.shipment = sh
+	},
 }
 
 states.transfer_dropped_shipments = {
 	disable_negotiation: true,
+	inactive: "Transfer Shipment",
 	prompt() {
 		view.prompt = "Transfer Shipment to another Guerrilla."
+		for (let sh = 0; sh < 4; ++sh)
+			if (is_shipment_dropped(sh))
+				gen_action_shipment(sh)
+	},
+	shipment(sh) {
+		let faction = get_dropped_shipment_faction(sh)
+		if (game.current !== faction) {
+			clear_undo()
+			game.current = faction
+		}
+		game.state = "transfer_dropped_shipment_to"
+		game.transfer.shipment = sh
+	},
+}
+
+function may_remove_shipment() {
+	// Captured Goods
+	if (typeof game.op === "object" && game.op.type === "Attack")
+		return false
+	// Commandeer
+	if (typeof game.sa === "object" && game.sa.commandeer)
+		return false
+	return true
+}
+
+states.transfer_dropped_shipment_to = {
+	disable_negotiation: true,
+	inactive: "Transfer Shipment",
+	prompt() {
+		view.prompt = "Transfer Shipment to another Guerrilla."
+		view.selected_shipment = game.transfer.shipment
+
 		let s = get_dropped_shipment_space(game.transfer.shipment)
 
 		gen_piece_in_space(s, FARC, GUERRILLA)
 		gen_piece_in_space(s, AUC, GUERRILLA)
 		gen_piece_in_space(s, CARTELS, GUERRILLA)
+
+		// Disable removal for Captured Goods and Commandeer.
+		// Must transfer to executing faction instead of removing.
+		if (may_remove_shipment())
+			view.actions.remove = 1
 
 		view.actions.undo = 0
 	},
@@ -2177,25 +2282,62 @@ states.transfer_dropped_shipments = {
 		place_shipment(game.transfer.shipment, p)
 		resume_transfer_dropped_shipments()
 	},
+	remove() {
+		// Contraband - Cartels decide who get it or if it is removed
+		if (typeof game.sa === "object" && game.sa.contraband) {
+			game.current = CARTELS
+			game.state = "transfer_dropped_shipment_contraband"
+			return
+		}
+
+		let sh = game.transfer.shipment
+		let s = get_dropped_shipment_space(sh)
+		if (game.op && (game.op.type === "Assault" || game.op.type === "Patrol")) {
+			log_transfer("Drug Bust - Removed Shipment in S" + s + " for +6 Aid.")
+			add_aid(6)
+		} else {
+			log_transfer("Removed Shipment in S" + s + ".")
+		}
+		remove_shipment(sh)
+		resume_transfer_dropped_shipments()
+	},
 }
 
-// === DRUG BUST ===
+states.transfer_dropped_shipment_contraband = {
+	disable_negotiation: true,
+	inactive: "Transfer Shipment",
+	prompt() {
+		view.prompt = "Contraband: Transfer Shipment to any Guerrilla."
+		view.selected_shipment = game.transfer.shipment
 
-function goto_drug_bust() {
-	game.transfer = game.state
-	resume_drug_bust()
+		let s = get_dropped_shipment_space(game.transfer.shipment)
+
+		gen_piece_in_space(s, FARC, GUERRILLA)
+		gen_piece_in_space(s, AUC, GUERRILLA)
+		gen_piece_in_space(s, CARTELS, GUERRILLA)
+
+		view.actions.remove = 1
+
+		view.actions.undo = 0
+	},
+	piece(p) {
+		log_transfer(`Contraband - ${piece_faction_name(p)} took Shipment in S${piece_space(p)}.`)
+		place_shipment(game.transfer.shipment, p)
+		resume_transfer_dropped_shipments()
+	},
+	remove() {
+		let sh = game.transfer.shipment
+		let s = get_dropped_shipment_space(sh)
+		log_transfer("Contraband - removed Shipment in S" + s + ".")
+		remove_shipment(sh)
+		resume_transfer_dropped_shipments()
+	},
 }
 
-function resume_drug_bust() {
-	if (has_dropped_shipments()) {
-		game.state = "drug_bust"
-	} else {
-		game.state = game.transfer
-		delete game.transfer
-	}
-}
+// === DRUG BUST (PATROL AND ASSAULT) ===
 
 states.drug_bust = {
+	inactive: "Drug Bust",
 	prompt() {
 		view.prompt = "Drug Bust: Add +6 Aid per Shipment removed by Assault."
 		for (let sh = 0; sh < 4; ++sh)
@@ -2203,11 +2345,16 @@ states.drug_bust = {
 				gen_action_shipment(sh)
 	},
 	shipment(sh) {
-		log_space(get_dropped_shipment_space(sh), "Drug Bust")
+		let s = get_dropped_shipment_space(sh)
+		log_transfer("Drug Bust - Removed Shipment in S" + s + " for +6 Aid.")
 		remove_shipment(sh)
-		logi_aid(6)
 		add_aid(6)
-		resume_drug_bust()
+		if (!has_dropped_shipments()) {
+			if (game.op.type === "Patrol")
+				resume_patrol_assault()
+			else
+				resume_assault()
+		}
 	},
 }
 
@@ -3143,6 +3290,7 @@ function resume_patrol_assault() {
 		game.state = "patrol_assault"
 	else
 		game.state = "patrol_done"
+	transfer_or_drug_bust_shipments()
 }
 
 function can_patrol_assault() {
@@ -3223,8 +3371,10 @@ states.patrol_assault_space = {
 function end_patrol_assault_space() {
 	log_space(game.op.where, "Assault")
 	pop_summary()
-	resume_patrol_assault()
-	transfer_or_drug_bust_shipments()
+	if (can_drug_bust_dropped_shipments(game.op.where))
+		game.state = "drug_bust"
+	else
+		resume_patrol_assault()
 }
 
 states.patrol_done = {
@@ -3384,10 +3534,11 @@ states.sweep = {
 }
 
 function resume_sweep() {
-	if (game.vm)
+	if (game.vm) {
 		end_operation()
-	else
-		game.state = "sweep"
+		return
+	}
+	game.state = "sweep"
 }
 
 function goto_sweep_space(allow_move) {
@@ -3658,6 +3809,15 @@ states.assault = {
 	end_assault: end_operation,
 }
 
+function resume_assault() {
+	if (game.vm) {
+		end_operation()
+	} else {
+		game.state = "assault"
+		transfer_or_remove_shipments() // NOTE: Unless removed by Drug Bust
+	}
+}
+
 function goto_assault_space() {
 	push_summary()
 	game.op.targeted = 0
@@ -3701,11 +3861,10 @@ states.assault_space = {
 function end_assault_space() {
 	log_space(game.op.where, "Assault")
 	pop_summary()
-	if (game.vm)
-		end_operation()
+	if (can_drug_bust_dropped_shipments(game.op.where))
+		game.state = "drug_bust"
 	else
-		game.state = "assault"
-	transfer_or_drug_bust_shipments()
+		resume_assault()
 }
 
 // OPERATION: RALLY
@@ -3789,12 +3948,15 @@ states.rally = {
 }
 
 function resume_rally() {
+	if (game.vm) {
+		end_operation()
+		return
+	}
 	if (game.op.elite_backing)
 		game.state = "elite_backing_done"
-	else if (game.vm)
-		end_operation()
 	else
 		game.state = "rally"
+	transfer_or_remove_shipments()
 }
 
 function goto_rally_space() {
@@ -3877,7 +4039,6 @@ states.rally_base_remove = {
 			if (auto_place_piece(game.op.where, game.current, BASE)) {
 				log_summary("Placed " + piece_faction_type_name[game.current][BASE])
 				end_rally_space()
-				transfer_or_remove_shipments()
 			} else {
 				game.state = "rally_base_place"
 			}
@@ -3894,7 +4055,6 @@ states.rally_base_place = {
 		log_summary("Placed " + piece_faction_type_name[game.current][BASE] + " from S" + piece_space(p))
 		place_piece(p, game.op.where)
 		end_rally_space()
-		transfer_or_remove_shipments()
 	},
 }
 
@@ -4186,10 +4346,12 @@ states.attack = {
 }
 
 function resume_attack() {
-	if (game.vm)
+	if (game.vm) {
 		vm_next()
-	else
-		game.state = "attack"
+		return
+	}
+	game.state = "attack"
+	transfer_or_remove_shipments() // NOTE: Unless taken by Captured Goods
 }
 
 function goto_attack_space() {
@@ -4311,19 +4473,33 @@ states.attack_remove = {
 		game.op.targeted |= target_faction(p)
 		remove_piece(p)
 
-		if (--game.op.count === 0 || !has_attack_target(game.op.where)) {
+		if (--game.op.count === 0 || !has_attack_target(game.op.where))
 			end_attack_space()
-			transfer_or_remove_shipments()
-		}
 	},
 	skip() {
 		end_attack_space()
-		transfer_or_remove_shipments()
 	}
 }
 
 function end_attack_space() {
-	resume_attack()
+	if (can_steal_dropped_shipments())
+		game.state = "captured_goods"
+	else
+		resume_attack()
+}
+
+states.captured_goods = {
+	prompt() {
+		view.prompt = "Captured Goods: Take removed Shipment."
+		view.selected_shipment = find_stealable_shipment()
+		gen_piece_in_space(game.op.where, game.current, GUERRILLA)
+	},
+	piece(p) {
+		log_transfer("Captured Goods - " + piece_faction_name(p) + " took Shipment in S" + piece_space(p) + ".")
+		place_shipment(find_stealable_shipment(), p)
+		if (!can_steal_dropped_shipments())
+			resume_attack()
+	},
 }
 
 // OPERATION: TERROR
@@ -4405,7 +4581,7 @@ states.terror = {
 }
 
 function do_terror_space(s) {
-	// Note: can come here from both "terror" and "kidnap" states
+	// NOTE: can come here from both "terror" and "kidnap" states
 	if (is_loc(s))
 		select_op_space(s, 0)
 	else
@@ -4686,7 +4862,6 @@ states.air_strike = {
 	piece(p) {
 		log_space(piece_space(p), "Air Strike")
 		logi("Removed " + piece_name(p))
-
 		remove_piece(p)
 		end_special_activity()
 	}
@@ -4762,11 +4937,9 @@ states.eradicate_base = {
 function goto_eradicate_shift() {
 	if (can_eradicate_shift()) {
 		game.state = "eradicate_shift"
-	} else if (AUTOMATIC && auto_place_piece(game.sa.where, FARC, GUERRILLA)) {
+	} else if (auto_place_piece(game.sa.where, FARC, GUERRILLA)) {
 		logi("Placed FARC Guerrilla")
 		end_eradicate()
-	} else if (can_place_piece(game.sa.where, FARC, GUERRILLA)) {
-		game.state = "eradicate_place"
 	} else {
 		end_eradicate()
 	}
@@ -4794,18 +4967,6 @@ states.eradicate_shift = {
 	space(s) {
 		shift_opposition(s)
 		logi("S" + s + " to " + support_level_name[game.support[s]])
-		end_eradicate()
-	},
-}
-
-states.eradicate_place = {
-	prompt() {
-		view.prompt = `Eradicate: Place available FARC Guerrilla in ${space_name[game.sa.where]}.`
-		gen_piece_in_space(AVAILABLE, FARC, GUERRILLA)
-	},
-	piece(p) {
-		logi("Placed FARC Guerrilla")
-		place_piece(p, game.sa.where)
 		end_eradicate()
 	},
 }
@@ -5146,6 +5307,7 @@ function goto_assassinate() {
 	push_undo()
 	move_cylinder_to_special_activity()
 	game.sa = {
+		commandeer: 1,
 		save: game.state,
 		spaces: [],
 		where: -1,
@@ -5161,6 +5323,15 @@ function can_assassinate_in_space(s) {
 			if (has_enemy_piece(s))
 				return true
 	return false
+}
+
+function resume_assassinate() {
+	if (can_assassinate_again()) {
+		game.state = "assassinate"
+		transfer_or_remove_shipments() // NOTE: Unless taken by Commandeer
+	} else {
+		end_special_activity()
+	}
 }
 
 states.assassinate = {
@@ -5209,13 +5380,28 @@ states.assassinate_space = {
 	piece(p) {
 		logi("Removed " + piece_name(p))
 		remove_piece(p)
+		end_assassinate_space()
+	},
+}
 
-		if (can_assassinate_again())
-			game.state = "assassinate"
-		else
-			end_special_activity()
+function end_assassinate_space() {
+	if (can_steal_dropped_shipments())
+		game.state = "commandeer"
+	else
+		resume_assassinate()
+}
 
-		transfer_or_remove_shipments()
+states.commandeer = {
+	prompt() {
+		view.prompt = "Commandeer: Take removed Shipment."
+		view.selected_shipment = find_stealable_shipment()
+		gen_piece_in_space(game.sa.where, game.current, GUERRILLA)
+	},
+	piece(p) {
+		log_transfer("Commandeer - AUC took Shipment in S" + piece_space(p) + ".")
+		place_shipment(find_stealable_shipment(), p)
+		if (!can_steal_dropped_shipments())
+			resume_assassinate()
 	},
 }
 
@@ -5278,7 +5464,6 @@ states.cultivate_place = {
 	piece(p) {
 		log_space(game.sa.where, "Cultivate")
 		logi("Placed Cartels Base from S" + piece_space(p))
-
 		place_piece(p, game.sa.where)
 		end_special_activity()
 	},
@@ -5431,6 +5616,7 @@ function goto_bribe() {
 		push_undo()
 	move_cylinder_to_special_activity()
 	game.sa = {
+		contraband: 1,
 		save: game.state,
 		spaces: [],
 		where: -1,
@@ -5445,10 +5631,12 @@ function resume_bribe() {
 		end_special_activity()
 		return
 	}
-	if (game.sa.spaces.length === 3)
-		end_special_activity()
-	else
+	if (game.sa.spaces.length < 3) {
 		game.state = "bribe"
+		transfer_or_remove_shipments() // NOTE: Unless taken by Contraband
+	} else {
+		end_special_activity()
+	}
 }
 
 states.bribe = {
@@ -5516,14 +5704,10 @@ states.bribe_space = {
 	piece(p) {
 		logi("Removed " + piece_name(p))
 		remove_piece(p)
-		if (game.sa.targeted || is_any_base(p)) {
+		if (game.sa.targeted || is_any_base(p))
 			end_bribe_space()
-			transfer_or_remove_shipments()
-		} else {
+		else
 			game.sa.targeted |= target_faction(p)
-		}
-
-		transfer_or_remove_shipments()
 	},
 	flip() {
 		game.state = "bribe_flip"
@@ -5532,7 +5716,6 @@ states.bribe_space = {
 	},
 	skip() {
 		end_bribe_space()
-		transfer_or_remove_shipments()
 	},
 }
 
@@ -5572,7 +5755,33 @@ states.bribe_flip = {
 }
 
 function end_bribe_space() {
-	resume_bribe()
+	if (can_steal_dropped_shipments())
+		game.state = "contraband"
+	else
+		resume_bribe()
+}
+
+states.contraband = {
+	prompt() {
+		view.prompt = "Contraband: Transfer removed Shipment to any Guerrilla."
+		view.selected_shipment = find_stealable_shipment()
+		gen_piece_in_space(game.sa.where, FARC, GUERRILLA)
+		gen_piece_in_space(game.sa.where, AUC, GUERRILLA)
+		gen_piece_in_space(game.sa.where, CARTELS, GUERRILLA)
+		view.actions.remove = 1
+	},
+	piece(p) {
+		log_transfer("Contraband - " + piece_faction_name(p) + " took Shipment in S" + piece_space(p) + ".")
+		place_shipment(find_stealable_shipment(), p)
+		if (!can_steal_dropped_shipments())
+			resume_bribe()
+	},
+	remove() {
+		log_transfor("Contraband - removed Shipment in S" + game.sa.where)
+		remove_shipment(find_stealable_shipment())
+		if (!can_steal_dropped_shipments())
+			resume_bribe()
+	},
 }
 
 // === PROPAGANDA ===
@@ -6666,6 +6875,7 @@ function vm_capability() {
 
 function vm_return() {
 	game.state = "vm_return"
+	transfer_or_remove_shipments()
 }
 
 states.vm_return = {
@@ -6739,7 +6949,6 @@ function vm_move() {
 function vm_remove() {
 	log("Removed " + piece_name(game.vm.p) + " from S" + piece_space(game.vm.p) + ".")
 	remove_piece(game.vm.p)
-	transfer_or_remove_shipments()
 	vm_next()
 }
 
@@ -7003,7 +7212,6 @@ states.vm_remove_permanently = {
 		log("Removed " + piece_name(p) + " permanently.")
 		place_piece(p, OUT_OF_PLAY)
 		vm_next()
-		transfer_or_remove_shipments()
 	},
 }
 
@@ -7405,7 +7613,6 @@ states.vm_place_or_remove_insurgent_base = {
 			remove_piece(p)
 		}
 		vm_next()
-		transfer_or_remove_shipments()
 	},
 }
 

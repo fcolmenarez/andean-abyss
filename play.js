@@ -1250,13 +1250,21 @@ function on_update() {
 	list.length = 0
 	for (let i = 0; i < 4; ++i) {
 		let shx = view.shipments[i]
+		let shf = shx & 3
 		if (shx === 0)
 			list.push(ui.shipments[i])
+		if (shf === 0)
+			ui.shipments[i].className = "token shipment"
+		else if (shf === FARC)
+			ui.shipments[i].className = "token shipment farc"
+		else if (shf === AUC)
+			ui.shipments[i].className = "token shipment auc"
+		else if (shf === CARTELS)
+			ui.shipments[i].className = "token shipment cartels"
 		if (view.actions && view.actions.shipment && set_has(view.actions.shipment, i))
 			ui.shipments[i].classList.add("action")
-		else
-			ui.shipments[i].classList.remove("action")
-		ui.shipments[i].classList.toggle("selected", view.selected_shipment === i)
+		if (view.selected_shipment === i)
+			ui.shipments[i].classList.add("selected")
 	}
 	layout_available_bases(list, 1532, 1722, 2, 2, 89, 69)
 
@@ -1330,6 +1338,7 @@ function on_update() {
 	action_button("support", "Support")
 	action_button("opposition", "Opposition")
 
+	action_button("remove", "Remove")
 	action_button("roll", "Roll")
 	action_button("skip", "Skip")
 	action_button("next", "Next")
