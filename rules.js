@@ -6446,7 +6446,7 @@ states.farc_zone_redeploy_troops = {
 
 states.farc_zone_redeploy_police = {
 	prompt()  {
-		view.prompt = "Redeploy Troops from FARC Zone."
+		view.prompt = "Redeploy Police from FARC Zone."
 		view.who = find_first_police_in_farc_zone()
 		for (let s = first_space; s <= last_space; ++s)
 			if (is_redeploy_police_space(s))
