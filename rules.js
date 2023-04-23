@@ -5983,6 +5983,8 @@ states.civic_action = {
 	},
 	space(s) {
 		push_undo()
+		if (!has_troops(s) || !has_police(s))
+			set_add(game.prop.first_div, s)
 		pay_resources(GOVT, 3)
 		if (has_terror(s)) {
 			logi("Removed Terror from S" + s)
