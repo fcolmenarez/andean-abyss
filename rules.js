@@ -296,7 +296,6 @@ exports.setup = function (seed, scenario, options) {
 	log_h1("Scenario: " + scenario)
 
 	switch (scenario) {
-	default:
 	case "Standard":
 		if (options.seeded)
 			log("Seeded Deck")
@@ -319,6 +318,11 @@ exports.setup = function (seed, scenario, options) {
 		game.deck = []
 		for (let i = 1; i < PROPAGANDA; ++i)
 			game.deck.push(i)
+		break
+	default:
+		setup_deck(3, 10, 5)
+		for (let i = 0; i < scenario.length; ++i)
+			game.deck[i] = scenario[i]
 		break
 	}
 
