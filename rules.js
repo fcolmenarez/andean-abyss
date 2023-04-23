@@ -7661,8 +7661,8 @@ function is_current_role(role) {
 exports.view = function (state, role) {
 	load_game(state)
 
-	let this_card = game.deck[0]
-	let next_card = game.deck[1]
+	let this_card = game.deck[0] | 0
+	let next_card = game.deck[1] | 0
 	let deck_size = Math.max(0, game.deck.length - 2)
 
 	view = {

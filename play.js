@@ -305,6 +305,7 @@ let ui = {
 	this_card: document.getElementById("this_card"),
 	shaded_event: document.getElementById("shaded_event"),
 	unshaded_event: document.getElementById("unshaded_event"),
+	deck_outer: document.getElementById("deck_outer"),
 	deck_size: document.getElementById("deck_size"),
 	tokens: {
 		aid: document.getElementById("token_aid"),
@@ -1091,8 +1092,13 @@ function on_update() {
 	}
 
 	ui.this_card.className = make_card_class_name(view.deck[0])
-	ui.next_card.className = "card card_" + view.deck[1]
-	ui.deck_size.textContent = view.deck[2]
+	ui.next_card.className = view.deck[1] > 0 ? "card card_" + view.deck[1] : "hide"
+	if (view.deck[2] > 0) {
+		ui.deck_outer.className = "card card_back"
+		ui.deck_size.textContent = view.deck[2]
+	} else {
+		ui.deck_outer.className = "hide"
+	}
 
 	ui.this_card.classList.toggle("action", !!(view.actions && view.actions.event === 1))
 	ui.shaded_event.classList.toggle("action", !!(view.actions && view.actions.shaded === 1))
