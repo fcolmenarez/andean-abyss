@@ -872,7 +872,7 @@ EVENT 53
 		endspace
 	endif
 	prompt "Move Guerrillas between Departments."
-	piece 2 is_piece(p, game.current, GUERRILLA) && (s === game.vm.m[0] || s === game.vm.m[1])
+	piece_range 1 2 is_piece(p, game.current, GUERRILLA) && (s === game.vm.m[0] || s === game.vm.m[1])
 		if piece_space(game.vm.p) === game.vm.m[0]
 			set_space (game.vm.m[1])
 		else

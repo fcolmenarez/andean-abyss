@@ -81,6 +81,9 @@ for (let line of fs.readFileSync("events.txt", "utf-8").split("\n")) {
 	case "piece_undo":
 		emit([ "piece", true, line[1], line[1], "(p,s)=>" + line.slice(2).join(" ") ])
 		break
+	case "piece_range":
+		emit([ "piece", false, line[1], line[2], "(p,s)=>" + line.slice(3).join(" ") ])
+		break
 	case "piece_opt":
 		emit([ "piece", false, 0, line[1], "(p,s)=>" + line.slice(2).join(" ") ])
 		break

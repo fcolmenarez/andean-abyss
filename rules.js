@@ -9147,7 +9147,7 @@ CODE[53 * 2 + 0] = [
 	[ vm_endspace ],
 	[ vm_endif ],
 	[ vm_prompt, "Move Guerrillas between Departments." ],
-	[ vm_piece, false, 2, 2, (p,s)=>is_piece(p, game.current, GUERRILLA) && (s === game.vm.m[0] || s === game.vm.m[1]) ],
+	[ vm_piece, false, 1, 2, (p,s)=>is_piece(p, game.current, GUERRILLA) && (s === game.vm.m[0] || s === game.vm.m[1]) ],
 	[ vm_if, ()=>piece_space(game.vm.p) === game.vm.m[0] ],
 	[ vm_set_space, ()=>(game.vm.m[1]) ],
 	[ vm_else ],
