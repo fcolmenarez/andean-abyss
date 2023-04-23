@@ -451,17 +451,9 @@ EVENT 33
 
 SHADED 33
 	capability EVT_SUCUMBIOS
-	if AUTOMATIC
-		set_space ECUADOR
-		place (game.current) ANY_PIECE
-		place (game.current) ANY_PIECE
-	else
-		prompt "Place 2 pieces in Ecuador."
-		space 1 s === ECUADOR
-			place (game.current) ANY_PIECE
-			place (game.current) ANY_PIECE
-		endspace
-	endif
+	set_space ECUADOR
+	place (game.current) ANY_PIECE
+	place (game.current) ANY_PIECE
 
 EVENT 34
 	# -1 = all insurgent factions
@@ -601,16 +593,9 @@ EVENT 41
 	endspace
 
 SHADED 41
-	if AUTOMATIC
-		count_spaces has_auc_piece(s) && has_cartels_piece(s)
-		log `${game.vm.count} spaces with AUC and Cartels pieces.`
-		resources AUC (3*game.vm.count)
-	else
-		prompt "AUC Resources +3 for each space with AUC and Cartels pieces."
-		space all has_auc_piece(s) && has_cartels_piece(s)
-			auto_resources AUC 3
-		endspace
-	endif
+	count_spaces has_auc_piece(s) && has_cartels_piece(s)
+	log `${game.vm.count} spaces with AUC and Cartels pieces.`
+	resources AUC (3*game.vm.count)
 
 EVENT 42
 	prompt "Shift 2 Neutral spaces to Passive Support."
@@ -677,16 +662,9 @@ EVENT 45
 	endspace
 
 SHADED 45
-	if AUTOMATIC
-		count_spaces has_faction_piece(s, AUC)
-		log `${game.vm.count} spaces with AUC pieces.`
-		aid (-game.vm.count)
-	else
-		prompt "Aid -1 for each space with AUC pieces."
-		space all has_auc_piece(s)
-			auto_aid -1
-		endspace
-	endif
+	count_spaces has_faction_piece(s, AUC)
+	log `${game.vm.count} spaces with AUC pieces.`
+	aid (-game.vm.count)
 	roll
 	resources GOVT (-game.vm.die)
 
@@ -845,14 +823,7 @@ SHADED 52
 	space 1 has_auc_piece(s) && can_stack_base(s, AUC)
 		auto_place AUC BASE
 	endspace
-	if AUTOMATIC
-		resources AUC (count_pieces_on_map(AUC,BASE))
-	else
-		prompt "AUC Resources +1 per AUC Base."
-		piece all is_auc_base(p)
-			auto_resources AUC 1
-		endpiece
-	endif
+	resources AUC (count_pieces_on_map(AUC,BASE))
 
 EVENT 53
 	current FARC_AUC_CARTELS
@@ -930,16 +901,9 @@ EVENT 56
 	transfer CARTELS GOVT 15
 
 SHADED 56
-	if AUTOMATIC
-		count_pieces is_cartels_piece(p) && is_city(s)
-		log `${game.vm.count} Cartels pieces in Cities.`
-		resources CARTELS (2*game.vm.count)
-	else
-		prompt "Add twice Cartels pieces in Cities to Cartels Resources."
-		piece all is_cartels_piece(p) && is_city(s)
-			auto_resources CARTELS 2
-		endpiece
-	endif
+	count_pieces is_cartels_piece(p) && is_city(s)
+	log `${game.vm.count} Cartels pieces in Cities.`
+	resources CARTELS (2*game.vm.count)
 	prompt "Place a Cartels Base in each of 2 Cities."
 	space 2 is_city(s) && can_stack_base(s, CARTELS)
 		auto_place CARTELS BASE
@@ -1095,25 +1059,14 @@ EVENT 64
 	endrepeat
 
 SHADED 64
-	if AUTOMATIC
-		asm game.vm.total = 0
-		count_pieces is_cartels_base(p) && is_city(s)
-		log `${game.vm.count} Cartels Bases in Cities.`
-		asm game.vm.total += 2 * game.vm.count
-		count_pieces is_cartels_base(p) && is_dept(s)
-		log `${game.vm.count} Cartels Bases in Departments.`
-		asm game.vm.total += game.vm.count
-		resources CARTELS (game.vm.total)
-	else
-		prompt "Cartels Resources +2 for each Cartels Base in a City."
-		piece all is_cartels_base(p) && is_city(s)
-			auto_resources CARTELS 2
-		endpiece
-		prompt "Cartels Resources +1 for each Cartels Base in a Department."
-		piece all is_cartels_base(p) && is_dept(s)
-			auto_resources CARTELS 1
-		endpiece
-	endif
+	asm game.vm.total = 0
+	count_pieces is_cartels_base(p) && is_city(s)
+	log `${game.vm.count} Cartels Bases in Cities.`
+	asm game.vm.total += 2 * game.vm.count
+	count_pieces is_cartels_base(p) && is_dept(s)
+	log `${game.vm.count} Cartels Bases in Departments.`
+	asm game.vm.total += game.vm.count
+	resources CARTELS (game.vm.total)
 
 EVENT 65
 	# 5.1.3 - do both shipment and base if possible
@@ -1162,16 +1115,9 @@ EVENT 68
 	endif
 
 SHADED 68
-	if AUTOMATIC
-		count_pieces is_cartels_piece(p) && is_coastal_space(s)
-		log `${game.vm.count} Cartels pieces in coastal spaces.`
-		resources CARTELS (2*game.vm.count)
-	else
-		prompt "Cartels Resources +2 per Cartels piece in coastal spaces."
-		piece all is_cartels_piece(p) && is_coastal_space(s)
-			auto_resources CARTELS 2
-		endpiece
-	endif
+	count_pieces is_cartels_piece(p) && is_coastal_space(s)
+	log `${game.vm.count} Cartels pieces in coastal spaces.`
+	resources CARTELS (2*game.vm.count)
 
 EVENT 69
 	prompt "Select source space."
@@ -1202,16 +1148,9 @@ EVENT 69
 	endspace
 
 EVENT 70
-	if AUTOMATIC
-		count_spaces is_forest(s) && !has_any_guerrilla(s)
-		log `${game.vm.count} Forests without Guerrillas.`
-		resources GOVT (6*game.vm.count)
-	else
-		prompt "Government Resources +6 for each Forest without Guerrillas."
-		space_no_undo all is_forest(s) && !has_any_guerrilla(s)
-			auto_resources GOVT 6
-		endspace
-	endif
+	count_spaces is_forest(s) && !has_any_guerrilla(s)
+	log `${game.vm.count} Forests without Guerrillas.`
+	resources GOVT (6*game.vm.count)
 
 SHADED 70
 	current FARC_AUC_CARTELS
@@ -1235,17 +1174,11 @@ EVENT 71
 
 SHADED 71
 	capability EVT_DARIEN
-	if AUTOMATIC
-		set_space PANAMA
-		place (game.current) BASE
+	prompt "Place 1-2 Bases in Panamá."
+	space 1 s === PANAMA
+		auto_place (game.current) BASE
 		place_opt (game.current) BASE
-	else
-		prompt "Place 1-2 Bases in Panamá."
-		space 1 s === PANAMA
-			auto_place (game.current) BASE
-			place_opt (game.current) BASE
-		endspace
-	endif
+	endspace
 
 EVENT 72
 	prompt "Replace all Cartels Guerrillas in 2 spaces with other Guerrillas."

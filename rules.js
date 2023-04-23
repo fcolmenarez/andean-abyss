@@ -8624,17 +8624,9 @@ CODE[33 * 2 + 0] = [
 // SHADED 33
 CODE[33 * 2 + 1] = [
 	[ vm_capability, EVT_SUCUMBIOS ],
-	[ vm_if, ()=>AUTOMATIC ],
 	[ vm_set_space, ECUADOR ],
 	[ vm_place, false, 0, ()=>(game.current), ANY_PIECE ],
 	[ vm_place, false, 0, ()=>(game.current), ANY_PIECE ],
-	[ vm_else ],
-	[ vm_prompt, "Place 2 pieces in Ecuador." ],
-	[ vm_space, true, 1, 1, (s)=>s === ECUADOR ],
-	[ vm_place, false, 0, ()=>(game.current), ANY_PIECE ],
-	[ vm_place, false, 0, ()=>(game.current), ANY_PIECE ],
-	[ vm_endspace ],
-	[ vm_endif ],
 	[ vm_return ],
 ]
 
@@ -8819,16 +8811,9 @@ CODE[41 * 2 + 0] = [
 
 // SHADED 41
 CODE[41 * 2 + 1] = [
-	[ vm_if, ()=>AUTOMATIC ],
 	[ vm_count_spaces, (s)=>has_auc_piece(s) && has_cartels_piece(s) ],
 	[ vm_log, ()=>`${game.vm.count} spaces with AUC and Cartels pieces.` ],
 	[ vm_resources, AUC, ()=>(3*game.vm.count) ],
-	[ vm_else ],
-	[ vm_prompt, "AUC Resources +3 for each space with AUC and Cartels pieces." ],
-	[ vm_space, true, 999, 999, (s)=>has_auc_piece(s) && has_cartels_piece(s) ],
-	[ vm_auto_resources, AUC, 3 ],
-	[ vm_endspace ],
-	[ vm_endif ],
 	[ vm_return ],
 ]
 
@@ -8920,16 +8905,9 @@ CODE[45 * 2 + 0] = [
 
 // SHADED 45
 CODE[45 * 2 + 1] = [
-	[ vm_if, ()=>AUTOMATIC ],
 	[ vm_count_spaces, (s)=>has_faction_piece(s, AUC) ],
 	[ vm_log, ()=>`${game.vm.count} spaces with AUC pieces.` ],
 	[ vm_aid, ()=>(-game.vm.count) ],
-	[ vm_else ],
-	[ vm_prompt, "Aid -1 for each space with AUC pieces." ],
-	[ vm_space, true, 999, 999, (s)=>has_auc_piece(s) ],
-	[ vm_auto_aid, -1 ],
-	[ vm_endspace ],
-	[ vm_endif ],
 	[ vm_roll ],
 	[ vm_resources, GOVT, ()=>(-game.vm.die) ],
 	[ vm_return ],
@@ -9123,14 +9101,7 @@ CODE[52 * 2 + 1] = [
 	[ vm_space, true, 1, 1, (s)=>has_auc_piece(s) && can_stack_base(s, AUC) ],
 	[ vm_auto_place, false, 0, AUC, BASE ],
 	[ vm_endspace ],
-	[ vm_if, ()=>AUTOMATIC ],
 	[ vm_resources, AUC, ()=>(count_pieces_on_map(AUC,BASE)) ],
-	[ vm_else ],
-	[ vm_prompt, "AUC Resources +1 per AUC Base." ],
-	[ vm_piece, false, 999, 999, (p,s)=>is_auc_base(p) ],
-	[ vm_auto_resources, AUC, 1 ],
-	[ vm_endpiece ],
-	[ vm_endif ],
 	[ vm_return ],
 ]
 
@@ -9223,16 +9194,9 @@ CODE[56 * 2 + 0] = [
 
 // SHADED 56
 CODE[56 * 2 + 1] = [
-	[ vm_if, ()=>AUTOMATIC ],
 	[ vm_count_pieces, (p,s)=>is_cartels_piece(p) && is_city(s) ],
 	[ vm_log, ()=>`${game.vm.count} Cartels pieces in Cities.` ],
 	[ vm_resources, CARTELS, ()=>(2*game.vm.count) ],
-	[ vm_else ],
-	[ vm_prompt, "Add twice Cartels pieces in Cities to Cartels Resources." ],
-	[ vm_piece, false, 999, 999, (p,s)=>is_cartels_piece(p) && is_city(s) ],
-	[ vm_auto_resources, CARTELS, 2 ],
-	[ vm_endpiece ],
-	[ vm_endif ],
 	[ vm_prompt, "Place a Cartels Base in each of 2 Cities." ],
 	[ vm_space, true, 2, 2, (s)=>is_city(s) && can_stack_base(s, CARTELS) ],
 	[ vm_auto_place, false, 0, CARTELS, BASE ],
@@ -9431,7 +9395,6 @@ CODE[64 * 2 + 0] = [
 
 // SHADED 64
 CODE[64 * 2 + 1] = [
-	[ vm_if, ()=>AUTOMATIC ],
 	[ vm_asm, ()=>game.vm.total = 0 ],
 	[ vm_count_pieces, (p,s)=>is_cartels_base(p) && is_city(s) ],
 	[ vm_log, ()=>`${game.vm.count} Cartels Bases in Cities.` ],
@@ -9440,16 +9403,6 @@ CODE[64 * 2 + 1] = [
 	[ vm_log, ()=>`${game.vm.count} Cartels Bases in Departments.` ],
 	[ vm_asm, ()=>game.vm.total += game.vm.count ],
 	[ vm_resources, CARTELS, ()=>(game.vm.total) ],
-	[ vm_else ],
-	[ vm_prompt, "Cartels Resources +2 for each Cartels Base in a City." ],
-	[ vm_piece, false, 999, 999, (p,s)=>is_cartels_base(p) && is_city(s) ],
-	[ vm_auto_resources, CARTELS, 2 ],
-	[ vm_endpiece ],
-	[ vm_prompt, "Cartels Resources +1 for each Cartels Base in a Department." ],
-	[ vm_piece, false, 999, 999, (p,s)=>is_cartels_base(p) && is_dept(s) ],
-	[ vm_auto_resources, CARTELS, 1 ],
-	[ vm_endpiece ],
-	[ vm_endif ],
 	[ vm_return ],
 ]
 
@@ -9521,16 +9474,9 @@ CODE[68 * 2 + 0] = [
 
 // SHADED 68
 CODE[68 * 2 + 1] = [
-	[ vm_if, ()=>AUTOMATIC ],
 	[ vm_count_pieces, (p,s)=>is_cartels_piece(p) && is_coastal_space(s) ],
 	[ vm_log, ()=>`${game.vm.count} Cartels pieces in coastal spaces.` ],
 	[ vm_resources, CARTELS, ()=>(2*game.vm.count) ],
-	[ vm_else ],
-	[ vm_prompt, "Cartels Resources +2 per Cartels piece in coastal spaces." ],
-	[ vm_piece, false, 999, 999, (p,s)=>is_cartels_piece(p) && is_coastal_space(s) ],
-	[ vm_auto_resources, CARTELS, 2 ],
-	[ vm_endpiece ],
-	[ vm_endif ],
 	[ vm_return ],
 ]
 
@@ -9567,16 +9513,9 @@ CODE[69 * 2 + 0] = [
 
 // EVENT 70
 CODE[70 * 2 + 0] = [
-	[ vm_if, ()=>AUTOMATIC ],
 	[ vm_count_spaces, (s)=>is_forest(s) && !has_any_guerrilla(s) ],
 	[ vm_log, ()=>`${game.vm.count} Forests without Guerrillas.` ],
 	[ vm_resources, GOVT, ()=>(6*game.vm.count) ],
-	[ vm_else ],
-	[ vm_prompt, "Government Resources +6 for each Forest without Guerrillas." ],
-	[ vm_space, false, 999, 999, (s)=>is_forest(s) && !has_any_guerrilla(s) ],
-	[ vm_auto_resources, GOVT, 6 ],
-	[ vm_endspace ],
-	[ vm_endif ],
 	[ vm_return ],
 ]
 
@@ -9609,17 +9548,11 @@ CODE[71 * 2 + 0] = [
 // SHADED 71
 CODE[71 * 2 + 1] = [
 	[ vm_capability, EVT_DARIEN ],
-	[ vm_if, ()=>AUTOMATIC ],
-	[ vm_set_space, PANAMA ],
-	[ vm_place, false, 0, ()=>(game.current), BASE ],
-	[ vm_place, false, 1, ()=>(game.current), BASE ],
-	[ vm_else ],
 	[ vm_prompt, "Place 1-2 Bases in Panamá." ],
 	[ vm_space, true, 1, 1, (s)=>s === PANAMA ],
 	[ vm_auto_place, false, 0, ()=>(game.current), BASE ],
 	[ vm_place, false, 1, ()=>(game.current), BASE ],
 	[ vm_endspace ],
-	[ vm_endif ],
 	[ vm_return ],
 ]
 
