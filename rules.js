@@ -2197,7 +2197,7 @@ function resume_drug_bust() {
 
 states.drug_bust = {
 	prompt() {
-		view.prompt = "Drug Bust: Gain 6 resources per removed Shipment."
+		view.prompt = "Drug Bust: Add +6 Aid per Shipment removed by Assault."
 		for (let sh = 0; sh < 4; ++sh)
 			if (is_shipment_dropped(sh))
 				gen_action_shipment(sh)
