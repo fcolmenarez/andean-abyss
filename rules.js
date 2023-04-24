@@ -2923,14 +2923,28 @@ function goto_train_civic_action(s) {
 }
 
 function do_train_civic_action() {
-	pay_resources(GOVT, 3, true)
-	shift_support(game.op.where)
-	logi_support_shift(game.op.where)
-
+	do_civic_action(game.op.where, false)
 	if (can_govt_train_civic(game.op.where))
 		game.state = "train_civic_buy"
 	else
 		end_train_civic_action()
+}
+
+function do_civic_action(s, verbose) {
+	pay_resources(GOVT, 3)
+	if (has_terror(s)) {
+		if (verbose)
+			logi("Removed Terror from S" + s)
+		else
+			logi("Removed Terror")
+		remove_terror(s)
+	} else {
+		shift_support(s)
+		if (verbose)
+			logi("S" + s + " to " + support_level_name[game.support[s]])
+		else
+			logi(support_level_name[game.support[s]])
+	}
 }
 
 function end_train_civic_action() {
@@ -6194,14 +6208,7 @@ states.civic_action = {
 		push_undo()
 		if (!has_troops(s) || !has_police(s))
 			set_add(game.prop.first_div, s)
-		pay_resources(GOVT, 3)
-		if (has_terror(s)) {
-			logi("Removed Terror from S" + s)
-			remove_terror(s)
-		} else {
-			shift_support(s)
-			logi("S" + s + " to " + support_level_name[game.support[s]])
-		}
+		do_civic_action(s, true)
 		game.prop.count++
 	},
 	done() {
