@@ -384,7 +384,9 @@ EVENT 29
 		piece all is_piece_in_event_space(p) && is_farc_guerrilla(p) && is_underground(p)
 			activate
 		endpiece
-		free_assault
+		if can_assault_in_space(game.vm.s)
+			free_assault
+		endif
 	endspace
 
 SHADED 29
@@ -699,9 +701,9 @@ EVENT 47
 	endif
 	current GOVT
 	prompt "All Police free Assault AUC as if Troops."
-	space all has_police(s) && has_auc_piece(s)
-		# TODO: test this
+	space all can_assault_in_space_faction(s, AUC)
 		free_assault_auc
+		# TODO transfer dropped shipments early
 	endspace
 
 SHADED 47

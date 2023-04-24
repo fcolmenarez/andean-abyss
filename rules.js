@@ -8529,7 +8529,9 @@ CODE[29 * 2 + 0] = [
 	[ vm_piece, false, 999, 999, (p,s)=>is_piece_in_event_space(p) && is_farc_guerrilla(p) && is_underground(p) ],
 	[ vm_activate ],
 	[ vm_endpiece ],
+	[ vm_if, ()=>can_assault_in_space(game.vm.s) ],
 	[ vm_free_assault ],
+	[ vm_endif ],
 	[ vm_endspace ],
 	[ vm_return ],
 ]
@@ -8947,7 +8949,7 @@ CODE[47 * 2 + 0] = [
 	[ vm_endif ],
 	[ vm_current, GOVT ],
 	[ vm_prompt, "All Police free Assault AUC as if Troops." ],
-	[ vm_space, true, 999, 999, (s)=>has_police(s) && has_auc_piece(s) ],
+	[ vm_space, true, 999, 999, (s)=>can_assault_in_space_faction(s, AUC) ],
 	[ vm_free_assault_auc ],
 	[ vm_endspace ],
 	[ vm_return ],
