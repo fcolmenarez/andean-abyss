@@ -929,7 +929,7 @@ SHADED 57
 	# TODO: prompt "Replace a Police with any Cartels piece in 2 spaces."
 	space 2 has_police(s)
 		prompt "Replace a Police with any Cartels piece."
-		piece 1 is_piece_in_event_space(p) && is_police(p) && can_replace_with(s, CARTELS, GUERRILLA)
+		piece 1 is_piece_in_event_space(p) && is_police(p) && (can_replace_with(s, CARTELS, GUERRILLA) || can_replace_with(s, CARTELS, BASE))
 			remove
 			place CARTELS BASE_GUERRILLA
 		endpiece

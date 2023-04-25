@@ -1734,7 +1734,7 @@ function gen_piece_in_space(space, faction, type) {
 
 function gen_place_piece(space, faction, type) {
 	if (!can_stack_piece(space, faction, type))
-		return true
+		return false
 	let p0 = first_piece[faction][type]
 	let p1 = last_piece[faction][type]
 	let can_place = false
@@ -1751,7 +1751,7 @@ function gen_place_piece(space, faction, type) {
 			if (piece_space(p) !== space || (type === GUERRILLA && !is_underground(p)))
 				gen_action_piece(p)
 	}
-	return !can_place
+	return can_place
 }
 
 function gen_underground_guerrillas(s, faction) {
@@ -7471,34 +7471,41 @@ states.vm_place = {
 		let faction = vm_operand(3)
 		let type = vm_operand(4)
 		let where = space_name[game.vm.s]
+		let possible = false
 		view.where = game.vm.s
 		if (typeof faction === "object" && typeof type === "object") {
 			event_prompt(`Place piece in ${where}.`)
 			for (let f of faction) {
 				for (let t of type) {
 					if (f === GOVT && (t === BASE || t === TROOPS || t === POLICE))
-						skip |= gen_place_piece(game.vm.s, f, t)
+						if (gen_place_piece(game.vm.s, f, t))
+							possible = true
 					if (f !== GOVT && (t === BASE || t === GUERRILLA))
-						skip |= gen_place_piece(game.vm.s, f, t)
+						if (gen_place_piece(game.vm.s, f, t))
+							possible = true
 				}
 			}
 		} else if (typeof faction === "object") {
 			event_prompt(`Place ${piece_type_name[type]} in ${where}.`)
 			for (let f of faction) {
 				if (f === GOVT && (type === BASE || type === TROOPS || type === POLICE))
-					skip |= gen_place_piece(game.vm.s, f, type)
+					if (gen_place_piece(game.vm.s, f, type))
+						possible = true
 				if (f !== GOVT && (type === BASE || type === GUERRILLA))
-					skip |= gen_place_piece(game.vm.s, f, type)
+					if (gen_place_piece(game.vm.s, f, type))
+						possible = true
 			}
 		} else if (typeof type === "object") {
 			event_prompt(`Place ${faction_name[faction]} piece in ${where}.`)
 			for (let t of type)
-				skip |= gen_place_piece(game.vm.s, faction, t)
+				if (gen_place_piece(game.vm.s, faction, t))
+					possible = true
 		} else {
 			event_prompt(`Place ${piece_faction_type_name[faction][type]} in ${where}.`)
-			skip |= gen_place_piece(game.vm.s, faction, type)
+			if (gen_place_piece(game.vm.s, faction, type))
+				possible = true
 		}
-		if (skip)
+		if (skip || !possible)
 			view.actions.skip = 1
 	},
 	piece(p) {
@@ -9437,7 +9444,7 @@ CODE[57 * 2 + 1] = [
 	[ vm_prompt, "In each of 2 spaces replace a Police with any Cartels piece." ],
 	[ vm_space, true, 2, 2, (s)=>has_police(s) ],
 	[ vm_prompt, "Replace a Police with any Cartels piece." ],
-	[ vm_piece, false, 1, 1, (p,s)=>is_piece_in_event_space(p) && is_police(p) && can_replace_with(s, CARTELS, GUERRILLA) ],
+	[ vm_piece, false, 1, 1, (p,s)=>is_piece_in_event_space(p) && is_police(p) && (can_replace_with(s, CARTELS, GUERRILLA) || can_replace_with(s, CARTELS, BASE)) ],
 	[ vm_remove ],
 	[ vm_place, false, 0, CARTELS, BASE_GUERRILLA ],
 	[ vm_endpiece ],
