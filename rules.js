@@ -4866,10 +4866,12 @@ states.air_strike = {
 		view.prompt = "Air Strike: Destroy exposed Insurgent unit."
 		let manpad = has_momentum(MOM_MISIL_ANTIAEREO)
 		for (let s = first_space; s <= last_space; ++s) {
-			if (!manpad || !has_any_guerrilla(s)) {
-				gen_exposed_piece(s, FARC)
-				gen_exposed_piece(s, AUC)
-				gen_exposed_piece(s, CARTELS)
+			if (is_loc(s) || is_dept(s)) {
+				if (!manpad || !has_any_guerrilla(s)) {
+					gen_exposed_piece(s, FARC)
+					gen_exposed_piece(s, AUC)
+					gen_exposed_piece(s, CARTELS)
+				}
 			}
 		}
 	},
