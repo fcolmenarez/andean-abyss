@@ -6580,7 +6580,7 @@ function find_first_police_in_farc_zone() {
 
 function has_govt_base_in_farc_zone() {
 	for (let s = first_dept; s <= last_dept; ++s)
-		if (is_farc_zone(s) && has_govt_piece(s))
+		if (is_farc_zone(s) && has_govt_base(s))
 			return true
 	return false
 }
