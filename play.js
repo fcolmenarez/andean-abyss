@@ -1024,7 +1024,10 @@ function layout_city_shipments(s, list, xc, yc) {
 			sh.style.left = (x) + "px"
 			sh.style.top = (y) + "px"
 			sh.style.zIndex = z--
-			x += 8
+			if (i & 1)
+				x -= 8
+			else
+				x += 8
 			y += 8
 		}
 	}
