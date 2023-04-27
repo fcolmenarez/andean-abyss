@@ -54,94 +54,76 @@ const LAYOUT = {
 	"Cartagena-Santa Marta LoC": [588, 466],
 	"Atlantico Govt": [619, 504],
 	"Atlantico AUC": [580, 603],
-	"Atlantico Cartels": [634, 548],
+	"Atlantico Cartels": [638, 549],
 	"Atlantico FARC": [702, 664],
-	"Atlantico DRUGS": [713, 573],
 	"Choco Govt": [338, 1097],
-	"Choco AUC": [366, 915],
-	"Choco Cartels": [365, 1272],
-	"Choco FARC": [408, 1179],
-	"Choco DRUGS": [297, 1184],
-	"Narino Govt": [185, 1562],
-	"Narino AUC": [293, 1554],
-	"Narino Cartels": [217, 1688],
+	"Choco AUC": [367, 904],
+	"Choco Cartels": [359, 1295],
+	"Choco FARC": [369, 1194],
+	"Narino Govt": [196, 1555],
+	"Narino AUC": [264, 1484],
+	"Narino Cartels": [224, 1692],
 	"Narino FARC": [140, 1687],
-	"Narino DRUGS": [274, 1469],
 	"Meta West Govt": [678, 1461],
 	"Meta West AUC": [679, 1549],
-	"Meta West Cartels": [819, 1540],
-	"Meta West FARC": [702, 1632],
-	"Meta West DRUGS": [751, 1576],
-	"Guaviare Govt": [907, 1615],
+	"Meta West Cartels": [808, 1540],
+	"Meta West FARC": [708, 1623],
+	"Guaviare Govt": [906, 1622],
 	"Guaviare AUC": [1091, 1603],
 	"Guaviare Cartels": [972, 1724],
-	"Guaviare FARC": [837, 1682],
-	"Guaviare DRUGS": [998, 1575],
-	"Putumayo Govt": [552, 1798],
-	"Putumayo AUC": [621, 1866],
-	"Putumayo Cartels": [882, 1876],
-	"Putumayo FARC": [749, 1886],
-	"Putumayo DRUGS": [622, 1704],
+	"Guaviare FARC": [857, 1703],
+	"Putumayo Govt": [551, 1801],
+	"Putumayo AUC": [624, 1873],
+	"Putumayo Cartels": [888, 1865],
+	"Putumayo FARC": [759, 1894],
 	"Cesar Govt": [805, 437],
 	"Cesar AUC": [819, 584],
-	"Cesar Cartels": [985, 338],
-	"Cesar FARC": [901, 399],
-	"Cesar DRUGS": [1054, 298],
-	"Antioquia Govt": [621, 766],
-	"Antioquia AUC": [707, 807],
-	"Antioquia Cartels": [603, 978],
-	"Antioquia FARC": [703, 965],
-	"Antioquia DRUGS": [594, 1138],
+	"Cesar Cartels": [1020, 318],
+	"Cesar FARC": [916, 386],
+	"Antioquia Govt": [625, 775],
+	"Antioquia AUC": [708, 817],
+	"Antioquia Cartels": [640, 1030],
+	"Antioquia FARC": [697, 956],
 	"Santander Govt": [848, 824],
-	"Santander AUC": [779, 1074],
+	"Santander AUC": [789, 1078],
 	"Santander Cartels": [824, 1219],
 	"Santander FARC": [716, 1180],
-	"Santander DRUGS": [880, 1089],
 	"Huila Govt": [618, 1318],
-	"Huila AUC": [507, 1468],
+	"Huila AUC": [510, 1473],
 	"Huila Cartels": [550, 1387],
 	"Huila FARC": [410, 1688],
-	"Huila DRUGS": [486, 1553],
-	"Arauca Govt": [981, 1113],
-	"Arauca AUC": [1217, 1036],
-	"Arauca Cartels": [1196, 1118],
-	"Arauca FARC": [1062, 1195],
-	"Arauca DRUGS": [1073, 1033],
+	"Arauca Govt": [996, 1102],
+	"Arauca AUC": [1216, 1043],
+	"Arauca Cartels": [1191, 1131],
+	"Arauca FARC": [1068, 1206],
 	"Meta East Govt": [964, 1283],
 	"Meta East AUC": [870, 1385],
-	"Meta East Cartels": [1036, 1445],
+	"Meta East Cartels": [1049, 1448],
 	"Meta East FARC": [931, 1460],
-	"Meta East DRUGS": [1055, 1326],
-	"Vichada Govt": [1246, 1255],
-	"Vichada AUC": [1278, 1344],
-	"Vichada Cartels": [1392, 1333],
-	"Vichada FARC": [1415, 1220],
-	"Vichada DRUGS": [1315, 1182],
+	"Vichada Govt": [1233, 1252],
+	"Vichada AUC": [1239, 1367],
+	"Vichada Cartels": [1432, 1333],
+	"Vichada FARC": [1444, 1182],
 	"Guainia Govt": [1314, 1498],
 	"Guainia AUC": [1490, 1460],
 	"Guainia Cartels": [1489, 1582],
 	"Guainia FARC": [1328, 1596],
-	"Guainia DRUGS": [1413, 1628],
-	"Vaupes Govt": [1101, 1752],
+	"Vaupes Govt": [1106, 1751],
 	"Vaupes AUC": [1212, 1720],
-	"Vaupes Cartels": [1183, 1871],
-	"Vaupes FARC": [1091, 1835],
-	"Vaupes DRUGS": [1259, 1801],
-	"Amazonas Govt": [987, 2038],
-	"Amazonas AUC": [881, 2072],
-	"Amazonas Cartels": [1048, 2132],
-	"Amazonas FARC": [940, 2154],
-	"Amazonas DRUGS": [1077, 1968],
+	"Vaupes Cartels": [1172, 1886],
+	"Vaupes FARC": [1094, 1831],
+	"Amazonas Govt": [986, 2042],
+	"Amazonas AUC": [859, 2067],
+	"Amazonas Cartels": [1078, 2147],
+	"Amazonas FARC": [942, 2160],
 	"Ecuador Govt": [42, 1780],
 	"Ecuador AUC": [57, 1831],
-	"Ecuador Cartels": [177, 1854],
-	"Ecuador FARC": [111, 1857],
-	"Ecuador DRUGS": [258, 1889],
+	"Ecuador Cartels": [192, 1859],
+	"Ecuador FARC": [115, 1858],
 	"Panama Govt": [65, 666],
-	"Panama AUC": [228, 842],
+	"Panama AUC": [219, 850],
 	"Panama Cartels": [135, 709],
-	"Panama FARC": [222, 754],
-	"Panama DRUGS": [201, 907],
+	"Panama FARC": [221, 750],
 	"Ayacucho-Sincelejo LoC COIN": [700, 731],
 	"Ayacucho-Sincelejo LoC INSURGENTS": [614, 676],
 	"Ayacucho-Bucaramanga LoC COIN": [771, 779],
@@ -189,7 +171,6 @@ const LAYOUT_CACHE = {
 	Cartels: [],
 	COIN: [],
 	INSURGENTS: [],
-	DRUGS: [],
 }
 
 // Factions
@@ -216,6 +197,28 @@ const META_WEST = 14
 
 const first_piece = data.first_piece
 const last_piece = data.last_piece
+
+function piece_faction(p) {
+	if (p >= first_piece[GOVT][TROOPS] && p <= last_piece[GOVT][TROOPS])
+		return GOVT
+	if (p >= first_piece[GOVT][POLICE] && p <= last_piece[GOVT][POLICE])
+		return GOVT
+	if (p >= first_piece[GOVT][BASE] && p <= last_piece[GOVT][BASE])
+		return GOVT
+	if (p >= first_piece[FARC][GUERRILLA] && p <= last_piece[FARC][GUERRILLA])
+		return FARC
+	if (p >= first_piece[FARC][BASE] && p <= last_piece[FARC][BASE])
+		return FARC
+	if (p >= first_piece[AUC][GUERRILLA] && p <= last_piece[AUC][GUERRILLA])
+		return AUC
+	if (p >= first_piece[AUC][BASE] && p <= last_piece[AUC][BASE])
+		return AUC
+	if (p >= first_piece[CARTELS][GUERRILLA] && p <= last_piece[CARTELS][GUERRILLA])
+		return CARTELS
+	if (p >= first_piece[CARTELS][BASE] && p <= last_piece[CARTELS][BASE])
+		return CARTELS
+	throw "IMPOSSIBLE"
+}
 
 const last_city = data.last_city
 const last_pop = data.last_pop
@@ -630,21 +633,15 @@ function layout_available(faction, type, xorig, yorig) {
 	layout_pieces(list, xorig, yorig + 35, null, AVAILABLE)
 }
 
-function layout_pieces(list, xorig, yorig, bases, s) {
+function layout_pieces(list, xorig, yorig, bases, shipments, s, faction) {
 	const dx = 17
 	const dy = 11
 	let off_x = 0
 	let off_y = 0
+	let rotate = 0
 
-	if (bases && bases.length === 0)
-		off_y = 25
-
-	if (bases && bases.length > 0) {
-		if (data.spaces[s].type === "mountain")
-			off_x = 20
-		else
-			off_x = -20
-	}
+	if (s >= 0)
+		rotate = (data.spaces[s].type === "mountain") ? 1 : 0
 
 	function layout_piece_rowcol(nrow, ncol, row, col, e, z) {
 		// basic piece size = 29x36
@@ -659,6 +656,7 @@ function layout_pieces(list, xorig, yorig, bases, s) {
 		e.my_y = y + 24
 		e.my_z = z
 	}
+
 	if (list.length > 0) {
 		let nrow = Math.round(Math.sqrt(list.length))
 		let ncol = Math.ceil(list.length / nrow)
@@ -673,8 +671,11 @@ function layout_pieces(list, xorig, yorig, bases, s) {
 				if (i < list.length)
 					layout_piece_rowcol(nrow, ncol, row, col, list[list.length-(++i)], z--)
 	}
+
 	if (bases)
 		layout_dept_bases(bases, xorig + off_x, yorig + 12 + off_y, s)
+	if (shipments)
+		layout_dept_shipments(shipments, xorig + off_x, yorig + 12 + off_y, faction, rotate)
 }
 
 function place_piece(p, x, y, z) {
@@ -933,12 +934,28 @@ function layout_terror(tix, s, n) {
 	return tix
 }
 
-const shipment_layout_dept = [
+const shipment_layout_dept_OLD = [
 	[ -18, 0, 2 ],
 	[  18, 0, 3 ],
 	[ -54, 0, 1 ],
 	[  54, 0, 4 ],
 ]
+
+const shipment_layout_dept = [
+	[
+		[ -55, 0, 3 ],
+		[ -30, +25, 4 ],
+		[ -80, -25, 2 ],
+		[ -55, -50, 1 ],
+	],
+	[
+		[ 55, 0, 3 ],
+		[ 30, +25, 4 ],
+		[ 80, -25, 2 ],
+		[ 55, -50, 1 ],
+	],
+]
+
 
 const shipment_layout_loc = [
 	[  30, -18, 1 ],
@@ -947,35 +964,41 @@ const shipment_layout_loc = [
 	[ -30, -18, 1 ],
 ]
 
-function layout_shipments_push(list, pc, sh) {
+function layout_shipments_push(list, pc, sh, f) {
 	for (let i = 0; i < list.length; ++i) {
-		if (list[i][0] === pc) {
+		if (list[i][0] === f && list[i][1] === pc) {
 			list[i].push(sh)
 			return
 		}
 	}
-	list.push([pc, sh])
+	list.push([f, pc, sh])
 }
 
-function layout_dept_shipments(s, list, xc, yc) {
+function layout_dept_shipments(list, xc, yc, faction, rotate) {
+	let m = 0
 	for (let i = 0; i < list.length; ++i) {
-		let [xo, yo, zo] = shipment_layout_dept[i]
-		let x = xc + xo - 27
-		let y = yc + yo - 27
-		let z = zo * 4
-		let pc = list[i][0]
-		if (pc) {
-			pc.style.left = (x+5) + "px"
-			pc.style.top = (y-8) + "px"
-			pc.style.zIndex = z + 1
-		}
-		for (let k = 1; k < list[i].length; ++k) {
-			let sh = list[i][k]
-			sh.style.left = (x) + "px"
-			sh.style.top = (y) + "px"
-			sh.style.zIndex = z--
-			x += 8
-			y += 8
+		if (list[i][0] === faction) {
+			let [xo, yo, zo] = shipment_layout_dept[rotate][m++]
+			let x = xc + xo - 27
+			let y = yc + yo - 27
+			let z = zo * 4
+			let pc = list[i][1]
+			if (pc) {
+				pc.style.left = (x+5) + "px"
+				pc.style.top = (y-8) + "px"
+				pc.style.zIndex = (y-8)
+			}
+			for (let k = 2; k < list[i].length; ++k) {
+				let sh = list[i][k]
+				sh.style.left = (x) + "px"
+				sh.style.top = (y) + "px"
+				sh.style.zIndex = z--
+				if (rotate)
+					x += 8
+				else
+					x -= 8
+				y += 8
+			}
 		}
 	}
 }
@@ -990,13 +1013,13 @@ function layout_city_shipments(s, list, xc, yc) {
 		let x = xc + xo - 27
 		let y = yc + yo - 27
 		let z = zo * 4
-		let pc = list[i][0]
+		let pc = list[i][1]
 		if (pc) {
 			pc.style.left = (x+5) + "px"
 			pc.style.top = (y-8) + "px"
 			pc.style.zIndex = z + 1
 		}
-		for (let k = 1; k < list[i].length; ++k) {
+		for (let k = 2; k < list[i].length; ++k) {
 			let sh = list[i][k]
 			sh.style.left = (x) + "px"
 			sh.style.top = (y) + "px"
@@ -1013,13 +1036,13 @@ function layout_loc_shipments(s, list, xc, yc) {
 		let x = xc + xo - 27
 		let y = yc + yo - 27
 		let z = zo * 4
-		let pc = list[i][0]
+		let pc = list[i][1]
 		if (pc) {
 			pc.style.left = (x+5) + "px"
 			pc.style.top = (y-8) + "px"
 			pc.style.zIndex = z + 1
 		}
-		for (let k = 1; k < list[i].length; ++k) {
+		for (let k = 2; k < list[i].length; ++k) {
 			let sh = list[i][k]
 			sh.style.left = (x) + "px"
 			sh.style.top = (y) + "px"
@@ -1120,6 +1143,7 @@ function on_update() {
 
 	let list = []
 	let bases = []
+	let drugs = []
 	for (let s = 0; s < data.spaces.length; ++s) {
 		let id = data.spaces[s].id
 		let xy
@@ -1160,6 +1184,17 @@ function on_update() {
 		update_guerrillas_underground(AUC, GUERRILLA, view.underground[AUC])
 		update_guerrillas_underground(CARTELS, GUERRILLA, view.underground[CARTELS])
 
+		drugs.length = 0
+		for (let i = 0; i < 4; ++i) {
+			let shx = view.shipments[i]
+			if (shx !== 0) {
+				if ((shx & 3) === 0 && view.pieces[(shx >> 2)] === s)
+					layout_shipments_push(drugs, ui.pieces[shx>>2], ui.shipments[i], piece_faction(shx>>2))
+				else if ((shx & 3) !== 0 && (shx >> 2) === s)
+					layout_shipments_push(drugs, null, ui.shipments[i], shx & 3)
+			}
+		}
+
 		if (s <= last_city) {
 			list.length = bases.length = 0
 			filter_piece_list(list, s, FARC, GUERRILLA)
@@ -1172,33 +1207,35 @@ function on_update() {
 			filter_piece_list(bases, s, AUC, BASE)
 			filter_piece_list(bases, s, CARTELS, BASE)
 			xy = get_layout_xy(s)
-			layout_pieces(list, xy[0], xy[1], null, s)
+			layout_pieces(list, xy[0], xy[1], null, null, s, 0)
 			layout_city_bases(bases, xy[0], xy[1] + get_layout_radius(s) - 12, s)
+
+			layout_city_shipments(s, drugs, xy[0], xy[1])
 		} else if (s <= last_dept) {
 			list.length = bases.length = 0
 			filter_piece_list(list, s, FARC, GUERRILLA)
 			filter_piece_list(bases, s, FARC, BASE)
 			xy = get_layout_xy(s, "FARC")
-			layout_pieces(list, xy[0], xy[1], bases, s)
+			layout_pieces(list, xy[0], xy[1], bases, drugs, s, FARC)
 
 			list.length = bases.length = 0
 			filter_piece_list(list, s, AUC, GUERRILLA)
 			filter_piece_list(bases, s, AUC, BASE)
 			xy = get_layout_xy(s, "AUC")
-			layout_pieces(list, xy[0], xy[1], bases, s)
+			layout_pieces(list, xy[0], xy[1], bases, drugs, s, AUC)
 
 			list.length = bases.length = 0
 			filter_piece_list(list, s, CARTELS, GUERRILLA)
 			filter_piece_list(bases, s, CARTELS, BASE)
 			xy = get_layout_xy(s, "Cartels")
-			layout_pieces(list, xy[0], xy[1], bases, s)
+			layout_pieces(list, xy[0], xy[1], bases, drugs, s, CARTELS)
 
 			list.length = bases.length = 0
 			filter_piece_list(list, s, GOVT, TROOPS)
 			filter_piece_list(list, s, GOVT, POLICE)
 			filter_piece_list(bases, s, GOVT, BASE)
 			xy = get_layout_xy(s, "Govt")
-			layout_pieces(list, xy[0], xy[1], bases, s)
+			layout_pieces(list, xy[0], xy[1], bases, null, s, GOVT)
 		} else {
 			list.length = 0
 			filter_piece_list(list, s, FARC, GUERRILLA)
@@ -1212,29 +1249,9 @@ function on_update() {
 			filter_piece_list(list, s, GOVT, POLICE)
 			xy = get_layout_xy(s, "COIN")
 			layout_pieces(list, xy[0], xy[1], null, s)
-		}
 
-		list.length = 0
-		for (let i = 0; i < 4; ++i) {
-			let shx = view.shipments[i]
-			if (shx !== 0) {
-				if ((shx & 3) === 0 && view.pieces[(shx >> 2)] === s)
-					layout_shipments_push(list, ui.pieces[shx >> 2], ui.shipments[i])
-				else if ((shx & 3) !== 0 && (shx >> 2) === s)
-					layout_shipments_push(list, null, ui.shipments[i])
-			}
-		}
-		if (list.length > 0) {
-			if (s <= last_city) {
-				xy = get_layout_xy(s)
-				layout_city_shipments(s, list, xy[0], xy[1])
-			} else if (s <= last_dept) {
-				xy = get_layout_xy(s, "DRUGS")
-				layout_dept_shipments(s, list, xy[0], xy[1])
-			} else {
-				xy = get_layout_xy(s)
-				layout_loc_shipments(s, list, xy[0], xy[1])
-			}
+			xy = get_layout_xy(s)
+			layout_loc_shipments(s, drugs, xy[0], xy[1])
 		}
 
 		ui.spaces[s].classList.toggle("action", is_action("space", s))

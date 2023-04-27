@@ -1,5 +1,7 @@
 "use strict"
 
+// TODO: free Bribe (event 60) needs logging info
+
 // TODO: log_br after free op/special
 
 // TODO: if Assault and no valid assault targets, only allow air lift to enable Assault
@@ -2091,18 +2093,24 @@ states.transfer_shipment = {
 				if (can_transfer_shipment(sh))
 					gen_action_shipment(sh)
 		} else {
+			view.selected_shipment = game.transfer.shipment
 			let p = get_held_shipment_piece(game.transfer.shipment)
 			let s = piece_space(p)
-			for_each_piece(game.current, GUERRILLA, (pp,ss) => {
-				if (pp !== p && ss === s)
-					gen_action_piece(pp)
-			})
 			if (!is_player_farc())
-				gen_piece_in_space(s, FARC, GUERRILLA)
+				for_each_piece(FARC, GUERRILLA, (pp,ss) => {
+					if (pp !== p && ss === s)
+						gen_action_piece(pp)
+				})
 			if (!is_player_auc())
-				gen_piece_in_space(s, AUC, GUERRILLA)
+				for_each_piece(AUC, GUERRILLA, (pp,ss) => {
+					if (pp !== p && ss === s)
+						gen_action_piece(pp)
+				})
 			if (!is_player_cartels())
-				gen_piece_in_space(s, CARTELS, GUERRILLA)
+				for_each_piece(CARTELS, GUERRILLA, (pp,ss) => {
+					if (pp !== p && ss === s)
+						gen_action_piece(pp)
+				})
 		}
 	},
 	shipment(sh) {

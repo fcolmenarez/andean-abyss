@@ -40,9 +40,9 @@
      inkscape:window-height="480"
      id="namedview330"
      showgrid="false"
-     inkscape:zoom="0.67084728"
-     inkscape:cx="932.7326"
-     inkscape:cy="1036.0289"
+     inkscape:zoom="0.65442498"
+     inkscape:cx="1340.6536"
+     inkscape:cy="1314.9076"
      inkscape:current-layer="svg328"
      inkscape:document-rotation="0" />
   <image
@@ -55,12 +55,6 @@
      x="0"
      y="0"
      id="image2" />
-  <text
-     x="-205.52834"
-     y="113.16729"
-     text-anchor="end"
-     font-size="40px"
-     id="text4">Atlantico</text>
   <ellipse
      inkscape:label="Atlantico Govt"
      cx="619.15558"
@@ -81,8 +75,8 @@
      id="ellipse8" />
   <ellipse
      inkscape:label="Atlantico Cartels"
-     cx="633.73376"
-     cy="547.95563"
+     cx="637.82739"
+     cy="549.32019"
      rx="50"
      ry="40"
      fill="#32cd32"
@@ -97,22 +91,6 @@
      fill="#ff0000"
      fill-opacity="0.5"
      id="ellipse12" />
-  <rect
-     inkscape:label="Atlantico DRUGS"
-     x="667"
-     y="545"
-     width="92"
-     height="56"
-     fill="#ffffff"
-     fill-opacity="0.5"
-     stroke="#000000"
-     id="rect14" />
-  <text
-     x="-205.52834"
-     y="213.1673"
-     text-anchor="end"
-     font-size="40px"
-     id="text16">Choco</text>
   <ellipse
      inkscape:label="Choco Govt"
      cx="337.60086"
@@ -124,8 +102,8 @@
      id="ellipse18" />
   <ellipse
      inkscape:label="Choco AUC"
-     cx="365.7764"
-     cy="915.03894"
+     cx="367.14096"
+     cy="904.12256"
      rx="50"
      ry="40"
      fill="#ffff00"
@@ -133,8 +111,8 @@
      id="ellipse20" />
   <ellipse
      inkscape:label="Choco Cartels"
-     cx="364.86758"
-     cy="1271.538"
+     cx="359.40939"
+     cy="1294.7354"
      rx="50"
      ry="40"
      fill="#32cd32"
@@ -142,33 +120,17 @@
      id="ellipse22" />
   <ellipse
      inkscape:label="Choco FARC"
-     cx="407.5853"
-     cy="1179.1302"
+     cx="369.37787"
+     cy="1194.1404"
      rx="50"
      ry="40"
      fill="#ff0000"
      fill-opacity="0.5"
      id="ellipse24" />
-  <rect
-     inkscape:label="Choco DRUGS"
-     x="250.57806"
-     y="1156.2014"
-     width="92"
-     height="56"
-     fill="#ffffff"
-     fill-opacity="0.5"
-     stroke="#000000"
-     id="rect26" />
-  <text
-     x="-205.52834"
-     y="313.1673"
-     text-anchor="end"
-     font-size="40px"
-     id="text28">Narino</text>
   <ellipse
      inkscape:label="Narino Govt"
-     cx="184.92387"
-     cy="1561.5864"
+     cx="195.84029"
+     cy="1554.7637"
      rx="50"
      ry="40"
      fill="#00ffff"
@@ -176,8 +138,8 @@
      id="ellipse30" />
   <ellipse
      inkscape:label="Narino AUC"
-     cx="292.76273"
-     cy="1553.6095"
+     cx="264.10718"
+     cy="1484.0175"
      rx="50"
      ry="40"
      fill="#ffff00"
@@ -185,8 +147,8 @@
      id="ellipse32" />
   <ellipse
      inkscape:label="Narino Cartels"
-     cx="216.92455"
-     cy="1687.7061"
+     cx="223.7473"
+     cy="1691.7997"
      rx="50"
      ry="40"
      fill="#32cd32"
@@ -201,22 +163,6 @@
      fill="#ff0000"
      fill-opacity="0.5"
      id="ellipse36" />
-  <rect
-     inkscape:label="Narino DRUGS"
-     x="227.59502"
-     y="1440.8683"
-     width="92"
-     height="56"
-     fill="#ffffff"
-     fill-opacity="0.5"
-     stroke="#000000"
-     id="rect38" />
-  <text
-     x="-205.52834"
-     y="413.1673"
-     text-anchor="end"
-     font-size="40px"
-     id="text40">Meta West</text>
   <ellipse
      inkscape:label="Meta West Govt"
      cx="677.94604"
@@ -237,7 +183,7 @@
      id="ellipse44" />
   <ellipse
      inkscape:label="Meta West Cartels"
-     cx="818.63788"
+     cx="807.7215"
      cy="1539.9271"
      rx="50"
      ry="40"
@@ -246,33 +192,17 @@
      id="ellipse46" />
   <ellipse
      inkscape:label="Meta West FARC"
-     cx="702.18896"
-     cy="1632.2654"
+     cx="708.30115"
+     cy="1623.097"
      rx="50"
      ry="40"
      fill="#ff0000"
      fill-opacity="0.5"
      id="ellipse48" />
-  <rect
-     inkscape:label="Meta West DRUGS"
-     x="705.31299"
-     y="1547.6719"
-     width="92"
-     height="56"
-     fill="#ffffff"
-     fill-opacity="0.5"
-     stroke="#000000"
-     id="rect50" />
-  <text
-     x="-205.52834"
-     y="513.1673"
-     text-anchor="end"
-     font-size="40px"
-     id="text52">Guaviare</text>
   <ellipse
      inkscape:label="Guaviare Govt"
-     cx="907.16626"
-     cy="1615.1239"
+     cx="905.8017"
+     cy="1621.9467"
      rx="50"
      ry="40"
      fill="#00ffff"
@@ -298,33 +228,17 @@
      id="ellipse58" />
   <ellipse
      inkscape:label="Guaviare FARC"
-     cx="837.39929"
-     cy="1682.1871"
+     cx="856.50299"
+     cy="1702.6554"
      rx="50"
      ry="40"
      fill="#ff0000"
      fill-opacity="0.5"
      id="ellipse60" />
-  <rect
-     inkscape:label="Guaviare DRUGS"
-     x="952.2818"
-     y="1547.4545"
-     width="92"
-     height="56"
-     fill="#ffffff"
-     fill-opacity="0.5"
-     stroke="#000000"
-     id="rect62" />
-  <text
-     x="-205.52834"
-     y="613.1673"
-     text-anchor="end"
-     font-size="40px"
-     id="text64">Putumayo</text>
   <ellipse
      inkscape:label="Putumayo Govt"
-     cx="552.08099"
-     cy="1798.2782"
+     cx="550.71643"
+     cy="1801.0073"
      rx="50"
      ry="40"
      fill="#00ffff"
@@ -332,8 +246,8 @@
      id="ellipse66" />
   <ellipse
      inkscape:label="Putumayo AUC"
-     cx="620.93982"
-     cy="1866.4153"
+     cx="623.66895"
+     cy="1873.238"
      rx="50"
      ry="40"
      fill="#ffff00"
@@ -341,8 +255,8 @@
      id="ellipse68" />
   <ellipse
      inkscape:label="Putumayo Cartels"
-     cx="882.20087"
-     cy="1875.6802"
+     cx="887.65906"
+     cy="1864.7638"
      rx="50"
      ry="40"
      fill="#32cd32"
@@ -350,29 +264,13 @@
      id="ellipse70" />
   <ellipse
      inkscape:label="Putumayo FARC"
-     cx="749.04181"
-     cy="1885.8511"
+     cx="758.59369"
+     cy="1894.0383"
      rx="50"
      ry="40"
      fill="#ff0000"
      fill-opacity="0.5"
      id="ellipse72" />
-  <rect
-     inkscape:label="Putumayo DRUGS"
-     x="576.41003"
-     y="1676.4268"
-     width="92"
-     height="56"
-     fill="#ffffff"
-     fill-opacity="0.5"
-     stroke="#000000"
-     id="rect74" />
-  <text
-     x="-205.52834"
-     y="713.1673"
-     text-anchor="end"
-     font-size="40px"
-     id="text76">Cesar</text>
   <ellipse
      inkscape:label="Cesar Govt"
      cx="805.49731"
@@ -393,8 +291,8 @@
      id="ellipse80" />
   <ellipse
      inkscape:label="Cesar Cartels"
-     cx="984.92932"
-     cy="337.58875"
+     cx="1020.4077"
+     cy="318.48505"
      rx="50"
      ry="40"
      fill="#32cd32"
@@ -402,33 +300,17 @@
      id="ellipse82" />
   <ellipse
      inkscape:label="Cesar FARC"
-     cx="900.82361"
-     cy="398.77252"
+     cx="915.83368"
+     cy="386.49158"
      rx="50"
      ry="40"
      fill="#ff0000"
      fill-opacity="0.5"
      id="ellipse84" />
-  <rect
-     inkscape:label="Cesar DRUGS"
-     x="1007.8267"
-     y="270.09128"
-     width="92"
-     height="56"
-     fill="#ffffff"
-     fill-opacity="0.5"
-     stroke="#000000"
-     id="rect86" />
-  <text
-     x="-205.52834"
-     y="813.1673"
-     text-anchor="end"
-     font-size="40px"
-     id="text88">Antioquia</text>
   <ellipse
      inkscape:label="Antioquia Govt"
-     cx="621.47797"
-     cy="766.08405"
+     cx="625.18811"
+     cy="774.59833"
      rx="50"
      ry="40"
      fill="#00ffff"
@@ -436,8 +318,8 @@
      id="ellipse90" />
   <ellipse
      inkscape:label="Antioquia AUC"
-     cx="706.75018"
-     cy="807.43933"
+     cx="708.2782"
+     cy="816.60773"
      rx="50"
      ry="40"
      fill="#ffff00"
@@ -445,8 +327,8 @@
      id="ellipse92" />
   <ellipse
      inkscape:label="Antioquia Cartels"
-     cx="602.64801"
-     cy="978.3158"
+     cx="640.25195"
+     cy="1029.6157"
      rx="50"
      ry="40"
      fill="#32cd32"
@@ -454,29 +336,13 @@
      id="ellipse94" />
   <ellipse
      inkscape:label="Antioquia FARC"
-     cx="703.26514"
-     cy="965.04877"
+     cx="697.15289"
+     cy="956.37091"
      rx="50"
      ry="40"
      fill="#ff0000"
      fill-opacity="0.5"
      id="ellipse96" />
-  <rect
-     inkscape:label="Antioquia DRUGS"
-     x="547.55762"
-     y="1110.0782"
-     width="92"
-     height="56"
-     fill="#ffffff"
-     fill-opacity="0.5"
-     stroke="#000000"
-     id="rect98" />
-  <text
-     x="-205.52834"
-     y="913.1673"
-     text-anchor="end"
-     font-size="40px"
-     id="text100">Santander</text>
   <ellipse
      inkscape:label="Santander Govt"
      cx="848.409"
@@ -488,8 +354,8 @@
      id="ellipse102" />
   <ellipse
      inkscape:label="Santander AUC"
-     cx="779.13574"
-     cy="1073.6304"
+     cx="788.68762"
+     cy="1077.724"
      rx="50"
      ry="40"
      fill="#ffff00"
@@ -513,22 +379,6 @@
      fill="#ff0000"
      fill-opacity="0.5"
      id="ellipse108" />
-  <rect
-     inkscape:label="Santander DRUGS"
-     x="833.58704"
-     y="1060.5879"
-     width="92"
-     height="56"
-     fill="#ffffff"
-     fill-opacity="0.5"
-     stroke="#000000"
-     id="rect110" />
-  <text
-     x="-205.52834"
-     y="1013.1673"
-     text-anchor="end"
-     font-size="40px"
-     id="text112">Huila</text>
   <ellipse
      inkscape:label="Huila Govt"
      cx="618.23529"
@@ -540,8 +390,8 @@
      id="ellipse114" />
   <ellipse
      inkscape:label="Huila AUC"
-     cx="507.23135"
-     cy="1467.7692"
+     cx="509.96045"
+     cy="1473.2274"
      rx="50"
      ry="40"
      fill="#ffff00"
@@ -565,26 +415,10 @@
      fill="#ff0000"
      fill-opacity="0.5"
      id="ellipse120" />
-  <rect
-     inkscape:label="Huila DRUGS"
-     x="440.22269"
-     y="1525.0316"
-     width="92"
-     height="56"
-     fill="#ffffff"
-     fill-opacity="0.5"
-     stroke="#000000"
-     id="rect122" />
-  <text
-     x="-205.52834"
-     y="1113.1672"
-     text-anchor="end"
-     font-size="40px"
-     id="text124">Arauca</text>
   <ellipse
      inkscape:label="Arauca Govt"
-     cx="980.58771"
-     cy="1113.1672"
+     cx="995.59778"
+     cy="1102.2509"
      rx="50"
      ry="40"
      fill="#00ffff"
@@ -592,8 +426,8 @@
      id="ellipse126" />
   <ellipse
      inkscape:label="Arauca AUC"
-     cx="1217.1794"
-     cy="1035.7775"
+     cx="1215.8149"
+     cy="1042.6002"
      rx="50"
      ry="40"
      fill="#ffff00"
@@ -601,8 +435,8 @@
      id="ellipse128" />
   <ellipse
      inkscape:label="Arauca Cartels"
-     cx="1196.375"
-     cy="1117.799"
+     cx="1190.9167"
+     cy="1131.4445"
      rx="50"
      ry="40"
      fill="#32cd32"
@@ -610,29 +444,13 @@
      id="ellipse130" />
   <ellipse
      inkscape:label="Arauca FARC"
-     cx="1062.3942"
-     cy="1195.3604"
+     cx="1067.8524"
+     cy="1206.2767"
      rx="50"
      ry="40"
      fill="#ff0000"
      fill-opacity="0.5"
      id="ellipse132" />
-  <rect
-     inkscape:label="Arauca DRUGS"
-     x="1026.655"
-     y="1004.5025"
-     width="92"
-     height="56"
-     fill="#ffffff"
-     fill-opacity="0.5"
-     stroke="#000000"
-     id="rect134" />
-  <text
-     x="-205.52834"
-     y="1213.1672"
-     text-anchor="end"
-     font-size="40px"
-     id="text136">Meta East</text>
   <ellipse
      inkscape:label="Meta East Govt"
      cx="964.20801"
@@ -653,8 +471,8 @@
      id="ellipse140" />
   <ellipse
      inkscape:label="Meta East Cartels"
-     cx="1035.5688"
-     cy="1444.801"
+     cx="1049.2144"
+     cy="1447.5302"
      rx="50"
      ry="40"
      fill="#32cd32"
@@ -669,26 +487,10 @@
      fill="#ff0000"
      fill-opacity="0.5"
      id="ellipse144" />
-  <rect
-     inkscape:label="Meta East DRUGS"
-     x="1009.0693"
-     y="1298.2498"
-     width="92"
-     height="56"
-     fill="#ffffff"
-     fill-opacity="0.5"
-     stroke="#000000"
-     id="rect146" />
-  <text
-     x="-205.52834"
-     y="1313.1672"
-     text-anchor="end"
-     font-size="40px"
-     id="text148">Vichada</text>
   <ellipse
      inkscape:label="Vichada Govt"
-     cx="1246.3472"
-     cy="1255.1846"
+     cx="1232.7017"
+     cy="1252.4556"
      rx="50"
      ry="40"
      fill="#00ffff"
@@ -696,8 +498,8 @@
      id="ellipse150" />
   <ellipse
      inkscape:label="Vichada AUC"
-     cx="1278.1866"
-     cy="1344.0496"
+     cx="1238.6146"
+     cy="1367.2469"
      rx="50"
      ry="40"
      fill="#ffff00"
@@ -705,7 +507,7 @@
      id="ellipse152" />
   <ellipse
      inkscape:label="Vichada Cartels"
-     cx="1391.5193"
+     cx="1432.4558"
      cy="1333.1716"
      rx="50"
      ry="40"
@@ -714,29 +516,13 @@
      id="ellipse154" />
   <ellipse
      inkscape:label="Vichada FARC"
-     cx="1415.3964"
-     cy="1220.3065"
+     cx="1444.0519"
+     cy="1182.0991"
      rx="50"
      ry="40"
      fill="#ff0000"
      fill-opacity="0.5"
      id="ellipse156" />
-  <rect
-     inkscape:label="Vichada DRUGS"
-     x="1269.3851"
-     y="1154.1056"
-     width="92"
-     height="56"
-     fill="#ffffff"
-     fill-opacity="0.5"
-     stroke="#000000"
-     id="rect158" />
-  <text
-     x="-205.52834"
-     y="1413.1672"
-     text-anchor="end"
-     font-size="40px"
-     id="text160">Guainia</text>
   <ellipse
      inkscape:label="Guainia Govt"
      cx="1314.0579"
@@ -773,26 +559,10 @@
      fill="#ff0000"
      fill-opacity="0.5"
      id="ellipse168" />
-  <rect
-     inkscape:label="Guainia DRUGS"
-     x="1366.6522"
-     y="1599.6589"
-     width="92"
-     height="56"
-     fill="#ffffff"
-     fill-opacity="0.5"
-     stroke="#000000"
-     id="rect170" />
-  <text
-     x="-205.52834"
-     y="1513.1672"
-     text-anchor="end"
-     font-size="40px"
-     id="text172">Vaupes</text>
   <ellipse
      inkscape:label="Vaupes Govt"
-     cx="1100.7959"
-     cy="1752.1694"
+     cx="1106.2542"
+     cy="1750.8049"
      rx="50"
      ry="40"
      fill="#00ffff"
@@ -809,8 +579,8 @@
      id="ellipse176" />
   <ellipse
      inkscape:label="Vaupes Cartels"
-     cx="1182.505"
-     cy="1870.524"
+     cx="1171.5886"
+     cy="1885.5341"
      rx="50"
      ry="40"
      fill="#32cd32"
@@ -818,33 +588,17 @@
      id="ellipse178" />
   <ellipse
      inkscape:label="Vaupes FARC"
-     cx="1091.4261"
-     cy="1834.8876"
+     cx="1094.1553"
+     cy="1830.7939"
      rx="50"
      ry="40"
      fill="#ff0000"
      fill-opacity="0.5"
      id="ellipse180" />
-  <rect
-     inkscape:label="Vaupes DRUGS"
-     x="1213.3019"
-     y="1772.5411"
-     width="92"
-     height="56"
-     fill="#ffffff"
-     fill-opacity="0.5"
-     stroke="#000000"
-     id="rect182" />
-  <text
-     x="-205.52834"
-     y="1613.1672"
-     text-anchor="end"
-     font-size="40px"
-     id="text184">Amazonas</text>
   <ellipse
      inkscape:label="Amazonas Govt"
-     cx="986.92365"
-     cy="2037.7451"
+     cx="985.55908"
+     cy="2041.8387"
      rx="50"
      ry="40"
      fill="#00ffff"
@@ -852,8 +606,8 @@
      id="ellipse186" />
   <ellipse
      inkscape:label="Amazonas AUC"
-     cx="881.28503"
-     cy="2072.3257"
+     cx="859.45221"
+     cy="2066.8674"
      rx="50"
      ry="40"
      fill="#ffff00"
@@ -861,8 +615,8 @@
      id="ellipse188" />
   <ellipse
      inkscape:label="Amazonas Cartels"
-     cx="1047.7527"
-     cy="2132.4722"
+     cx="1077.7728"
+     cy="2147.4822"
      rx="50"
      ry="40"
      fill="#32cd32"
@@ -870,29 +624,13 @@
      id="ellipse190" />
   <ellipse
      inkscape:label="Amazonas FARC"
-     cx="939.67639"
-     cy="2154.063"
+     cx="942.40552"
+     cy="2159.5212"
      rx="50"
      ry="40"
      fill="#ff0000"
      fill-opacity="0.5"
      id="ellipse192" />
-  <rect
-     inkscape:label="Amazonas DRUGS"
-     x="1030.8683"
-     y="1940.4235"
-     width="92"
-     height="56"
-     fill="#ffffff"
-     fill-opacity="0.5"
-     stroke="#000000"
-     id="rect194" />
-  <text
-     x="-205.52834"
-     y="1713.1672"
-     text-anchor="end"
-     font-size="40px"
-     id="text196">Ecuador</text>
   <ellipse
      inkscape:label="Ecuador Govt"
      cx="42.499142"
@@ -913,8 +651,8 @@
      id="ellipse200" />
   <ellipse
      inkscape:label="Ecuador Cartels"
-     cx="176.57443"
-     cy="1853.6278"
+     cx="191.58449"
+     cy="1859.0861"
      rx="50"
      ry="40"
      fill="#32cd32"
@@ -922,29 +660,13 @@
      id="ellipse202" />
   <ellipse
      inkscape:label="Ecuador FARC"
-     cx="110.64832"
-     cy="1856.5065"
+     cx="114.74197"
+     cy="1857.8711"
      rx="50"
      ry="40"
      fill="#ff0000"
      fill-opacity="0.5"
      id="ellipse204" />
-  <rect
-     inkscape:label="Ecuador DRUGS"
-     x="212.03867"
-     y="1860.8184"
-     width="92"
-     height="56"
-     fill="#ffffff"
-     fill-opacity="0.5"
-     stroke="#000000"
-     id="rect206" />
-  <text
-     x="-205.52834"
-     y="1813.1672"
-     text-anchor="end"
-     font-size="40px"
-     id="text208">Panama</text>
   <ellipse
      inkscape:label="Panama Govt"
      cx="65.419937"
@@ -956,8 +678,8 @@
      id="ellipse210" />
   <ellipse
      inkscape:label="Panama AUC"
-     cx="228.45033"
-     cy="841.6026"
+     cx="218.89848"
+     cy="849.78992"
      rx="50"
      ry="40"
      fill="#ffff00"
@@ -974,28 +696,13 @@
      id="ellipse214" />
   <ellipse
      inkscape:label="Panama FARC"
-     cx="222.04271"
-     cy="754.31036"
+     cx="220.67816"
+     cy="750.21674"
      rx="50"
      ry="40"
      fill="#ff0000"
      fill-opacity="0.5"
      id="ellipse216" />
-  <rect
-     inkscape:label="Panama DRUGS"
-     x="155.47014"
-     y="878.97614"
-     width="92"
-     height="56"
-     fill="#ffffff"
-     fill-opacity="0.5"
-     stroke="#000000"
-     id="rect218" />
-  <text
-     x="1800"
-     y="110"
-     font-size="40"
-     id="text220">Sincelejo / Ayacucho</text>
   <circle
      inkscape:label="Sincelejo / Ayacucho COIN"
      cx="700.41351"
@@ -1014,11 +721,6 @@
      fill-opacity="0.5"
      stroke="#000000"
      id="circle224" />
-  <text
-     x="1800"
-     y="210"
-     font-size="40"
-     id="text226">Bucaramanga / Ayacucho</text>
   <circle
      inkscape:label="Bucaramanga / Ayacucho COIN"
      cx="771.35297"
@@ -1037,11 +739,6 @@
      fill-opacity="0.5"
      stroke="#000000"
      id="circle230" />
-  <text
-     x="1800"
-     y="310"
-     font-size="40"
-     id="text232">Cucuta / Ayacucho</text>
   <circle
      inkscape:label="Cucuta / Ayacucho COIN"
      cx="828.94531"
@@ -1060,11 +757,6 @@
      fill-opacity="0.5"
      stroke="#000000"
      id="circle236" />
-  <text
-     x="1800"
-     y="410"
-     font-size="40"
-     id="text238">Santa Marta / Ayacucho</text>
   <circle
      inkscape:label="Santa Marta / Ayacucho COIN"
      cx="766.38696"
@@ -1083,11 +775,6 @@
      fill-opacity="0.5"
      stroke="#000000"
      id="circle242" />
-  <text
-     x="1800"
-     y="510"
-     font-size="40"
-     id="text244">Bogota / Yopal</text>
   <circle
      inkscape:label="Bogota / Yopal COIN"
      cx="852.91376"
@@ -1106,11 +793,6 @@
      fill-opacity="0.5"
      stroke="#000000"
      id="circle248" />
-  <text
-     x="1800"
-     y="610"
-     font-size="40"
-     id="text250">Bogota / Neiva</text>
   <circle
      inkscape:label="Bogota / Neiva COIN"
      cx="655.479"
@@ -1129,11 +811,6 @@
      fill-opacity="0.5"
      stroke="#000000"
      id="circle254" />
-  <text
-     x="1800"
-     y="710"
-     font-size="40"
-     id="text256">Bogota / San Jose</text>
   <circle
      inkscape:label="Bogota / San Jose COIN"
      cx="783.76801"
@@ -1152,11 +829,6 @@
      fill-opacity="0.5"
      stroke="#000000"
      id="circle260" />
-  <text
-     x="1800"
-     y="810"
-     font-size="40"
-     id="text262">Bucaramanga / Ibague / Bogota</text>
   <circle
      inkscape:label="Bucaramanga / Ibague / Bogota COIN"
      cx="658.96643"
@@ -1175,11 +847,6 @@
      fill-opacity="0.5"
      stroke="#000000"
      id="circle266" />
-  <text
-     x="1800"
-     y="910"
-     font-size="40"
-     id="text268">Cucuta / Arauca</text>
   <circle
      inkscape:label="Cucuta / Arauca COIN"
      cx="951.06201"
@@ -1198,11 +865,6 @@
      fill-opacity="0.5"
      stroke="#000000"
      id="circle272" />
-  <text
-     x="1800"
-     y="1010"
-     font-size="40"
-     id="text274">Neiva / Pasto</text>
   <circle
      inkscape:label="Neiva / Pasto COIN"
      cx="544.57111"
@@ -1221,11 +883,6 @@
      fill-opacity="0.5"
      stroke="#000000"
      id="circle278" />
-  <text
-     x="1800"
-     y="1110"
-     font-size="40"
-     id="text280">Pasto / Tumaco</text>
   <circle
      inkscape:label="Pasto / Tumaco COIN"
      cx="182.0511"
@@ -1244,11 +901,6 @@
      fill-opacity="0.5"
      stroke="#000000"
      id="circle284" />
-  <text
-     x="1800"
-     y="1210"
-     font-size="40"
-     id="text286">Cali / Pasto</text>
   <circle
      inkscape:label="Cali / Pasto COIN"
      cx="311.99545"
@@ -1267,11 +919,6 @@
      fill-opacity="0.5"
      stroke="#000000"
      id="circle290" />
-  <text
-     x="1800"
-     y="1310"
-     font-size="40"
-     id="text292">Cali / Buenaventura</text>
   <circle
      inkscape:label="Cali / Buenaventura COIN"
      cx="343.48096"
@@ -1290,11 +937,6 @@
      fill-opacity="0.5"
      stroke="#000000"
      id="circle296" />
-  <text
-     x="1800"
-     y="1410"
-     font-size="40"
-     id="text298">Ibague / Cali</text>
   <circle
      inkscape:label="Ibague / Cali COIN"
      cx="423.73108"
@@ -1313,11 +955,6 @@
      fill-opacity="0.5"
      stroke="#000000"
      id="circle302" />
-  <text
-     x="1800"
-     y="1510"
-     font-size="40"
-     id="text304">Medellin / Ibague</text>
   <circle
      inkscape:label="Medellin / Ibague COIN"
      cx="508.3938"
@@ -1336,11 +973,6 @@
      fill-opacity="0.5"
      stroke="#000000"
      id="circle308" />
-  <text
-     x="1800"
-     y="1610"
-     font-size="40"
-     id="text310">Cartagena / Sincelejo</text>
   <circle
      inkscape:label="Cartagena / Sincelejo COIN"
      cx="521.73846"
@@ -1359,11 +991,6 @@
      fill-opacity="0.5"
      stroke="#000000"
      id="circle314" />
-  <text
-     x="1800"
-     y="1710"
-     font-size="40"
-     id="text316">Sincelejo / Medellin</text>
   <circle
      inkscape:label="Sincelejo / Medellin COIN"
      cx="549.73578"
@@ -1382,11 +1009,6 @@
      fill-opacity="0.5"
      stroke="#000000"
      id="circle320" />
-  <text
-     x="1800"
-     y="1810"
-     font-size="40"
-     id="text322">Santa Marta / Cartagena</text>
   <circle
      inkscape:label="Santa Marta / Cartagena COIN"
      cx="563.4408"
