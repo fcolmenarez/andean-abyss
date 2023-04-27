@@ -364,7 +364,7 @@ function create(t, p, ...c) {
 function register_action(e, action, id) {
 	e.my_action = action
 	e.my_id = id
-	e.onclick = on_click_action
+	e.onmousedown = on_click_action
 }
 
 function is_action(action, arg) {
@@ -580,7 +580,7 @@ function init_ui() {
 			my_id: id,
 			my_x_offset: x,
 			my_y_offset: y,
-			onclick: on_click_action
+			onmousedown: on_click_action
 		})
 		document.getElementById("pieces").appendChild(e)
 		return e
@@ -1421,7 +1421,7 @@ function sub_card(match, p1) {
 function sub_space(match, p1) {
 	let x = p1 | 0
 	let n = data.space_name[x]
-	return `<span class="tip" onmouseenter="on_focus_space_tip(${x})" onmouseleave="on_blur_space_tip(${x})" onclick="on_click_space_tip(${x})">${n}</span>`
+	return `<span class="tip" onmouseenter="on_focus_space_tip(${x})" onmouseleave="on_blur_space_tip(${x})" onmousedown="on_click_space_tip(${x})">${n}</span>`
 }
 
 function on_log(text) {

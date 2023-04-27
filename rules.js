@@ -5458,7 +5458,7 @@ function goto_cultivate() {
 
 states.cultivate = {
 	prompt() {
-		view.prompt = "Cultivate: Select Department or City to place or relocate Base."
+		view.prompt = "Cultivate: Relocate Base to City or Department (or place if Rally Department)."
 		for (let s = first_pop; s <= last_pop; ++s)
 			if (can_cultivate_in_space(s))
 				gen_action_space(s)
@@ -5466,7 +5466,7 @@ states.cultivate = {
 	space(s) {
 		push_undo()
 		game.sa.where = s
-		if (is_selected_op_space(s) && game.op.type === "Rally") {
+		if (is_selected_op_space(s) && is_dept(s) && game.op.type === "Rally") {
 			if (auto_place_piece(s, CARTELS, BASE)) {
 				log_space(game.sa.where, "Cultivate")
 				logi("Placed Cartels Base")
