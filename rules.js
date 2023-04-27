@@ -1839,19 +1839,19 @@ states.remove_pieces = {
 // === NEGOTIATION ===
 
 function is_player_govt() {
-	return game.active === NAME_GOVT || game.active === NAME_GOVT_AUC
+	return game.current === GOVT || game.active === NAME_GOVT_AUC
 }
 
 function is_player_farc() {
-	return game.active === NAME_FARC || game.active === NAME_FARC_CARTELS
+	return game.current === FARC || game.active === NAME_FARC_CARTELS
 }
 
 function is_player_auc() {
-	return game.active === NAME_AUC || game.active === NAME_GOVT_AUC || game.active === NAME_AUC_CARTELS
+	return game.current === AUC || game.active === NAME_GOVT_AUC || game.active === NAME_AUC_CARTELS
 }
 
 function is_player_cartels() {
-	return game.active === NAME_CARTELS || game.active === NAME_FARC_CARTELS || game.active === NAME_AUC_CARTELS
+	return game.current === CARTELS || game.active === NAME_FARC_CARTELS || game.active === NAME_AUC_CARTELS
 }
 
 function action_ask_resources() {
@@ -2120,7 +2120,8 @@ states.transfer_shipment = {
 			game.transfer.shipment = sh
 	},
 	piece(p) {
-		log_transfer(`${faction_name[game.current]} gave Shipment to ${piece_faction_name(p)} in S${piece_space(p)}.`)
+		if (game.current !== piece_faction(p))
+			log_transfer(`${faction_name[game.current]} gave Shipment to ${piece_faction_name(p)} in S${piece_space(p)}.`)
 		place_shipment(game.transfer.shipment, p)
 		game.transfer.shipment = -1
 		end_negotiation()
