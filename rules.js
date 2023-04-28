@@ -14,6 +14,8 @@
 
 const AUTOMATIC = true
 
+const PATROL_UNDO = true
+
 let states = {}
 let game = null
 let view = null
@@ -2888,7 +2890,6 @@ states.train_base = {
 					gen_action_space(s)
 	},
 	space(s) {
-		push_undo()
 		if (!is_selected_op_space(s))
 			select_op_space(s, 3)
 		goto_train_base_remove(s)
@@ -3045,6 +3046,7 @@ function goto_patrol2() {
 	else
 		game.state = "patrol"
 	game.op.who = -1
+	game.op.undo = game.undo.length
 }
 
 function can_patrol() {
@@ -3152,7 +3154,6 @@ states.patrol_limop_move = {
 		move_piece(p, game.op.where)
 	},
 	next() {
-		push_undo()
 		end_patrol_move()
 	},
 }
@@ -3187,13 +3188,15 @@ states.patrol = {
 		view.actions.next = 1
 	},
 	piece(p) {
-		// TODO: undo for each piece?
 		if (game.op.who < 0) {
-			push_undo()
+			if (PATROL_UNDO)
+				push_undo()
 			game.op.who = p
 			set_add(game.op.pieces, p)
 		} else {
-			pop_undo()
+			if (PATROL_UNDO)
+				pop_undo()
+			game.op.who = -1
 		}
 	},
 	space(s) {
@@ -3208,7 +3211,9 @@ states.patrol = {
 		game.op.who = -1
 	},
 	next() {
-		push_undo()
+		// Reset undo stack to beginning of Operation.
+		if (PATROL_UNDO)
+			game.undo.length = game.op.undo
 		end_patrol_move()
 	},
 }
@@ -4033,12 +4038,10 @@ states.rally_space = {
 			end_rally_space()
 	},
 	base() {
-		push_undo()
 		game.state = "rally_base_remove"
 		game.op.count = 0
 	},
 	move() {
-		push_undo()
 		game.state = "rally_move"
 	},
 	skip() {
@@ -4304,7 +4307,8 @@ states.march_move = {
 			for (let p of group)
 				set_active(p)
 
-		// TODO: auto-end if no more moves possible
+		if (!can_march_to(game.op.where))
+			end_march_move()
 	},
 	next() {
 		end_march_move()
@@ -4471,11 +4475,13 @@ states.attack_place = {
 		view.actions.skip = 1
 	},
 	piece(p) {
+		push_undo_once()
 		logi("Placed " + piece_faction_type_name[game.current][GUERRILLA] + " from S" + piece_space(p))
 		place_piece(p, game.op.where)
 		goto_attack_remove()
 	},
 	skip() {
+		push_undo_once()
 		goto_attack_remove()
 	},
 }
@@ -4510,8 +4516,7 @@ states.attack_remove = {
 		view.actions.skip = did_maximum_damage(game.op.targeted)
 	},
 	piece(p) {
-		// NOTE: undo first only?
-		push_undo()
+		push_undo_once()
 
 		logi("Removed " + piece_name(p))
 
@@ -4522,6 +4527,7 @@ states.attack_remove = {
 			end_attack_space()
 	},
 	skip() {
+		push_undo_once()
 		end_attack_space()
 	}
 }
@@ -4915,7 +4921,7 @@ states.air_strike = {
 		}
 	},
 	piece(p) {
-		push_undo()
+		push_undo_once() // only for Event 8 - 3 free air strikes
 		log_space(piece_space(p), "Air Strike")
 		logi("Removed " + piece_name(p))
 		remove_piece(p)
@@ -5292,7 +5298,6 @@ states.kidnap_space = {
 			view.prompt += " IMPOSSIBLE!"
 	},
 	shipment(sh) {
-		push_undo()
 		game.sa.shipment = sh
 		game.state = "kidnap_drug_ransom"
 	},
@@ -7144,21 +7149,25 @@ states.vm_current = {
 			view.actions.cartels = 1
 	},
 	govt() {
+		clear_undo()
 		game.current = GOVT
 		log_transfer(faction_name[game.current] + "...")
 		vm_next()
 	},
 	farc() {
+		clear_undo()
 		game.current = FARC
 		log_transfer(faction_name[game.current] + "...")
 		vm_next()
 	},
 	auc() {
+		clear_undo()
 		game.current = AUC
 		log_transfer(faction_name[game.current] + "...")
 		vm_next()
 	},
 	cartels() {
+		clear_undo()
 		game.current = CARTELS
 		log_transfer(faction_name[game.current] + "...")
 		vm_next()
