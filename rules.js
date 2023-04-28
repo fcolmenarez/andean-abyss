@@ -4170,6 +4170,13 @@ function can_march() {
 	return false
 }
 
+function can_free_march() {
+	for (let s = first_space; s <= last_space; ++s)
+		if (can_march_to(s))
+			return true
+	return false
+}
+
 function has_unmoved_piece(s, faction, type) {
 	if (game.op && game.op.pieces) {
 		let first = first_piece[faction][type]
@@ -8413,6 +8420,8 @@ CODE[8 * 2 + 0] = [
 	[ vm_repeat, 3 ],
 	[ vm_if, ()=>can_air_strike() ],
 	[ vm_free_air_strike ],
+	[ vm_else ],
+	[ vm_log, "Government cannot Air Strike." ],
 	[ vm_endif ],
 	[ vm_endrepeat ],
 	[ vm_return ],
@@ -8623,7 +8632,11 @@ CODE[20 * 2 + 0] = [
 // SHADED 20
 CODE[20 * 2 + 1] = [
 	[ vm_current, FARC ],
+	[ vm_if, ()=>can_free_march() ],
 	[ vm_free_march ],
+	[ vm_else ],
+	[ vm_log, "FARC cannot March." ],
+	[ vm_endif ],
 	[ vm_prompt, "Flip up to 3 FARC Guerrillas Underground." ],
 	[ vm_piece, true, 0, 3, (p,s)=>is_farc_guerrilla(p) && is_active(p) ],
 	[ vm_underground ],
@@ -8773,6 +8786,8 @@ CODE[27 * 2 + 0] = [
 	[ vm_repeat, 3 ],
 	[ vm_if, ()=>can_air_lift() || can_eradicate() || can_air_strike() ],
 	[ vm_free_govt_special_activity ],
+	[ vm_else ],
+	[ vm_log, "Government cannot execute any Special Activities." ],
 	[ vm_endif ],
 	[ vm_endrepeat ],
 	[ vm_return ],
@@ -8821,6 +8836,8 @@ CODE[29 * 2 + 0] = [
 	[ vm_endpiece ],
 	[ vm_if, ()=>can_assault_in_space(game.vm.s) ],
 	[ vm_free_assault ],
+	[ vm_else ],
+	[ vm_log, "Government cannot Assault." ],
 	[ vm_endif ],
 	[ vm_endspace ],
 	[ vm_return ],
@@ -8998,6 +9015,7 @@ CODE[37 * 2 + 0] = [
 // SHADED 37
 CODE[37 * 2 + 1] = [
 	[ vm_current, AUC ],
+	[ vm_if, ()=>can_free_march() ],
 	[ vm_free_march ],
 	[ vm_prompt, "Free Ambush at any 1 destination." ],
 	[ vm_space, true, 1, 1, (s)=>set_has(game.vm.march, s) && has_underground_guerrilla(s, AUC) && has_enemy_piece(s) ],
@@ -9006,6 +9024,9 @@ CODE[37 * 2 + 1] = [
 	[ vm_free_ambush ],
 	[ vm_endpiece ],
 	[ vm_endspace ],
+	[ vm_else ],
+	[ vm_log, "AUC cannot March." ],
+	[ vm_endif ],
 	[ vm_return ],
 ]
 

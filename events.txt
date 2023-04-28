@@ -105,6 +105,8 @@ EVENT 8
 	repeat 3
 		if can_air_strike()
 			free_air_strike
+		else
+			log "Government cannot Air Strike."
 		endif
 	endrepeat
 
@@ -241,7 +243,11 @@ EVENT 20
 
 SHADED 20
 	current FARC
-	free_march
+	if can_free_march()
+		free_march
+	else
+		log "FARC cannot March."
+	endif
 	prompt "Flip up to 3 FARC Guerrillas Underground."
 	piece_undo_opt 3 is_farc_guerrilla(p) && is_active(p)
 		underground
@@ -353,6 +359,8 @@ EVENT 27
 	repeat 3
 		if can_air_lift() || can_eradicate() || can_air_strike()
 			free_govt_special_activity
+		else
+			log "Government cannot execute any Special Activities."
 		endif
 	endrepeat
 
@@ -391,6 +399,8 @@ EVENT 29
 		endpiece
 		if can_assault_in_space(game.vm.s)
 			free_assault
+		else
+			log "Government cannot Assault."
 		endif
 	endspace
 
@@ -519,14 +529,18 @@ EVENT 37
 
 SHADED 37
 	current AUC
-	free_march
-	prompt "Free Ambush at any 1 destination."
-	space 1 set_has(game.vm.march, s) && has_underground_guerrilla(s, AUC) && has_enemy_piece(s)
-		prompt "Free Ambush."
-		piece 1 is_piece_in_event_space(p) && is_underground_guerrilla(p, AUC)
-			free_ambush
-		endpiece
-	endspace
+	if can_free_march()
+		free_march
+		prompt "Free Ambush at any 1 destination."
+		space 1 set_has(game.vm.march, s) && has_underground_guerrilla(s, AUC) && has_enemy_piece(s)
+			prompt "Free Ambush."
+			piece 1 is_piece_in_event_space(p) && is_underground_guerrilla(p, AUC)
+				free_ambush
+			endpiece
+		endspace
+	else
+		log "AUC cannot March."
+	endif
 
 EVENT 38
 	prompt "Remove all Active AUC Guerrillas from up to 3 spaces with cubes or Support."
