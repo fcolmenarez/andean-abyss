@@ -4741,12 +4741,16 @@ function end_special_activity() {
 // TODO: to -> from -> move
 
 function vm_free_air_lift() {
-	goto_air_lift()
+	init_air_lift()
 }
 
 function goto_air_lift() {
 	push_undo()
 	move_cylinder_to_special_activity()
+	init_air_lift()
+}
+
+function init_air_lift() {
 	game.sa = {
 		save: game.state,
 		count: 0,
@@ -4843,12 +4847,16 @@ function end_air_lift() {
 // SPECIAL ACTIVITY: AIR STRIKE
 
 function vm_free_air_strike() {
-	goto_air_strike()
+	init_air_strike()
 }
 
 function goto_air_strike() {
 	push_undo()
 	move_cylinder_to_special_activity()
+	init_air_strike()
+}
+
+function init_air_strike() {
 	game.sa = { save: game.state }
 	game.state = "air_strike"
 }
@@ -4885,6 +4893,7 @@ states.air_strike = {
 		}
 	},
 	piece(p) {
+		push_undo()
 		log_space(piece_space(p), "Air Strike")
 		logi("Removed " + piece_name(p))
 		remove_piece(p)
@@ -4895,12 +4904,16 @@ states.air_strike = {
 // SPECIAL ACTIVITY: ERADICATE
 
 function vm_free_eradicate() {
-	goto_eradicate()
+	init_eradicate()
 }
 
 function goto_eradicate() {
 	push_undo()
 	move_cylinder_to_special_activity()
+	init_eradicate()
+}
+
+function init_eradicate() {
 	game.sa = {
 		save: game.state,
 		where: -1,
@@ -5630,16 +5643,19 @@ function can_bribe() {
 }
 
 function vm_free_bribe() {
-	goto_bribe()
+	init_bribe()
 	game.sa.where = game.vm.s
 	game.sa.targeted = 0
 	game.state = "bribe_space"
 }
 
 function goto_bribe() {
-	if (!game.vm)
-		push_undo()
+	push_undo()
 	move_cylinder_to_special_activity()
+	init_bribe()
+}
+
+function init_bribe() {
 	game.sa = {
 		contraband: 1,
 		save: game.state,
@@ -7753,9 +7769,18 @@ states.vm_free_govt_special_activity = {
 		view.actions.eradicate = can_eradicate() ? 1 : 0
 		view.actions.air_strike = can_air_strike() ? 1 : 0
 	},
-	air_lift: vm_free_air_lift,
-	air_strike: vm_free_air_strike,
-	eradicate: vm_free_eradicate,
+	air_lift() {
+		push_undo()
+		vm_free_air_lift()
+	},
+	air_strike() {
+		push_undo()
+		vm_free_air_strike()
+	},
+	eradicate() {
+		push_undo()
+		vm_free_eradicate()
+	},
 }
 
 states.vm_free_train_sweep_assault = {
