@@ -1,16 +1,8 @@
 "use strict"
 
-// TODO: free Bribe (event 60) needs logging info
-
-// TODO: log_br after free op/special
-
 // TODO: if Assault and no valid assault targets, only allow air lift to enable Assault
 
 // TODO: can_...operation - for space = ... check them all / can_rally - check that it is dept/city etc
-
-// Captured Good - may not remove
-// Commandeer - may not remove
-// Contraband - if removed - cartels decide who gets it
 
 const AUTOMATIC = true
 
@@ -2598,6 +2590,7 @@ states.ship_limop = {
 }
 
 function end_operation() {
+	log_br()
 	if (game.op.ship && is_any_shipment_held()) {
 		push_undo()
 		game.state = "ship"
@@ -5686,6 +5679,7 @@ function vm_free_bribe() {
 	game.sa.where = game.vm.s
 	game.sa.targeted = 0
 	game.state = "bribe_space"
+	log_space(game.sa.where, "Bribe")
 }
 
 function goto_bribe() {
