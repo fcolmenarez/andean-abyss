@@ -7824,7 +7824,7 @@ states.vm_free_sweep_assault = {
 	prompt() {
 		event_prompt(`Free Sweep or Assault in ${space_name[game.vm.s]}.`)
 		view.where = game.vm.s
-		if (has_any_underground_guerrilla(game.vm.s))
+		if (can_sweep_activate(game.vm.s))
 			view.actions.sweep = 1
 		else
 			view.actions.sweep = 0
@@ -7841,7 +7841,7 @@ states.vm_free_sweep_assault_farc = {
 	prompt() {
 		event_prompt(`Free Sweep or Assault FARC in ${space_name[game.vm.s]}.`)
 		view.where = game.vm.s
-		if (has_underground_guerrilla(game.vm.s, FARC))
+		if (can_sweep_activate(game.vm.s, FARC))
 			view.actions.sweep = 1
 		else
 			view.actions.sweep = 0
