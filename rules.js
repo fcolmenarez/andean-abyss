@@ -1709,6 +1709,21 @@ function can_place_piece(s, faction, type) {
 	return can_stack_piece(s, faction, type) && has_piece(AVAILABLE, faction, type)
 }
 
+function can_place_base_and_n(s, faction, n, type) {
+	if (s === ECUADOR) {
+		if (!has_capability(EVT_SUCUMBIOS))
+			return false
+		n = Math.min(n, count_pieces(AVAILABLE, faction, type))
+		if (count_faction_pieces(s, faction) + 1 + n > 2)
+			return false
+	}
+	if (!can_place_piece(s, faction, BASE))
+		return false
+	if (!can_stack_any(s, faction))
+		return false
+	return true
+}
+
 function did_maximum_damage(targeted) {
 	// Must do at least something!
 	if (targeted === 0)
@@ -8469,8 +8484,8 @@ CODE[13 * 2 + 1] = [
 CODE[14 * 2 + 0] = [
 	[ vm_current, GOVT ],
 	[ vm_prompt, "Place 1 Base and 3 Troops into any Department." ],
-	[ vm_if, ()=>can_vm_space(1,(s)=>is_dept(s) && can_place_piece(s, GOVT, BASE)) ],
-	[ vm_space, true, 1, 1, (s)=>is_dept(s) && can_place_piece(s, GOVT, BASE) ],
+	[ vm_if, ()=>can_vm_space(1,(s)=>is_dept(s) && can_place_base_and_n(s, GOVT, 3, TROOPS)) ],
+	[ vm_space, true, 1, 1, (s)=>is_dept(s) && can_place_base_and_n(s, GOVT, 3, TROOPS) ],
 	[ vm_else ],
 	[ vm_space, true, 1, 1, (s)=>is_dept(s) && can_stack_any(s, GOVT) ],
 	[ vm_endif ],
@@ -8903,8 +8918,8 @@ CODE[34 * 2 + 0] = [
 CODE[34 * 2 + 1] = [
 	[ vm_current, FARC_AUC_CARTELS ],
 	[ vm_prompt, "Place 2 Guerrillas and 1 Base into a 0 Population Department." ],
-	[ vm_if, ()=>can_vm_space(1,(s)=>is_zero_pop_dept(s) && can_place_piece(s, game.current, BASE)) ],
-	[ vm_space, true, 1, 1, (s)=>is_zero_pop_dept(s) && can_place_piece(s, game.current, BASE) ],
+	[ vm_if, ()=>can_vm_space(1,(s)=>is_zero_pop_dept(s) && can_place_base_and_n(s, game.current, 2, GUERRILLA)) ],
+	[ vm_space, true, 1, 1, (s)=>is_zero_pop_dept(s) && can_place_base_and_n(s, game.current, 2, GUERRILLA) ],
 	[ vm_else ],
 	[ vm_space, true, 1, 1, (s)=>is_zero_pop_dept(s) && can_stack_any(s, game.current) ],
 	[ vm_endif ],
@@ -9276,8 +9291,8 @@ CODE[49 * 2 + 0] = [
 // SHADED 49
 CODE[49 * 2 + 1] = [
 	[ vm_prompt, "Place an AUC Guerrilla and Base in any Department." ],
-	[ vm_if, ()=>can_vm_space(1,(s)=>is_dept(s) && can_place_piece(s, AUC, BASE)) ],
-	[ vm_space, true, 1, 1, (s)=>is_dept(s) && can_place_piece(s, AUC, BASE) ],
+	[ vm_if, ()=>can_vm_space(1,(s)=>is_dept(s) && can_place_base_and_n(s, AUC, 1, GUERRILLA)) ],
+	[ vm_space, true, 1, 1, (s)=>is_dept(s) && can_place_base_and_n(s, AUC, 1, GUERRILLA) ],
 	[ vm_else ],
 	[ vm_space, true, 1, 1, (s)=>is_dept(s) && can_stack_any(s, AUC) ],
 	[ vm_endif ],
