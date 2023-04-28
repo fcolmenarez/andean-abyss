@@ -4961,16 +4961,29 @@ states.eradicate = {
 	},
 	space(s) {
 		game.sa.where = s
+		game.state = "eradicate_aid"
 
 		log_space(game.sa.where, "Eradicate")
+	}
+}
+
+states.eradicate_aid = {
+	prompt() {
+		view.prompt = "Eradicate: Add +4 Aid."
+		view.actions.aid = 1
+	},
+	aid() {
 		logi("Aid +4")
 		add_aid(4)
-
-		if (has_piece(s, CARTELS, BASE))
-			game.state = "eradicate_base"
-		else
-			goto_eradicate_shift()
+		resume_eradicate_base()
 	}
+}
+
+function resume_eradicate_base() {
+	if (has_piece(game.sa.where, CARTELS, BASE))
+		game.state = "eradicate_base"
+	else
+		goto_eradicate_shift()
 }
 
 states.eradicate_base = {
@@ -4982,8 +4995,7 @@ states.eradicate_base = {
 	piece(p) {
 		logi("Removed Cartels Base")
 		remove_piece(p)
-		if (!has_piece(game.sa.where, CARTELS, BASE))
-			goto_eradicate_shift()
+		resume_eradicate_base()
 	}
 }
 
@@ -5697,11 +5709,13 @@ function resume_bribe() {
 
 states.bribe = {
 	prompt() {
-		view.prompt = `Bribe: Select up to 3 spaces.`
 		if (game.resources[CARTELS] >= 3) {
+			view.prompt = `Bribe: Select up to 3 spaces.`
 			for (let s = first_space; s <= last_space; ++s)
 				if (!set_has(game.sa.spaces, s) && has_enemy_piece(s))
 					gen_action_space(s)
+		} else {
+			view.prompt = "Bribe: No Resources."
 		}
 		view.actions.end_bribe = 1
 	},
