@@ -8381,9 +8381,11 @@ CODE[7 * 2 + 1] = [
 // EVENT 8
 CODE[8 * 2 + 0] = [
 	[ vm_current, GOVT ],
+	[ vm_repeat, 3 ],
+	[ vm_if, ()=>can_air_strike() ],
 	[ vm_free_air_strike ],
-	[ vm_free_air_strike ],
-	[ vm_free_air_strike ],
+	[ vm_endif ],
+	[ vm_endrepeat ],
 	[ vm_return ],
 ]
 
@@ -8739,9 +8741,11 @@ CODE[26 * 2 + 1] = [
 // EVENT 27
 CODE[27 * 2 + 0] = [
 	[ vm_current, GOVT ],
+	[ vm_repeat, 3 ],
+	[ vm_if, ()=>can_air_lift() || can_eradicate() || can_air_strike() ],
 	[ vm_free_govt_special_activity ],
-	[ vm_free_govt_special_activity ],
-	[ vm_free_govt_special_activity ],
+	[ vm_endif ],
+	[ vm_endrepeat ],
 	[ vm_return ],
 ]
 

@@ -102,9 +102,11 @@ SHADED 7
 
 EVENT 8
 	current GOVT
-	free_air_strike
-	free_air_strike
-	free_air_strike
+	repeat 3
+		if can_air_strike()
+			free_air_strike
+		endif
+	endrepeat
 
 SHADED 8
 	resources GOVT -9
@@ -350,9 +352,11 @@ SHADED 26
 
 EVENT 27
 	current GOVT
-	free_govt_special_activity
-	free_govt_special_activity
-	free_govt_special_activity
+	repeat 3
+		if can_air_lift() || can_eradicate() || can_air_strike()
+			free_govt_special_activity
+		endif
+	endrepeat
 
 SHADED 27
 	log "Until next Propaganda, no Government Special Activities where Guerrilla."
