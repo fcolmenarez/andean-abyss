@@ -5458,7 +5458,7 @@ function goto_cultivate() {
 
 states.cultivate = {
 	prompt() {
-		view.prompt = "Cultivate: Relocate Base to City or Department (or place if Rally Department)."
+		view.prompt = "Cultivate: Relocate Base, place Base if Rally Department."
 		for (let s = first_pop; s <= last_pop; ++s)
 			if (can_cultivate_in_space(s))
 				gen_action_space(s)
