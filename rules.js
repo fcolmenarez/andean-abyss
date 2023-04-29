@@ -3293,6 +3293,7 @@ states.patrol_activate_space = {
 	piece(p) {
 		game.op.targeted |= target_faction(p)
 		set_active(p)
+		log_summary_activated(p)
 		if (++game.op.count >= count_cubes(game.op.where) || !has_any_underground_guerrilla(game.op.where))
 			end_patrol_activate_space()
 	},
@@ -3326,7 +3327,6 @@ function resume_patrol_assault() {
 		game.state = "patrol_assault"
 	else
 		game.state = "patrol_done"
-	transfer_or_drug_bust_shipments()
 }
 
 function can_patrol_assault() {
