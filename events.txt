@@ -371,7 +371,7 @@ SHADED 27
 EVENT 28
 	prompt "Remove up to 3 Insurgent pieces from a space next to Venezuela."
 	space 1 is_next_to_venezuela(s) && has_insurgent_piece(s)
-		# Note: up to negates requirement for maxiumum damage
+		# Note: up to negates requirement for maximumum damage
 		prompt "Remove up to 3 Insurgent pieces."
 		piece_opt 3 is_piece_in_event_space(p) && is_insurgent_piece(p)
 			remove

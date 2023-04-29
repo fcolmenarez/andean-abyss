@@ -571,16 +571,12 @@ function pop_summary() {
 	game.summary = null
 }
 
-function log_summary_place(p, to) {
+function log_summary_place(p) {
 	let from = piece_space(p)
 	if (from !== AVAILABLE)
 		log_summary("% " + piece_name(p) + " from S" + from)
 	else
 		log_summary("% " + piece_name(p))
-}
-
-function log_summary_auto_place(f, t, to) {
-	log_summary("% " + piece_faction_type_name[f][t])
 }
 
 function log_summary_move_to_from(p, to) {
@@ -699,7 +695,6 @@ function is_govt_base(p) { return is_piece(p, GOVT, BASE) }
 function is_troops(p) { return is_piece(p, GOVT, TROOPS) }
 function is_police(p) { return is_piece(p, GOVT, POLICE) }
 function is_cube(p) { return is_troops(p) || is_police(p) }
-function is_govt_piece(p) { return is_govt_base(p) || is_cube(p) }
 
 function is_farc_base(p) { return is_piece(p, FARC, BASE) }
 function is_farc_guerrilla(p) { return is_piece(p, FARC, GUERRILLA) }
@@ -814,24 +809,6 @@ function count_guerrillas(s) {
 	)
 }
 
-function count_faction_underground_guerrillas(s, faction) {
-	let first = first_piece[faction][GUERRILLA]
-	let last = last_piece[faction][GUERRILLA]
-	let n = 0
-	for (let p = first; p <= last; ++p)
-		if (piece_space(p) === s && is_underground(p))
-			++n
-	return n
-}
-
-function count_any_underground_guerrillas(s) {
-	return (
-		count_faction_underground_guerrillas(s, FARC) +
-		count_faction_underground_guerrillas(s, AUC) +
-		count_faction_underground_guerrillas(s, CARTELS)
-	)
-}
-
 function find_piece(s, faction, type) {
 	let first = first_piece[faction][type]
 	let last = last_piece[faction][type]
@@ -888,7 +865,6 @@ function has_govt_base(s) { return has_piece(s, GOVT, BASE) }
 function has_troops(s) { return has_piece(s, GOVT, TROOPS) }
 function has_police(s) { return has_piece(s, GOVT, POLICE) }
 function has_cube(s) { return has_piece(s, GOVT, TROOPS) || has_piece(s, GOVT, POLICE) }
-function has_govt_piece(s) { return has_piece(s, GOVT, BASE) || has_piece(s, GOVT, TROOPS) || has_piece(s, GOVT, POLICE) }
 
 function has_farc_guerrilla(s) { return has_piece(s, FARC, GUERRILLA) }
 function has_farc_piece(s) { return has_piece(s, FARC, BASE) || has_piece(s, FARC, GUERRILLA) }
@@ -2840,7 +2816,7 @@ states.train_place = {
 		view.actions.next = 1
 	},
 	piece(p) {
-		log_summary_place(p, game.op.where)
+		log_summary_place(p)
 		place_piece(p, game.op.where)
 		if (--game.op.count === 0)
 			end_train_place()
@@ -4024,7 +4000,7 @@ states.rally_space = {
 			view.actions.skip = 1
 	},
 	piece(p) {
-		log_summary_place(p, game.op.where)
+		log_summary_place(p)
 		place_piece(p, game.op.where)
 		game.state = "rally_guerrillas"
 		if (++game.op.count >= rally_count() || !can_stack_piece(game.op.where, game.current, GUERRILLA))
@@ -4050,7 +4026,7 @@ states.rally_guerrillas = {
 		view.actions.next = 1
 	},
 	piece(p) {
-		log_summary_place(p, game.op.where)
+		log_summary_place(p)
 		place_piece(p, game.op.where)
 		game.state = "rally_guerrillas"
 		if (++game.op.count >= rally_count() || !can_stack_piece(game.op.where, game.current, GUERRILLA))
@@ -4561,13 +4537,6 @@ function vm_free_terror() {
 }
 
 function vm_free_terror_with_piece() {
-	init_free_operation("Terror", game.vm.s)
-	if (game.current === AUC)
-		game.vm.auc_terror = 0
-	do_terror_piece(game.vm.p)
-}
-
-function vm_free_terror_without_piece() {
 	init_free_operation("Terror", game.vm.s)
 	if (game.current === AUC)
 		game.vm.auc_terror = 0
@@ -5853,7 +5822,7 @@ states.contraband = {
 			resume_bribe()
 	},
 	remove() {
-		log_transfor("Contraband - removed Shipment in S" + game.sa.where)
+		log_transfer("Contraband - removed Shipment in S" + game.sa.where)
 		remove_shipment(find_stealable_shipment())
 		if (!can_steal_dropped_shipments())
 			resume_bribe()
@@ -5984,25 +5953,11 @@ function goto_sabotage_phase() {
 
 	log_action("Sabotage")
 
-	// TODO: manual or automatic sabotage
-	if (false) {
-		if (can_sabotage_phase()) {
-			log_action("Sabotage")
-			for (let s = first_loc; s <= last_loc; ++s) {
-				if (can_sabotage_phase_space(s)) {
-					logi("S" + s)
-					place_sabotage(s)
-				}
-			}
-		}
-		goto_resources_phase()
+	if (can_sabotage_phase()) {
+		game.state = "sabotage"
 	} else {
-		if (can_sabotage_phase()) {
-			game.state = "sabotage"
-		} else {
-			logi("Nothing")
-			end_sabotage_phase()
-		}
+		logi("Nothing")
+		end_sabotage_phase()
 	}
 }
 
@@ -6451,17 +6406,6 @@ function goto_redeploy_phase() {
 		game.state = "redeploy_optional"
 	else
 		game.state = "redeploy_mandatory"
-}
-
-function is_redeploy_done() {
-	for (let p = first_piece[GOVT][TROOPS]; p <= last_piece[GOVT][TROOPS]; ++p) {
-		let s = piece_space(p)
-		if (is_loc(s))
-			return false
-		if (is_dept(s) && !has_govt_base(s))
-			return false
-	}
-	return true
 }
 
 function find_first_redeploy_troops() {
