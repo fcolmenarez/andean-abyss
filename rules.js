@@ -5105,7 +5105,8 @@ function goto_extort() {
 states.extort = {
 	prompt() {
 		if (game.sa.where < 0) {
-			view.prompt = "Extort: Select space with Underground Guerrilla that you control."
+			let name = faction_name[game.current]
+			view.prompt = `Extort in any spaces where ${name} forces include an Underground Guerrilla and outnumber enemy.`
 			for (let s = first_space; s <= last_space; ++s) {
 				if (set_has(game.sa.spaces, s))
 					continue
@@ -5201,7 +5202,7 @@ function can_kidnap_in_space(s) {
 
 states.kidnap = {
 	prompt() {
-		view.prompt = "Kidnap: Select up to 3 Cartels Base, City, or LoC spaces where Terror Op."
+		view.prompt = "Kidnap in up to 3 Cartels Base, City, or LoC spaces where Terror Op."
 
 		if (game.sa.spaces.length < 3) {
 			for (let s = first_space; s <= last_space; ++s) {
@@ -5375,7 +5376,7 @@ function resume_assassinate() {
 
 states.assassinate = {
 	prompt() {
-		view.prompt = "Assassinate: Select up to 3 spaces selected for Terror."
+		view.prompt = "Assassinate in up to 3 spaces selected for Terror."
 
 		for (let s = first_space; s <= last_space; ++s) {
 			if (set_has(game.sa.spaces, s))
@@ -5685,7 +5686,7 @@ function resume_bribe() {
 states.bribe = {
 	prompt() {
 		if (game.resources[CARTELS] >= 3) {
-			view.prompt = `Bribe: Select up to 3 spaces.`
+			view.prompt = `Bribe in up to 3 spaces.`
 			for (let s = first_space; s <= last_space; ++s)
 				if (!set_has(game.sa.spaces, s) && has_enemy_piece(s))
 					gen_action_space(s)
