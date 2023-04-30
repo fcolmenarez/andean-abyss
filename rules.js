@@ -9753,7 +9753,7 @@ CODE[69 * 2 + 0] = [
 	[ vm_endspace ],
 	[ vm_endif ],
 	[ vm_prompt, "Select destination Department." ],
-	[ vm_space, true, 1, 1, (s)=>(s !== game.vm.m[0]) && is_within_adjacent_depts(s, game.vm.m[0], 3) && can_stack_any(s, game.current) ],
+	[ vm_space, true, 1, 1, (s)=>game.vm.m && (s !== game.vm.m[0]) && is_within_adjacent_depts(s, game.vm.m[0], 3) && can_stack_any(s, game.current) ],
 	[ vm_if, ()=>game.current === GOVT ],
 	[ vm_prompt, "Move cubes to destination." ],
 	[ vm_piece, true, 0, 999, (p,s)=>(s === game.vm.m[0]) && is_cube(p) && can_stack_any(s, GOVT) ],

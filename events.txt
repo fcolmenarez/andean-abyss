@@ -1151,7 +1151,7 @@ EVENT 69
 		endspace
 	endif
 	prompt "Select destination Department."
-	space 1 (s !== game.vm.m[0]) && is_within_adjacent_depts(s, game.vm.m[0], 3) && can_stack_any(s, game.current)
+	space 1 game.vm.m && (s !== game.vm.m[0]) && is_within_adjacent_depts(s, game.vm.m[0], 3) && can_stack_any(s, game.current)
 		if game.current === GOVT
 			prompt "Move cubes to destination."
 			piece_undo_opt all (s === game.vm.m[0]) && is_cube(p) && can_stack_any(s, GOVT)
