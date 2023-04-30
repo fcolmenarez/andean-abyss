@@ -5201,7 +5201,7 @@ function can_kidnap_in_space(s) {
 
 states.kidnap = {
 	prompt() {
-		view.prompt = "Kidnap: Select up to 3 Cartels Base, City, LoC spaces where Terror."
+		view.prompt = "Kidnap: Select up to 3 Cartels Base, City, or LoC spaces where Terror Op."
 
 		if (game.sa.spaces.length < 3) {
 			for (let s = first_space; s <= last_space; ++s) {
@@ -5375,7 +5375,7 @@ function resume_assassinate() {
 
 states.assassinate = {
 	prompt() {
-		view.prompt = "Assassinate: Select up to 3 spaces where Terror."
+		view.prompt = "Assassinate: Select up to 3 spaces selected for Terror."
 
 		for (let s = first_space; s <= last_space; ++s) {
 			if (set_has(game.sa.spaces, s))
@@ -5472,7 +5472,7 @@ function goto_cultivate() {
 
 states.cultivate = {
 	prompt() {
-		view.prompt = "Cultivate: Relocate Base, place Base if Rally Department."
+		view.prompt = "Cultivate: Relocate Base, or place Base if Rally Department."
 		for (let s = first_pop; s <= last_pop; ++s)
 			if (can_cultivate_in_space(s))
 				gen_action_space(s)
@@ -5547,7 +5547,7 @@ function can_process() {
 
 states.process = {
 	prompt() {
-		view.prompt = "Process: Place 1-2 Shipments with any Guerrillas, or remove any Cartels bases for Resources."
+		view.prompt = "Process: Place Shipments or remove Cartels Bases for Resources."
 		for (let sh = 0; sh < 4; ++sh)
 			if (is_shipment_available(sh))
 				gen_action_shipment(sh)
@@ -5582,7 +5582,7 @@ function do_process_remove_base(p) {
 
 states.process_place_shipments = {
 	prompt() {
-		view.prompt = "Process: Place 1-2 Shipments with any Guerrillas."
+		view.prompt = "Process: Place 1-2 Shipments with any Guerrillas in Cities or Departments with Cartels Bases."
 		if (game.sa.shipment < 0) {
 			for (let sh = 0; sh < 4; ++sh)
 				if (is_shipment_available(sh))
@@ -5620,7 +5620,7 @@ states.process_place_shipments = {
 
 states.process_remove_bases = {
 	prompt() {
-		view.prompt = "Process: Remove any Cartels bases for Resources."
+		view.prompt = "Process: Remove Cartels Bases for Resources."
 		for_each_piece(CARTELS, BASE, p => {
 			if (piece_space(p) !== AVAILABLE)
 				gen_action_piece(p)
@@ -6227,13 +6227,29 @@ states.civic_action = {
 			set_add(game.prop.first_div, s)
 		do_civic_action(s, true)
 		game.prop.count++
+		if (!can_any_civic_action())
+			game.state = "civic_action_done"
 	},
 	done() {
-		if (game.prop.count === 0)
-			logi("Nothing")
-		clear_undo()
-		goto_support_agitation()
+		end_civic_action()
 	},
+}
+
+states.civic_action_done = {
+	prompt() {
+		view.prompt = "Civic Action: All done."
+		view.actions.done = 1
+	},
+	done() {
+		end_civic_action()
+	},
+}
+
+function end_civic_action() {
+	if (game.prop.count === 0)
+		logi("Nothing")
+	clear_undo()
+	goto_support_agitation()
 }
 
 function goto_support_agitation() {
@@ -6299,13 +6315,29 @@ states.agitation = {
 			logi("S" + s + " to " + support_level_name[game.support[s]])
 		}
 		game.prop.count++
+		if (!can_any_agitate())
+			game.state = "agitation_done"
 	},
 	done() {
-		if (game.prop.count === 0)
-			logi("Nothing")
-		clear_undo()
-		goto_election()
+		end_agitation()
 	},
+}
+
+states.agitation_done = {
+	prompt() {
+		view.prompt = "Agitation: All done."
+		view.actions.done = 1
+	},
+	done() {
+		end_agitation()
+	},
+}
+
+function end_agitation() {
+	if (game.prop.count === 0)
+		logi("Nothing")
+	clear_undo()
+	goto_election()
 }
 
 function goto_election() {
