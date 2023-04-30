@@ -8826,6 +8826,8 @@ CODE[30 * 2 + 0] = [
 CODE[30 * 2 + 1] = [
 	[ vm_current, GOVT ],
 	[ vm_place_farc_zone ],
+	[ vm_set_space, ()=>(game.vm.farc_zone) ],
+	[ vm_auto_place, false, 0, FARC, BASE ],
 	[ vm_return ],
 ]
 

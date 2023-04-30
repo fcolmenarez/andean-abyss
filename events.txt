@@ -432,6 +432,8 @@ EVENT 30
 SHADED 30
 	current GOVT
 	place_farc_zone
+	set_space (game.vm.farc_zone)
+	auto_place FARC BASE
 
 EVENT 31
 	prompt "Shift 2 Cities 1 level toward Active Support."
