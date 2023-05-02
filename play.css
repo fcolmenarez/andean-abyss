@@ -39,16 +39,12 @@ main { background-color: #777; }
 	top: 60px;
 }
 
-
 /* Put cards on right of map when zoomed to fit, or very wide screen */
 main { grid-template-columns: 1fr min-content min-content 1fr; }
 #mapwrap { grid-row: 1; grid-column: 2 }
 #card_panel { grid-row: 1; grid-column: 3 }
 @media (min-width: 2200px) { main { display: grid; } }
 main.fit { display: grid; }
-/*
-main.fit #deck_outer { height: 96px; background-position: 0 -15px }
-*/
 
 /* MAP */
 

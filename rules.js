@@ -6,7 +6,7 @@
 
 const AUTOMATIC = true
 
-const PATROL_UNDO = true
+const PATROL_RESET = false // reset Patrol per-cube undo states after hitting "Next"
 
 let states = {}
 let game = null
@@ -3022,7 +3022,8 @@ function goto_patrol2() {
 	else
 		game.state = "patrol"
 	game.op.who = -1
-	game.op.undo = game.undo.length
+	if (PATROL_RESET)
+		game.op.undo = game.undo.length
 }
 
 function can_patrol() {
@@ -3165,13 +3166,11 @@ states.patrol = {
 	},
 	piece(p) {
 		if (game.op.who < 0) {
-			if (PATROL_UNDO)
-				push_undo()
+			push_undo()
 			game.op.who = p
 			set_add(game.op.pieces, p)
 		} else {
-			if (PATROL_UNDO)
-				pop_undo()
+			pop_undo()
 			game.op.who = -1
 		}
 	},
@@ -3188,7 +3187,7 @@ states.patrol = {
 	},
 	next() {
 		// Reset undo stack to beginning of Operation.
-		if (PATROL_UNDO)
+		if (PATROL_RESET)
 			game.undo.length = game.op.undo
 		end_patrol_move()
 	},
