@@ -5565,20 +5565,25 @@ states.process = {
 	},
 	piece(p) {
 		push_undo()
+		log_action("Process - Remove Bases")
+		game.sa.count = 0
 		do_process_remove_base(p)
 	},
 }
 
 function do_process_remove_base(p) {
-	log_space(piece_space(p), "Process")
-	logi("Removed Cartels Base")
+	logi("S" + piece_space(p))
 
 	remove_piece(p)
 	add_resources(CARTELS, 3)
-	if (has_pieces_on_map(CARTELS, BASE))
+	game.sa.count += 3
+
+	if (has_pieces_on_map(CARTELS, BASE)) {
 		game.state = "process_remove_bases"
-	else
+	} else {
+		logi_resources(CARTELS, game.sa.count)
 		end_special_activity()
+	}
 }
 
 states.process_place_shipments = {
@@ -5621,7 +5626,7 @@ states.process_place_shipments = {
 
 states.process_remove_bases = {
 	prompt() {
-		view.prompt = "Process: Remove Cartels Bases for Resources."
+		view.prompt = "Process: Remove Cartels Bases for +3 Resources each."
 		for_each_piece(CARTELS, BASE, p => {
 			if (piece_space(p) !== AVAILABLE)
 				gen_action_piece(p)
@@ -5634,6 +5639,7 @@ states.process_remove_bases = {
 	},
 	end_process() {
 		push_undo()
+		logi_resources(CARTELS, game.sa.count)
 		end_special_activity()
 	},
 }
