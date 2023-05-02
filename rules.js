@@ -2780,10 +2780,7 @@ states.train = {
 	},
 	civic() {
 		push_undo()
-		if (game.op.limited && game.op.spaces.length > 0)
-			goto_train_civic_action(game.op.spaces[0])
-		else
-			game.state = "train_civic"
+		game.state = "train_civic"
 	},
 	end_train: end_operation,
 }
@@ -2845,7 +2842,7 @@ states.vm_train_base_or_civic = {
 	},
 	civic() {
 		push_undo()
-		goto_train_civic_action(game.vm.s)
+		game.state = "vm_train_civic"
 	},
 	end_train: end_operation,
 }
@@ -2945,6 +2942,17 @@ function end_train_civic_action() {
 	game.state = "train_done"
 }
 
+states.vm_train_civic = {
+	prompt() {
+		view.prompt = `Train: Buy Civic Action.`
+		gen_action_space(game.vm.s)
+	},
+	space(s) {
+		push_undo()
+		goto_train_civic_action(s)
+	},
+}
+
 states.train_civic = {
 	prompt() {
 		view.prompt = `Train: Buy Civic Action.`
@@ -2959,7 +2967,6 @@ states.train_civic = {
 			select_op_space(s, 3)
 		goto_train_civic_action(s)
 	},
-	end_train: end_operation,
 }
 
 states.train_civic_buy = {
