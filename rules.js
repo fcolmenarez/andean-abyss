@@ -9626,7 +9626,7 @@ CODE[61 * 2 + 0] = [
 	[ vm_prompt, "Remove all Cartels pieces from 1 City." ],
 	[ vm_space, true, 1, 1, (s)=>is_city(s) && has_cartels_piece(s) ],
 	[ vm_prompt, "Remove all Cartels pieces." ],
-	[ vm_piece, true, 999, 999, (p,s)=>is_piece_in_event_space(p) && is_cartels_piece(p) ],
+	[ vm_piece, false, 999, 999, (p,s)=>is_piece_in_event_space(p) && is_cartels_piece(p) ],
 	[ vm_remove ],
 	[ vm_endpiece ],
 	[ vm_endspace ],

@@ -1029,7 +1029,7 @@ EVENT 61
 	prompt "Remove all Cartels pieces from 1 City."
 	space 1 is_city(s) && has_cartels_piece(s)
 		prompt "Remove all Cartels pieces."
-		piece_undo all is_piece_in_event_space(p) && is_cartels_piece(p)
+		piece all is_piece_in_event_space(p) && is_cartels_piece(p)
 			remove
 		endpiece
 	endspace
