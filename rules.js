@@ -2118,6 +2118,8 @@ function end_negotiation() {
 // === SHIP FOR EXTRA LIMOP ===
 
 states.ship = {
+	disable_negotiation: true,
+	inactive: "Remove Shipment",
 	prompt() {
 		view.prompt = "Ship: Remove Shipment for a free, extra Limited Operation?"
 		view.actions.skip = 1
@@ -2152,6 +2154,7 @@ states.ship = {
 
 states.ask_ship = {
 	disable_negotiation: true,
+	inactive: "Remove Shipment",
 	prompt() {
 		view.prompt = `Negotiate: Remove Shipment to give ${faction_name[game.transfer.current]} a free extra Limited Operation?`
 		view.actions.deny = 1
@@ -6000,6 +6003,7 @@ function can_sabotage_phase_space(s) {
 }
 
 states.sabotage = {
+	inactive: "Sabotage",
 	prompt() {
 		view.prompt = "Sabotage LoCs."
 		for (let s = first_loc; s <= last_loc; ++s)
@@ -6026,6 +6030,7 @@ function end_sabotage_phase() {
 }
 
 states.sabotage_7th_sf = {
+	inactive: "7th Special Forces",
 	prompt() {
 		view.prompt = "7th Special Forces: Remove 1-3 Terror or Sabotage."
 		for (let s of game.sabotage)
@@ -6052,6 +6057,7 @@ states.sabotage_7th_sf = {
 }
 
 states.sabotage_7th_sf_done = {
+	inactive: "7th Special Forces",
 	prompt() {
 		view.prompt = "7th Special Forces: All done."
 		view.actions.done = 1
@@ -6125,6 +6131,7 @@ function goto_drug_profits() {
 }
 
 states.drug_profits = {
+	inactive: "Drug Profits",
 	prompt() {
 		view.prompt = "Drug Profits: Remove Shipments for Base or Resources."
 		for (let sh = 0; sh < 4; ++sh)
@@ -6153,6 +6160,7 @@ states.drug_profits = {
 }
 
 states.drug_profits_choice = {
+	inactive: "Drug Profits",
 	prompt() {
 		view.prompt = "Drug Profits: Place Base or +6 Resources."
 		gen_place_piece(game.transfer, game.current, BASE)
@@ -6221,6 +6229,7 @@ function can_civic_action(s) {
 }
 
 states.civic_action = {
+	inactive: "Civic Action",
 	prompt() {
 		view.prompt = "Civic Action: Build Support in Cities and Departments."
 		if (game.resources[GOVT] >= 3) {
@@ -6245,6 +6254,7 @@ states.civic_action = {
 }
 
 states.civic_action_done = {
+	inactive: "Civic Action",
 	prompt() {
 		view.prompt = "Civic Action: All done."
 		view.actions.done = 1
@@ -6302,6 +6312,7 @@ function can_agitate(s) {
 }
 
 states.agitation = {
+	inactive: "Agitation",
 	prompt() {
 		view.prompt = "Agitation: Encourage Opposition in Cities and Departments."
 		if (game.resources[FARC] >= 1) {
@@ -6333,6 +6344,7 @@ states.agitation = {
 }
 
 states.agitation_done = {
+	inactive: "Agitation",
 	prompt() {
 		view.prompt = "Agitation: All done."
 		view.actions.done = 1
@@ -6376,6 +6388,7 @@ function goto_election() {
 }
 
 states.remove_farc_zones = {
+	inactive: "Remove FARC Zones",
 	prompt() {
 		view.prompt = "Election: Remove all FARC Zones."
 		for (let s = first_dept; s <= last_dept; ++s)
@@ -6404,6 +6417,7 @@ function end_elite_backing() {
 }
 
 states.elite_backing = {
+	inactive: "Elite Backing",
 	prompt() {
 		view.prompt = "Elite Backing: Free Rally in one space."
 		for (let s = first_space; s <= last_dept; ++s)
@@ -6422,6 +6436,7 @@ states.elite_backing = {
 }
 
 states.elite_backing_done = {
+	inactive: "Elite Backing",
 	prompt() {
 		view.prompt = "Elite Backing: All done."
 		view.actions.done = 1
@@ -6465,6 +6480,7 @@ function find_first_redeploy_troops() {
 }
 
 states.redeploy_mandatory = {
+	inactive: "Redeploy Troops",
 	prompt() {
 		// view.prompt = "Redeploy Troops from LoCs and Departments without Base."
 		let p = game.prop.who
@@ -6500,6 +6516,7 @@ function end_redeploy_mandatory() {
 }
 
 states.redeploy_optional = {
+	inactive: "Redeploy Troops and Police",
 	prompt() {
 		view.prompt = "Redeploy Troops and Police."
 
@@ -6645,6 +6662,7 @@ function has_police_in_farc_zone() {
 }
 
 states.farc_zone_place = {
+	inactive: "Place FARC Zone",
 	prompt() {
 		if (game.vm && game.vm.zona_de_convivencia)
 			view.prompt = "Place FARC Zone in a Mountain Department."
@@ -6680,6 +6698,7 @@ function resume_farc_zone_redeploy() {
 }
 
 states.farc_zone_redeploy_bases = {
+	inactive: "Redeploy from FARC Zone",
 	prompt() {
 		view.prompt = "Remove Government Bases from FARC Zone."
 		for (let s = first_dept; s <= last_dept; ++s)
@@ -6694,6 +6713,7 @@ states.farc_zone_redeploy_bases = {
 }
 
 states.farc_zone_redeploy_troops = {
+	inactive: "Redeploy from FARC Zone",
 	prompt()  {
 		view.prompt = "Redeploy Troops from FARC Zone."
 		view.who = find_first_troops_in_farc_zone()
@@ -6710,6 +6730,7 @@ states.farc_zone_redeploy_troops = {
 }
 
 states.farc_zone_redeploy_police = {
+	inactive: "Redeploy from FARC Zone",
 	prompt()  {
 		view.prompt = "Redeploy Police from FARC Zone."
 		view.who = find_first_police_in_farc_zone()
