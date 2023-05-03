@@ -205,7 +205,6 @@ exports.scenarios = [
 	"Standard",
 	"Short",
 	"Quick",
-	"Test",
 ]
 
 function load_game(state) {
