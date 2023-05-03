@@ -932,7 +932,6 @@ function is_next_to_ecuador(s) {
 		s === NARINO ||
 		s === PASTO ||
 		s === PUTUMAYO ||
-		s === ARAUCA ||
 		s === PASTO_TUMACO_LOC
 	)
 }
