@@ -326,8 +326,6 @@ exports.setup = function (seed, scenario, options) {
 		break
 	}
 
-	log("DEBUG DECK " + game.deck.join(", "))
-
 	update_control()
 
 	goto_card()
