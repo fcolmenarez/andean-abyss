@@ -6088,7 +6088,7 @@ function calc_farc_earnings() {
 }
 
 function calc_auc_earnings() {
-	return calc_bases(FARC)
+	return calc_bases(AUC)
 }
 
 function calc_cartels_earnings() {
