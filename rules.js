@@ -1197,9 +1197,10 @@ function is_adjacent_to_3econ_pipeline(s) {
 }
 
 function is_with_or_adjacent_to_mark(s, list) {
-	for (let x of list)
-		if (x === s || is_adjacent(x, s))
-			return true
+	if (list)
+		for (let x of list)
+			if (x === s || is_adjacent(x, s))
+				return true
 	return false
 }
 
