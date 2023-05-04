@@ -3988,6 +3988,11 @@ states.rally_space = {
 		view.prompt = `Rally: Place up to ${rally_count()} Guerrillas, build Base, or Move.`
 		view.where = game.op.where
 
+		if (game.sa) {
+			// allow Cultivate here because you can place a base into the selected Dept to rally more effectively
+			gen_special_activity(CARTELS, "cultivate", can_cultivate)
+		}
+
 		if (count_pieces(game.op.where, game.current, GUERRILLA) >= 2 && count_bases(game.op.where) < 2)
 			view.actions.base = 1
 		else
@@ -5485,7 +5490,6 @@ states.cultivate = {
 				gen_action_space(s)
 	},
 	space(s) {
-		push_undo()
 		game.sa.where = s
 		if (is_selected_op_space(s) && is_dept(s) && game.op.type === "Rally") {
 			if (auto_place_piece(s, CARTELS, BASE)) {
