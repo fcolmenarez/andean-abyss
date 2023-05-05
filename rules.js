@@ -5181,11 +5181,32 @@ function goto_kidnap() {
 	game.state = "kidnap"
 }
 
+function is_govt_kidnap_space(s) {
+	return is_city_or_loc(s) && game.resources[GOVT] > 0
+}
+
+function is_cartels_kidnap_space(s) {
+	if (has_piece(s, CARTELS, BASE)) {
+		if (game.resources[CARTELS] > 0)
+			return true
+		if (is_any_shipment_held_by_faction_in_space(CARTELS, s))
+			return true
+	}
+	return false
+}
+
 function can_kidnap_in_space(s) {
 	// City, LoC, or Cartels Base
 	if (is_city_or_loc(s) || has_piece(s, CARTELS, BASE)) {
 		// FARC Guerrillas outnumber Police
 		if (count_pieces(s, FARC, GUERRILLA) > count_pieces(s, GOVT, POLICE)) {
+			let g = is_govt_kidnap_space(s)
+			let c = is_cartels_kidnap_space(s)
+
+			// Nothing to take!
+			if (!g && !c)
+				return false
+
 			// Selected for Terror
 			if (is_selected_op_space(s))
 				return true
@@ -5246,8 +5267,8 @@ states.kidnap_space = {
 
 		let s = game.sa.where
 
-		let g = is_city_or_loc(s) && game.resources[GOVT] > 0
-		let c = has_piece(s, CARTELS, BASE) && game.resources[CARTELS] > 0
+		let g = is_govt_kidnap_space(s)
+		let c = is_cartels_kidnap_space(s)
 
 		if (g)
 			gen_action_resources(GOVT)
