@@ -284,8 +284,8 @@ let ui = {
 		document.getElementById("s_cap_black_hawks"),
 		document.getElementById("s_cap_ndsc"),
 		document.getElementById("s_cap_meteoro"),
-		document.getElementById("rem_darien"),
 		document.getElementById("rem_sucumbios"),
+		document.getElementById("rem_darien"),
 	],
 	momentum: [
 		document.getElementById("mom_12"),
