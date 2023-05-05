@@ -242,7 +242,7 @@ const SOP_C2 = 6
 const SOP_PASS = 7
 const INELIGIBLE = 8
 
-const capability_cards = [ 1, 2, 3, 7, 9, 10, 11, 13, 1, 2, 3, 7, 9, 10, 11, 13, 17, 18 ]
+const capability_cards = [ 1, 2, 3, 7, 9, 10, 11, 13, 1, 2, 3, 7, 9, 10, 11, 13, 33, 71 ]
 const momentum_cards = [ 12, 17, 22, 27, 67, 42, 42, 42 ]
 
 function has_momentum(bit) {
