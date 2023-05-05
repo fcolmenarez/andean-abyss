@@ -4542,15 +4542,11 @@ function goto_terror() {
 
 function vm_free_terror() {
 	init_free_operation("Terror", game.vm.s)
-	if (game.current === AUC)
-		game.vm.auc_terror = 0
 	game.state = "terror_space"
 }
 
 function vm_free_terror_with_piece() {
 	init_free_operation("Terror", game.vm.s)
-	if (game.current === AUC)
-		game.vm.auc_terror = 0
 	do_terror_piece(game.vm.p)
 }
 
@@ -4650,7 +4646,7 @@ function do_terror_piece(p) {
 		resume_kidnap_2()
 	} else if (game.vm) {
 		if (game.current === AUC)
-			game.vm.auc_terror++
+			game.vm.auc_terror = (game.vm.auc_terror | 0) + 1
 		end_operation()
 	} else {
 		game.state = "terror"
