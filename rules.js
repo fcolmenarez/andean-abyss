@@ -7173,25 +7173,29 @@ states.vm_current = {
 			view.actions.cartels = 1
 	},
 	govt() {
-		clear_undo()
+		if (game.current !== GOVT)
+			clear_undo()
 		game.current = GOVT
 		log_transfer(faction_name[game.current] + "...")
 		vm_next()
 	},
 	farc() {
-		clear_undo()
+		if (game.current !== FARC)
+			clear_undo()
 		game.current = FARC
 		log_transfer(faction_name[game.current] + "...")
 		vm_next()
 	},
 	auc() {
-		clear_undo()
+		if (game.current !== AUC)
+			clear_undo()
 		game.current = AUC
 		log_transfer(faction_name[game.current] + "...")
 		vm_next()
 	},
 	cartels() {
-		clear_undo()
+		if (game.current !== CARTELS)
+			clear_undo()
 		game.current = CARTELS
 		log_transfer(faction_name[game.current] + "...")
 		vm_next()
