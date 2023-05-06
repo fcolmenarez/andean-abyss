@@ -2409,14 +2409,16 @@ function did_option(e) {
 }
 
 function move_cylinder_to_operation() {
-	if (did_option(SOP_1ST_OP_ONLY))
-		game.cylinder[game.current] = SOP_2ND_LIMOP
-	else if (did_option(SOP_1ST_OP_AND_SA))
-		game.cylinder[game.current] = SOP_2ND_LIMOP_OR_EVENT
-	else if (did_option(SOP_1ST_EVENT))
-		game.cylinder[game.current] = SOP_2ND_OP_AND_SA
-	else
-		game.cylinder[game.current] = SOP_1ST_OP_ONLY
+	if (game.cylinder[game.current] === ELIGIBLE) {
+		if (did_option(SOP_1ST_OP_ONLY))
+			game.cylinder[game.current] = SOP_2ND_LIMOP
+		else if (did_option(SOP_1ST_OP_AND_SA))
+			game.cylinder[game.current] = SOP_2ND_LIMOP_OR_EVENT
+		else if (did_option(SOP_1ST_EVENT))
+			game.cylinder[game.current] = SOP_2ND_OP_AND_SA
+		else
+			game.cylinder[game.current] = SOP_1ST_OP_ONLY
+	}
 }
 
 function move_cylinder_to_special_activity() {
