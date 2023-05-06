@@ -6063,6 +6063,7 @@ states.sabotage_7th_sf = {
 			view.actions.skip = 1
 	},
 	space(s) {
+		push_undo()
 		if (is_loc(s)) {
 			logi("Removed Sabotage from S" + s)
 			remove_sabotage(s)
@@ -6085,6 +6086,7 @@ states.sabotage_7th_sf_done = {
 		view.actions.done = 1
 	},
 	done() {
+		clear_undo()
 		goto_resources_phase()
 	},
 }
