@@ -8109,7 +8109,7 @@ exports.action = function (state, role, action, arg) {
 }
 
 exports.is_checkpoint = function (a, b) {
-	return a.turn !== b.turn
+	return a.deck.length !== b.deck.length
 }
 
 // === COMMON LIBRARY ===
