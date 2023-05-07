@@ -1653,13 +1653,13 @@ function can_stack_any(s, faction) {
 }
 
 function can_stack_base(s, faction) {
-	return can_stack_any(s, faction) && count_bases(s) < 2
+	return (is_city(s) || is_dept(s)) && can_stack_any(s, faction) && count_bases(s) < 2
 }
 
 function can_stack_piece(s, faction, type) {
 	if (can_stack_any(s, faction)) {
 		if (type === BASE)
-			return count_bases(s) < 2
+			return (is_city(s) || is_dept(s)) && count_bases(s) < 2
 		return true
 	}
 	return false
