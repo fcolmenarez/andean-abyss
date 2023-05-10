@@ -1028,14 +1028,20 @@ function remove_farc_zone(s) {
 }
 
 function has_govt_control(s) {
+	if (is_loc(s))
+		return calc_control(s) === GOVT
 	return (s <= last_dept) && game.govt_control & (1 << s)
 }
 
 function has_farc_control(s) {
+	if (is_loc(s))
+		return calc_control(s) === FARC
 	return (s <= last_dept) && game.farc_control & (1 << s)
 }
 
 function has_auc_control(s) {
+	if (is_loc(s))
+		return calc_control(s) === AUC
 	return (s <= last_dept) && game.auc_control & (1 << s)
 }
 
@@ -1250,20 +1256,31 @@ function is_within_adjacent_depts(s, here, depth) {
 
 // === MISC STATE COMMANDS ==
 
+function calc_control(s) {
+	let g = count_faction_pieces(s, GOVT)
+	let f = count_faction_pieces(s, FARC)
+	let a = count_faction_pieces(s, AUC)
+	let c = count_faction_pieces(s, CARTELS)
+	if (g > a + c + f)
+		return GOVT
+	if (f > g + a + c)
+		return FARC
+	if (a > g + f + c)
+		return AUC
+	return -1
+}
+
 function update_control() {
 	game.govt_control = 0
 	game.farc_control = 0
 	game.auc_control = 0
 	for (let s = first_space; s <= last_dept; ++s) {
-		let g = count_faction_pieces(s, GOVT)
-		let f = count_faction_pieces(s, FARC)
-		let a = count_faction_pieces(s, AUC)
-		let c = count_faction_pieces(s, CARTELS)
-		if (g > a + c + f)
+		let c = calc_control(s)
+		if (c === GOVT)
 			game.govt_control |= (1 << s)
-		else if (f > g + a + c)
+		else if (c === FARC)
 			game.farc_control |= (1 << s)
-		else if (a > g + f + c)
+		else if (c === AUC)
 			game.auc_control |= (1 << s)
 	}
 }
