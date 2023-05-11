@@ -5331,6 +5331,7 @@ states.kidnap_space = {
 states.kidnap_drug_ransom = {
 	prompt() {
 		view.prompt = `Kidnap in ${space_name[game.sa.where]}: Place Shipment with a FARC Guerrilla.`
+		view.where = game.sa.where
 		view.selected_shipment = game.sa.shipment
 		gen_piece_in_space(game.sa.where, FARC, GUERRILLA)
 	},
@@ -5344,6 +5345,7 @@ states.kidnap_drug_ransom = {
 states.kidnap_place = {
 	prompt() {
 		view.prompt = `Kidnap in ${space_name[game.sa.where]}: Place an AUC piece.`
+		view.where = game.sa.where
 		if (can_stack_piece(game.sa.where, AUC, BASE))
 			gen_piece_in_space(AVAILABLE, AUC, BASE)
 		if (can_stack_piece(game.sa.where, AUC, GUERRILLA))
@@ -6447,6 +6449,7 @@ states.remove_farc_zones = {
 }
 
 function goto_elite_backing() {
+	clear_undo()
 	game.current = AUC
 	if (can_rally())
 		game.state = "elite_backing"
