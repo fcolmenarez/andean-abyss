@@ -7711,18 +7711,30 @@ states.vm_place_or_remove_shipment = {
 		for (let sh = 0; sh < 4; ++sh)
 			if (is_shipment_held_in_space(sh, game.vm.s))
 				gen_action_shipment(sh)
-		if (has_available_shipment()) {
-			gen_piece_in_space(game.vm.s, FARC, GUERRILLA)
-			gen_piece_in_space(game.vm.s, AUC, GUERRILLA)
-			gen_piece_in_space(game.vm.s, CARTELS, GUERRILLA)
-		}
+		let sh = find_available_shipment()
+		if (sh >= 0)
+			gen_action_shipment(sh)
 	},
 	shipment(sh) {
 		push_undo()
-		let p = get_held_shipment_piece(sh)
-		log("Removed Shipment from " + piece_faction_name(p) + " in S" + piece_space(p) + ".")
-		remove_shipment(sh)
-		vm_next()
+		if (is_shipment_held_in_space(sh, game.vm.s)) {
+			let p = get_held_shipment_piece(sh)
+			log("Removed Shipment from " + piece_faction_name(p) + " in S" + piece_space(p) + ".")
+			remove_shipment(sh)
+			vm_next()
+		} else {
+			game.state = "vm_place_or_remove_shipment_place"
+		}
+	},
+}
+
+states.vm_place_or_remove_shipment_place = {
+	prompt() {
+		event_prompt(`Place Shipment in ${space_name[game.vm.s]}.`)
+		view.selected_shipment = find_available_shipment()
+		gen_piece_in_space(game.vm.s, FARC, GUERRILLA)
+		gen_piece_in_space(game.vm.s, AUC, GUERRILLA)
+		gen_piece_in_space(game.vm.s, CARTELS, GUERRILLA)
 	},
 	piece(p) {
 		push_undo()
