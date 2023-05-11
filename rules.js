@@ -2141,28 +2141,40 @@ states.ship = {
 	prompt() {
 		view.prompt = "Ship: Remove Shipment for a free, extra Limited Operation?"
 		view.actions.skip = 1
-		for (let sh = 0; sh < 4; ++sh)
-			if (is_shipment_held(sh))
-				gen_action_shipment(sh)
+		for (let sh = 0; sh < 4; ++sh) {
+			if (is_shipment_held(sh)) {
+				let faction = get_held_shipment_faction(sh)
+				if (faction === game.current) {
+					gen_action_shipment(sh)
+				} else {
+					if (faction === FARC)
+						view.actions.farc = 1
+					if (faction === AUC)
+						view.actions.auc = 1
+					if (faction === CARTELS)
+						view.actions.cartels = 1
+				}
+			}
+		}
+	},
+	farc() { this.faction(FARC) },
+	auc() { this.faction(AUC) },
+	cartels() { this.faction(CARTELS) },
+	faction(faction) {
+		push_undo()
+		game.transfer = {
+			current: game.current,
+			state: game.state,
+		}
+		game.current = faction
+		game.state = "ask_ship"
 	},
 	shipment(sh) {
 		push_undo()
-		let faction = get_held_shipment_faction(sh)
-		if (faction !== game.current) {
-			// TODO: add confirmation step?
-			game.transfer = {
-				current: game.current,
-				state: game.state,
-				shipment: sh,
-			}
-			game.current = faction
-			game.state = "ask_ship"
-		} else {
-			let p = get_held_shipment_piece(sh)
-			log_transfer(`${piece_faction_name(p)} removed Shipment in S${piece_space(p)} for an extra free LimOp.`)
-			remove_shipment(sh)
-			goto_ship_limop()
-		}
+		let p = get_held_shipment_piece(sh)
+		log_transfer(`${piece_faction_name(p)} removed Shipment in S${piece_space(p)} for an extra free LimOp.`)
+		remove_shipment(sh)
+		goto_ship_limop()
 	},
 	skip() {
 		game.op.ship = 0
@@ -2176,19 +2188,26 @@ states.ask_ship = {
 	prompt() {
 		view.prompt = `Negotiate: Remove Shipment to give ${faction_name[game.transfer.current]} a free extra Limited Operation?`
 		view.actions.deny = 1
-		gen_action_shipment(game.transfer.shipment)
+		view.actions.undo = 0
+		for (let sh = 0; sh < 4; ++sh) {
+			if (is_shipment_held(sh)) {
+				let faction = get_held_shipment_faction(sh)
+				if (faction === game.current) {
+					gen_action_shipment(sh)
+				}
+			}
+		}
 	},
 	shipment(sh) {
+		clear_undo()
 		let p = get_held_shipment_piece(sh)
-		log_transfer(`${piece_faction_name(p)} removed Shipment in S${piece_space(p)} for an extra free LimOp.`)
+		log_transfer(`${faction_name[game.current]} removed Shipment in S${piece_space(p)} for an extra free LimOp.`)
 		end_negotiation()
 		remove_shipment(sh)
 		goto_ship_limop()
 	},
 	deny() {
-		let sh = game.transfer.shipment
-		let p = get_held_shipment_piece(sh)
-		log_transfer(`${piece_faction_name(p)} denied request to remove Shipment in S${piece_space(p)} for an extra free LimOp.`)
+		log_transfer(`${faction_name[game.current]} denied request to remove Shipment for an extra free LimOp.`)
 		end_negotiation()
 	},
 }
