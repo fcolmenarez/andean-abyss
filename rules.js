@@ -7538,12 +7538,13 @@ states.vm_shipment = {
 					gen_action_shipment(sh)
 			}
 		}
-		if (vm_inst(2))
+		if (vm_inst(2) === 0)
 			view.actions.skip = 1
 	},
 	shipment(sh) {
 		if (vm_inst(1))
 			push_undo()
+		game.vm.m += 1
 		game.vm.sh = sh
 		vm_next()
 	},
