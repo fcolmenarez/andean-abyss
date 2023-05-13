@@ -40,21 +40,21 @@
      inkscape:window-height="480"
      id="namedview330"
      showgrid="false"
-     inkscape:zoom="0.65442498"
-     inkscape:cx="1340.6536"
-     inkscape:cy="1314.9076"
+     inkscape:zoom="0.79256722"
+     inkscape:cx="866.50566"
+     inkscape:cy="1244.379"
      inkscape:current-layer="svg328"
      inkscape:document-rotation="0" />
   <image
      sodipodi:absref="/home/tor/src/rally/public/andean-abyss/map75.jpg"
      xlink:href="../map75.jpg"
-     width="1650"
-     height="2550"
-     image-rendering="pixelated"
-     sodipodi:insensitive="true"
-     x="0"
+     id="image2"
      y="0"
-     id="image2" />
+     x="0"
+     sodipodi:insensitive="true"
+     image-rendering="pixelated"
+     height="2550"
+     width="1650" />
   <ellipse
      inkscape:label="Atlantico Govt"
      cx="619.15558"
@@ -201,8 +201,8 @@
      id="ellipse48" />
   <ellipse
      inkscape:label="Guaviare Govt"
-     cx="905.8017"
-     cy="1621.9467"
+     cx="1075.2065"
+     cy="1603.1239"
      rx="50"
      ry="40"
      fill="#00ffff"
@@ -210,8 +210,8 @@
      id="ellipse54" />
   <ellipse
      inkscape:label="Guaviare AUC"
-     cx="1090.8909"
-     cy="1603.4321"
+     cx="862.15125"
+     cy="1634.2329"
      rx="50"
      ry="40"
      fill="#ffff00"
@@ -228,8 +228,8 @@
      id="ellipse58" />
   <ellipse
      inkscape:label="Guaviare FARC"
-     cx="856.50299"
-     cy="1702.6554"
+     cx="840.50299"
+     cy="1712.6554"
      rx="50"
      ry="40"
      fill="#ff0000"
