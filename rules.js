@@ -2686,11 +2686,11 @@ function init_free_operation(type, s) {
 function prompt_end_op(cost) {
 	if (!view.actions.space) {
 		if (game.op.limited && game.op.spaces && game.op.spaces.length > 0)
-			view.prompt = game.op.type + ": All done."
+			view.prompt = game.op.type + ": Done."
 		else if (!game.op.free && game.resources[game.current] < cost)
 			view.prompt = game.op.type + ": No resources."
 		else
-			view.prompt = game.op.type + ": All done."
+			view.prompt = game.op.type + ": Done."
 	}
 	return (game.op.spaces.length > 0) ? 1 : 0
 }
@@ -3022,7 +3022,7 @@ states.train_civic_buy = {
 
 states.train_done = {
 	prompt() {
-		view.prompt = "Train: All done."
+		view.prompt = "Train: Done."
 		gen_govt_special_activity_for_train()
 		view.actions.end_train = 1
 	},
@@ -3435,7 +3435,7 @@ function end_patrol_assault_space() {
 
 states.patrol_done = {
 	prompt() {
-		view.prompt = "Patrol: All done."
+		view.prompt = "Patrol: Done."
 		gen_govt_special_activity()
 		view.actions.end_patrol = 1
 	},
@@ -5149,25 +5149,37 @@ function goto_extort() {
 
 states.extort = {
 	prompt() {
-		if (game.sa.where < 0) {
-			let name = faction_name[game.current]
-			view.prompt = `Extort in any spaces where ${name} forces include an Underground Guerrilla and outnumber enemy.`
-			for (let s = first_space; s <= last_space; ++s) {
-				if (set_has(game.sa.spaces, s))
-					continue
-				if (has_underground_guerrilla(s, game.current)) {
-					if (game.current === FARC && has_farc_control(s))
-						gen_action_space(s)
-					if (game.current === AUC && has_auc_control(s))
-						gen_action_space(s)
-				}
+		let name = faction_name[game.current]
+		view.prompt = `Extort in any spaces where ${name} forces include an Underground Guerrilla and outnumber enemy.`
+		for (let s = first_space; s <= last_space; ++s) {
+			if (set_has(game.sa.spaces, s))
+				continue
+			if (has_underground_guerrilla(s, game.current)) {
+				if (game.current === FARC && has_farc_control(s))
+					gen_action_space(s)
+				if (game.current === AUC && has_auc_control(s))
+					gen_action_space(s)
 			}
-		} else {
-			view.prompt = `Extort in ${space_name[game.sa.where]}.`
-			view.where = game.sa.where
-			gen_underground_guerrillas(game.sa.where, game.current)
 		}
 		view.actions.end_extort = 1
+	},
+	space(s) {
+		push_undo()
+		game.sa.where = s
+		set_add(game.sa.spaces, s)
+		game.state = "extort_space"
+	},
+	end_extort() {
+		push_undo()
+		end_extort()
+	},
+}
+
+states.extort_space = {
+	prompt() {
+		view.prompt = `Extort in ${space_name[game.sa.where]}.`
+		view.where = game.sa.where
+		gen_underground_guerrillas(game.sa.where, game.current)
 	},
 	piece(p) {
 		game.sa.count += 1
@@ -5175,13 +5187,17 @@ states.extort = {
 		set_active(p)
 		add_resources(game.current, 1)
 		game.sa.where = -1
-		if (!can_extort_again())
-			end_extort()
+		if (can_extort_again())
+			game.state = "extort"
+		else
+			game.state = "extort_done"
 	},
-	space(s) {
-		push_undo()
-		game.sa.where = s
-		set_add(game.sa.spaces, s)
+}
+
+states.extort_done = {
+	prompt() {
+		view.prompt = "Extort: Done."
+		view.actions.end_extort = 1
 	},
 	end_extort() {
 		push_undo()
@@ -5388,9 +5404,20 @@ function resume_kidnap_1() {
 
 function resume_kidnap_2() {
 	if (game.sa.spaces.length === 3)
-		end_special_activity()
+		game.state = "kidnap_done"
 	else
 		game.state = "kidnap"
+}
+
+states.kidnap_done = {
+	prompt() {
+		view.prompt = "Kidnap: Done."
+		view.actions.end_kidnap = 1
+	},
+	end_kidnap() {
+		push_undo()
+		end_special_activity()
+	},
 }
 
 // SPECIAL ACTIVITY: ASSASSINATE
@@ -5438,7 +5465,7 @@ function resume_assassinate() {
 		game.state = "assassinate"
 		transfer_or_remove_shipments() // NOTE: Unless taken by Commandeer
 	} else {
-		end_special_activity()
+		game.state = "assassinate_done"
 	}
 }
 
@@ -5497,6 +5524,17 @@ function end_assassinate_space() {
 		game.state = "commandeer"
 	else
 		resume_assassinate()
+}
+
+states.assassinate_done = {
+	prompt() {
+		view.prompt = "Assassinate: Done."
+		view.actions.end_assassinate = 1
+	},
+	end_assassinate() {
+		push_undo()
+		end_special_activity()
+	},
 }
 
 states.commandeer = {
@@ -5649,7 +5687,7 @@ function do_process_remove_base(p) {
 		game.state = "process_remove_bases"
 	} else {
 		logi_resources(CARTELS, game.sa.count)
-		end_special_activity()
+		game.state = "process_done"
 	}
 }
 
@@ -5683,7 +5721,7 @@ states.process_place_shipments = {
 		place_shipment(game.sa.shipment, p)
 		game.sa.shipment = -1
 		if (--game.sa.count === 0 || !has_available_shipment())
-			end_special_activity()
+			game.state = "process_done"
 	},
 	end_process() {
 		push_undo()
@@ -5707,6 +5745,17 @@ states.process_remove_bases = {
 	end_process() {
 		push_undo()
 		logi_resources(CARTELS, game.sa.count)
+		end_special_activity()
+	},
+}
+
+states.process_done = {
+	prompt() {
+		view.prompt = "Process: Done."
+		view.actions.end_process = 1
+	},
+	end_process() {
+		push_undo()
 		end_special_activity()
 	},
 }
@@ -5745,14 +5794,14 @@ function init_bribe() {
 
 function resume_bribe() {
 	if (game.vm) {
-		end_special_activity()
+		game.state = "bribe_done"
 		return
 	}
 	if (game.sa.spaces.length < 3) {
 		game.state = "bribe"
 		transfer_or_remove_shipments() // NOTE: Unless taken by Contraband
 	} else {
-		end_special_activity()
+		game.state = "bribe_done"
 	}
 }
 
@@ -5884,6 +5933,17 @@ function end_bribe_space() {
 		game.state = "contraband"
 	else
 		resume_bribe()
+}
+
+states.bribe_done = {
+	prompt() {
+		view.prompt = "Bribe: Done."
+		view.actions.end_bribe = 1
+	},
+	end_bribe() {
+		push_undo()
+		end_special_activity()
+	},
 }
 
 states.contraband = {
@@ -6128,7 +6188,7 @@ states.sabotage_7th_sf = {
 states.sabotage_7th_sf_done = {
 	inactive: "7th Special Forces",
 	prompt() {
-		view.prompt = "7th Special Forces: All done."
+		view.prompt = "7th Special Forces: Done."
 		view.actions.done = 1
 	},
 	done() {
@@ -6326,7 +6386,7 @@ states.civic_action = {
 states.civic_action_done = {
 	inactive: "Civic Action",
 	prompt() {
-		view.prompt = "Civic Action: All done."
+		view.prompt = "Civic Action: Done."
 		view.actions.done = 1
 	},
 	done() {
@@ -6416,7 +6476,7 @@ states.agitation = {
 states.agitation_done = {
 	inactive: "Agitation",
 	prompt() {
-		view.prompt = "Agitation: All done."
+		view.prompt = "Agitation: Done."
 		view.actions.done = 1
 	},
 	done() {
@@ -6509,7 +6569,7 @@ states.elite_backing = {
 states.elite_backing_done = {
 	inactive: "Elite Backing",
 	prompt() {
-		view.prompt = "Elite Backing: All done."
+		view.prompt = "Elite Backing: Done."
 		view.actions.done = 1
 	},
 	done() {
@@ -7026,7 +7086,7 @@ function vm_return() {
 
 states.vm_return = {
 	prompt() {
-		event_prompt("All done.")
+		event_prompt("Done.")
 		view.actions.end_event = 1
 	},
 	end_event,
