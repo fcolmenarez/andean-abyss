@@ -5823,7 +5823,13 @@ states.bribe_space = {
 	piece(p) {
 		logi("Removed " + piece_name(p))
 		remove_piece(p)
-		if (game.sa.targeted || is_any_base(p))
+		if (game.sa.targeted)
+			end_bribe_space()
+		else if (is_any_base(p))
+			end_bribe_space()
+		else if (is_cube(p) && !has_cube(game.sa.where))
+			end_bribe_space()
+		else if (is_any_guerrilla(p) && !has_piece(game.sa.where, FARC, GUERRILLA) && !has_piece(game.sa.where, AUC, GUERRILLA))
 			end_bribe_space()
 		else
 			game.sa.targeted |= target_faction(p)
