@@ -1063,7 +1063,13 @@ function make_card_class_name(c) {
 		return "card card_" + c + " u" + data.card_unshaded_lines[c] + " s" + data.card_shaded_lines[c]
 }
 
+let once = true
 function on_update() {
+	if (once) {
+		init_ui()
+		once = false
+	}
+
 	switch (player) {
 	case "Government": ui.favicon.href = "images/icon_govt.png"; break
 	case "AUC": ui.favicon.href = "images/icon_auc.png"; break
@@ -1516,5 +1522,4 @@ function map_get(map, key, missing) {
 	return missing
 }
 
-init_ui()
 scroll_with_middle_mouse("main")
