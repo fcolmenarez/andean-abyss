@@ -6964,7 +6964,6 @@ function vm_operand(a) {
 }
 
 function vm_exec() {
-	console.log("VM", game.vm.fp, game.vm.ip, vm_inst(0).name)
 	vm_inst(0)()
 }
 
