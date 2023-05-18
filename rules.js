@@ -6109,6 +6109,8 @@ function is_adjacent_to_city_farc_control(s) {
 }
 
 function can_sabotage_phase() {
+	if (count_terror_and_sabotage() >= 40)
+		return false
 	for (let s = first_loc; s <= last_loc; ++s)
 		if (can_sabotage_phase_space(s))
 			return true
