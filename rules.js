@@ -6162,13 +6162,12 @@ function end_sabotage_phase() {
 states.sabotage_7th_sf = {
 	inactive: "7th Special Forces",
 	prompt() {
-		view.prompt = "7th Special Forces: Remove 1-3 Terror or Sabotage."
+		view.prompt = "7th Special Forces: Remove up to 3 Terror or Sabotage."
 		for (let s of game.sabotage)
 			gen_action_space(s)
 		for (let i = 0; i < game.terror.length; i += 2)
 			gen_action_space(game.terror[i])
-		if (game.prop.count > 0)
-			view.actions.skip = 1
+		view.actions.skip = 1
 	},
 	space(s) {
 		push_undo()
