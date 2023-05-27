@@ -142,7 +142,7 @@ EVENT 12
 	aid 10
 
 SHADED 12
-	log "No Air Strike or Activation by Patrlo until next Propaganda."
+	log "No Air Strike or Activation by Patrol until next Propaganda."
 	momentum MOM_PLAN_COLOMBIA
 
 EVENT 13

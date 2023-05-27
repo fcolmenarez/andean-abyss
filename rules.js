@@ -8641,7 +8641,7 @@ CODE[12 * 2 + 0] = [
 
 // SHADED 12
 CODE[12 * 2 + 1] = [
-	[ vm_log, "No Air Strike or Activation by Patrlo until next Propaganda." ],
+	[ vm_log, "No Air Strike or Activation by Patrol until next Propaganda." ],
 	[ vm_momentum, MOM_PLAN_COLOMBIA ],
 	[ vm_return ],
 ]
