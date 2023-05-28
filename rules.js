@@ -1816,8 +1816,6 @@ states.remove_pieces = {
 		view.actions.done = 1
 	},
 	piece(p) {
-		if (game.op)
-			game.op.pass = 0
 		log_summary("% " + piece_name(p) + " from S" + piece_space(p))
 		remove_piece(p)
 	},
@@ -2036,6 +2034,7 @@ states.give_shipment = {
 		view.prompt = `Negotiate: ${faction_name[game.transfer.current]} asked for Shipment in ${space_name[s]}.`
 		gen_piece_in_space(s, game.transfer.current, GUERRILLA)
 		view.actions.deny = 1
+		view.actions.undo = 0
 	},
 	piece(p) {
 		log_transfer(`${faction_name[game.current]} gave Shipment to ${faction_name[game.transfer.current]} in S${piece_space(p)}.`)
@@ -2113,6 +2112,7 @@ states.transfer_shipment = {
 		}
 	},
 	shipment(sh) {
+		push_undo()
 		if (game.transfer.shipment === sh)
 			game.transfer.shipment = -1
 		else
@@ -2562,15 +2562,7 @@ states.eligible = {
 			gen_any_operation()
 			gen_any_event()
 		}
-
-		// Limited negotiation menu until committed to op/event
-		view.actions.remove_pieces = 1
-		view.actions.ask_resources = 0
-		view.actions.transfer_resources = 0
-		view.actions.ask_shipment = 0
-		view.actions.transfer_shipment = 0
-
-		view.actions.pass = game.op.pass ? 1 : 0
+		view.actions.pass = 1
 	},
 	train: goto_train,
 	patrol: goto_patrol,
