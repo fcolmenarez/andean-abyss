@@ -2095,17 +2095,17 @@ states.transfer_shipment = {
 			view.selected_shipment = game.transfer.shipment
 			let p = get_held_shipment_piece(game.transfer.shipment)
 			let s = piece_space(p)
-			if (!is_player_farc())
+			if (game.current === FARC || !is_player_farc())
 				for_each_piece(FARC, GUERRILLA, (pp,ss) => {
 					if (pp !== p && ss === s)
 						gen_action_piece(pp)
 				})
-			if (!is_player_auc())
+			if (game.current === AUC || !is_player_auc())
 				for_each_piece(AUC, GUERRILLA, (pp,ss) => {
 					if (pp !== p && ss === s)
 						gen_action_piece(pp)
 				})
-			if (!is_player_cartels())
+			if (game.current === CARTELS || !is_player_cartels())
 				for_each_piece(CARTELS, GUERRILLA, (pp,ss) => {
 					if (pp !== p && ss === s)
 						gen_action_piece(pp)
