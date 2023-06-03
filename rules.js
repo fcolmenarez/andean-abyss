@@ -2279,10 +2279,10 @@ states.transfer_dropped_shipments = {
 
 function may_remove_shipment() {
 	// Captured Goods
-	if (typeof game.op === "object" && game.op.type === "Attack")
+	if (game.op !== null && typeof game.op === "object" && game.op.type === "Attack")
 		return false
 	// Commandeer
-	if (typeof game.sa === "object" && game.sa.commandeer)
+	if (game.sa !== null && typeof game.sa === "object" && game.sa.commandeer)
 		return false
 	return true
 }
