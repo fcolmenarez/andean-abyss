@@ -8106,6 +8106,14 @@ function is_current_role(role) {
 	return false
 }
 
+function count_propaganda_left() {
+	let n = 0
+	for (let i = 2; i < game.deck.length; ++i)
+		if (game.deck[i] === PROPAGANDA)
+			++n
+	return n
+}
+
 exports.view = function (state, role) {
 	load_game(state)
 
@@ -8120,7 +8128,7 @@ exports.view = function (state, role) {
 
 		scenario: game.scenario,
 		current: game.current,
-		deck: [ this_card, next_card, deck_size ],
+		deck: [ this_card, next_card, deck_size, count_propaganda_left() ],
 		capabilities: game.capabilities,
 		momentum: game.momentum,
 		president: game.president,

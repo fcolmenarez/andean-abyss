@@ -1127,7 +1127,7 @@ function on_update() {
 	ui.next_card.className = view.deck[1] > 0 ? "card card_" + view.deck[1] : "hide"
 	if (view.deck[2] > 0) {
 		ui.deck_outer.className = "card card_back"
-		ui.deck_size.textContent = view.deck[2]
+		ui.deck_size.textContent = `${view.deck[2]} (${view.deck[3]})`
 	} else {
 		ui.deck_outer.className = "hide"
 	}
