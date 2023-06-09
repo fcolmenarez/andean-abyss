@@ -236,7 +236,7 @@ EVENT 20
 	prompt "Move up to 6 FARC Guerillas into adjacent spaces."
 	piece_undo_opt 6 is_farc_guerrilla(p)
 		prompt "Move FARC Guerilla into an adjacent space."
-		space_no_undo 1 is_adjacent(s, piece_space(game.vm.p)) && can_stack_any(s, game.current)
+		space_no_undo 1 is_adjacent(s, piece_space(game.vm.p)) && can_stack_any(s, FARC)
 			move
 		endspace
 	endpiece

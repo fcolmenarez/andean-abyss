@@ -8779,7 +8779,7 @@ CODE[20 * 2 + 0] = [
 	[ vm_prompt, "Move up to 6 FARC Guerillas into adjacent spaces." ],
 	[ vm_piece, true, 0, 6, (p,s)=>is_farc_guerrilla(p) ],
 	[ vm_prompt, "Move FARC Guerilla into an adjacent space." ],
-	[ vm_space, false, 1, 1, (s)=>is_adjacent(s, piece_space(game.vm.p)) && can_stack_any(s, game.current) ],
+	[ vm_space, false, 1, 1, (s)=>is_adjacent(s, piece_space(game.vm.p)) && can_stack_any(s, FARC) ],
 	[ vm_move ],
 	[ vm_endspace ],
 	[ vm_endpiece ],
