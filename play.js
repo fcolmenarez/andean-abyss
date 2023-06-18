@@ -392,21 +392,14 @@ let ui = {
 
 function action_menu_item(action) {
 	let menu = document.getElementById(action + "_menu")
-	if (view.actions && action in view.actions) {
-		menu.classList.toggle("hide", false)
-		menu.classList.toggle("disabled", view.actions[action] === 0)
-		return 1
-	} else {
-		menu.classList.toggle("hide", true)
-		return 0
+	if (view) {
+		menu.classList.toggle("disabled", !(view.actions && view.actions[action]))
 	}
 }
 
 function action_menu(menu, action_list) {
-	let x = 0
 	for (let action of action_list)
-		x |= action_menu_item(action)
-	menu.classList.toggle("hide", !x)
+		action_menu_item(action)
 }
 
 function create(t, p, ...c) {

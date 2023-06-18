@@ -28,6 +28,8 @@ main { background-color: #777; }
 
 #log { font-variant-numeric: tabular-nums; }
 
+body.Observer #negotiate_menu { display: none }
+
 .action { cursor: pointer }
 
 .role.active span { text-decoration: underline; }
