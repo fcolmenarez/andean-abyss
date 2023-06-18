@@ -1156,13 +1156,13 @@ EVENT 69
 	space 1 game.vm.m && (s !== game.vm.m[0]) && is_within_adjacent_depts(s, game.vm.m[0], 3) && can_stack_any(s, game.current)
 		if game.current === GOVT
 			prompt "Move cubes to destination."
-			piece_undo_opt all (s === game.vm.m[0]) && is_cube(p) && can_stack_any(s, GOVT)
+			piece_undo_opt all (s === game.vm.m[0]) && is_cube(p) && can_stack_any(game.vm.s, GOVT)
 				move
 			endpiece
 			free_train_sweep_assault
 		else
 			prompt "Move Guerrillas to destination."
-			piece_undo_opt all (s === game.vm.m[0]) && is_piece(p, game.current, GUERRILLA) && can_stack_any(s, game.current)
+			piece_undo_opt all (s === game.vm.m[0]) && is_piece(p, game.current, GUERRILLA) && can_stack_any(game.vm.s, game.current)
 				move
 			endpiece
 			free_rally_attack_terror
