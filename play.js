@@ -221,6 +221,7 @@ function piece_faction(p) {
 }
 
 const last_city = data.last_city
+const first_pop = data.first_pop
 const last_pop = data.last_pop
 const first_dept = data.first_dept
 const last_dept = data.last_dept
@@ -253,6 +254,51 @@ function has_capability(bit) {
 	return view.capabilities & (1 << bit)
 }
 
+function piece_space(p) {
+	return view.pieces[p]
+}
+
+function calc_support() {
+	let n = 0
+	for (let s = first_pop; s <= last_pop; ++s)
+		if (view.support[s] > 0)
+			n += data.spaces[s].pop * view.support[s]
+	return n
+}
+
+function calc_opposition() {
+	let n = 0
+	for (let s = first_pop; s <= last_pop; ++s)
+		if (view.support[s] < 0)
+			n -= data.spaces[s].pop * view.support[s]
+	return n
+}
+
+function calc_bases(faction) {
+	let n = 0
+	for (let p = first_piece[faction][BASE]; p <= last_piece[faction][BASE]; ++p)
+		if (piece_space(p) !== AVAILABLE)
+			n += 1
+	return n
+}
+
+function govt_victory_margin() {
+	return calc_support() - 60
+}
+
+function farc_victory_margin() {
+	return calc_opposition() + calc_bases(FARC) - 25
+}
+
+function auc_victory_margin() {
+	return calc_bases(AUC) - calc_bases(FARC)
+}
+
+function cartels_victory_margin() {
+	return Math.min(calc_bases(CARTELS) - 10, view.resources[CARTELS] - 40)
+}
+
+
 let ui = {
 	map: document.getElementById("map"),
 	favicon: document.getElementById("favicon"),
@@ -266,6 +312,15 @@ let ui = {
 		document.getElementById("role_Government_+_AUC"),
 		document.getElementById("role_FARC_+_Cartels"),
 		document.getElementById("role_AUC_+_Cartels"),
+	],
+	victory: [
+		document.querySelector("#role_Government .role_vp"),
+		document.querySelector("#role_FARC .role_vp"),
+		document.querySelector("#role_AUC .role_vp"),
+		document.querySelector("#role_Cartels .role_vp"),
+		document.querySelector("#role_Government_\\+_AUC .role_vp"),
+		document.querySelector("#role_FARC_\\+_Cartels .role_vp"),
+		document.querySelector("#role_AUC_\\+_Cartels .role_vp"),
 	],
 	capabilities: [
 		document.getElementById("cap_first_div"),
@@ -1103,6 +1158,19 @@ function on_update() {
 	ui.player[GOVT_AUC].classList.toggle("active", view.current === GOVT || view.current === AUC)
 	ui.player[FARC_CARTELS].classList.toggle("active", view.current === FARC || view.current === CARTELS)
 	ui.player[AUC_CARTELS].classList.toggle("active",  view.current === AUC || view.current === CARTELS)
+
+	let vm_g = govt_victory_margin()
+	let vm_a = auc_victory_margin()
+	let vm_f = farc_victory_margin()
+	let vm_c = cartels_victory_margin()
+
+	ui.victory[GOVT].textContent = vm_g
+	ui.victory[AUC].textContent = vm_a
+	ui.victory[CARTELS].textContent = vm_c
+	ui.victory[FARC].textContent = vm_f
+	ui.victory[GOVT_AUC].textContent = vm_g + " / " + vm_a
+	ui.victory[FARC_CARTELS].textContent = vm_f + " / " + vm_c
+	ui.victory[AUC_CARTELS].textContent = vm_a + " / " + vm_c
 
 	ui.tokens.president.style.left = [ 0, "254px", "337px", "420px" ][view.president]
 

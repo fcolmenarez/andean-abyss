@@ -32,6 +32,8 @@ main { background-color: #777; }
 
 .role.active span { text-decoration: underline; }
 
+.role_vp { float: right; }
+
 #card_tip {
 	position: fixed;
 	z-index: 100;
