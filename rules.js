@@ -8537,7 +8537,7 @@ CODE[5 * 2 + 1] = [
 // EVENT 6
 CODE[6 * 2 + 0] = [
 	[ vm_prompt, "Select Opposition or Neutral Departments adjacent to Sabotage." ],
-	[ vm_space, true, 2, 2, (s)=>is_pop(s) && !is_support(s) && is_adjacent_to_sabotage(s) ],
+	[ vm_space, true, 2, 2, (s)=>is_pop(s) && !is_support(s) && is_dept(s) && is_adjacent_to_sabotage(s) ],
 	[ vm_set_passive_support ],
 	[ vm_endspace ],
 	[ vm_return ],
